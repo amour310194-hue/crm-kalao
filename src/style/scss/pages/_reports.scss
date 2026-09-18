@@ -1,0 +1,300 @@
+//
+// reports.scss
+// Report Builder + the analytics report pages.
+//
+// Deliberately small. The stepper, panes and radio cards come from
+// _import-wizard.scss (shared selector), and KPI tiles, meters, timelines,
+// empty states and signal lists all reuse existing components.
+//
+
+// ---------------------------------------------------------------------
+// Report Builder - field picker
+// ---------------------------------------------------------------------
+.rb-fields {
+	max-height: 340px;
+	overflow-y: auto;
+	padding-right: 4px;
+}
+
+.rb-field {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background-color: var(--white);
+	color: var(--body-color);
+	font-size: 13px;
+	text-align: start;
+	transition: all 0.2s ease;
+
+	& + .rb-field {
+		margin-top: 6px;
+	}
+
+	&:hover {
+		border-color: var(--primary);
+	}
+
+	&.is-selected {
+		border-color: var(--primary);
+		background-color: var(--primary-transparent);
+	}
+
+	// data-type marker
+	.rb-field-type {
+		flex-shrink: 0;
+		width: 22px;
+		height: 22px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 4px;
+		background-color: var(--light-400);
+		color: var(--gray-700);
+		font-size: 12px;
+	}
+
+	.rb-field-name {
+		flex-grow: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+// the chosen columns, in order
+.rb-selected {
+	display: flex;
+	gap: 6px;
+	min-height: 42px;
+	padding: 8px;
+	border: 1px dashed var(--border-color);
+	border-radius: 6px;
+	background-color: var(--light-100);
+
+	.rb-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 3px 8px;
+		border-radius: 4px;
+		background-color: var(--primary-transparent);
+		color: var(--primary);
+		font-size: 12px;
+		font-weight: 500;
+		white-space: nowrap;
+
+		button {
+			border: 0;
+			background: none;
+			padding: 0;
+			line-height: 1;
+			color: inherit;
+			opacity: 0.7;
+
+			&:hover {
+				opacity: 1;
+			}
+		}
+	}
+}
+
+// ---------------------------------------------------------------------
+// Report Builder - filter rows
+// ---------------------------------------------------------------------
+.rb-filter-group {
+	position: relative;
+	padding: 14px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	background-color: var(--light-100);
+
+	& + .rb-filter-group {
+		margin-top: 28px;
+
+		// AND/OR badge joining two groups
+		&::before {
+			content: attr(data-join);
+			position: absolute;
+			top: -20px;
+			inset-inline-start: 14px;
+			padding: 1px 10px;
+			border: 1px solid var(--border-color);
+			border-radius: 20px;
+			background-color: var(--white);
+			color: var(--gray-700);
+			font-size: 11px;
+			font-weight: 600;
+			text-transform: uppercase;
+		}
+	}
+}
+
+.rb-filter {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+
+	& + .rb-filter {
+		margin-top: 8px;
+	}
+
+	// the leading AND/OR selector stays narrow
+	> .rb-filter-join {
+		flex: 0 0 76px;
+	}
+
+	> .form-select,
+	> .form-control {
+		flex: 1 1 140px;
+		min-width: 120px;
+	}
+}
+
+// ---------------------------------------------------------------------
+// Report Builder - visualization picker
+// ---------------------------------------------------------------------
+.rb-viz {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	width: 100%;
+	height: 100%;
+	padding: 14px 8px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	background-color: var(--white);
+	color: var(--body-color);
+	font-size: 12px;
+	transition: all 0.2s ease;
+
+	i {
+		font-size: 22px;
+		color: var(--gray-600);
+	}
+
+	&:hover {
+		border-color: var(--primary);
+	}
+
+	&.is-selected {
+		border-color: var(--primary);
+		background-color: var(--primary-transparent);
+		color: var(--primary);
+
+		i {
+			color: var(--primary);
+		}
+	}
+}
+
+// ---------------------------------------------------------------------
+// Shared by the analytics report pages
+// ---------------------------------------------------------------------
+
+// the sales-velocity formula strip
+.rep-formula {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 10px;
+	padding: 16px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	background-color: var(--light-100);
+
+	.rep-formula-part {
+		text-align: center;
+		min-width: 96px;
+
+		.rep-formula-value {
+			display: block;
+			font-size: 18px;
+			font-weight: 700;
+			color: var(--heading-color);
+			line-height: 1.2;
+		}
+
+		.rep-formula-label {
+			display: block;
+			font-size: 11px;
+			color: var(--gray-600);
+		}
+	}
+
+	.rep-formula-op {
+		font-size: 18px;
+		font-weight: 600;
+		color: var(--gray-500);
+	}
+
+	.rep-formula-result {
+		padding: 8px 16px;
+		border-radius: 8px;
+		background-color: var(--primary-transparent);
+		color: var(--primary);
+		text-align: center;
+
+		.rep-formula-value {
+			color: var(--primary);
+			font-size: 22px;
+		}
+
+		.rep-formula-label {
+			color: var(--primary);
+			opacity: 0.75;
+		}
+	}
+}
+
+// win / loss split bar
+.rep-winloss {
+	display: flex;
+	height: 10px;
+	border-radius: 20px;
+	overflow: hidden;
+	background-color: var(--light-400);
+
+	span {
+		display: block;
+		height: 100%;
+	}
+
+	.rep-won {
+		background-color: var(--success);
+	}
+
+	.rep-lost {
+		background-color: var(--danger);
+	}
+}
+
+// period-comparison delta
+.rep-delta {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+
+	&.is-up {
+		color: var(--success);
+	}
+
+	&.is-down {
+		color: var(--danger);
+	}
+
+	&.is-flat {
+		color: var(--gray-600);
+	}
+}

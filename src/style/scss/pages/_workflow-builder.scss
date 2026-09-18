@@ -1,0 +1,452 @@
+//
+// workflow-builder.scss
+// Styles for the automation / workflow builder (workflow-builder.html)
+//
+
+
+@use "../variables" as *;
+@use "../utils/mixins" as *;
+
+.workflow-builder {
+	display: flex;
+	// columns size to their own content: the palette scrolls and the settings
+	// panel is short until a step is selected, so stretching them to the
+	// canvas height would leave a large empty area inside both cards
+	gap: 16px;
+
+	@media (max-width: 1199.98px) {
+		flex-direction: column;
+	}
+}
+
+// ---------------------------------------------------------------------
+// left: block palette
+// ---------------------------------------------------------------------
+.workflow-palette {
+	flex: 0 0 260px;
+	max-width: 260px;
+
+	@media (max-width: 1199.98px) {
+		flex: 1 1 auto;
+		max-width: none;
+		width: 100%;
+	}
+
+	.workflow-palette-group + .workflow-palette-group {
+		margin-top: 18px;
+	}
+
+	// the library is long - scroll it instead of pushing the canvas down
+	.workflow-palette-scroll {
+		max-height: 838px;
+		overflow-y: auto;
+		padding-right: 4px;
+	}
+
+	.workflow-palette-title {
+		margin-bottom: 8px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--gray-600);
+	}
+}
+.workflow-palette, 
+.workflow-canvas-wrap, 
+.workflow-props {
+    /* Turn the columns into vertical flexboxes */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Force the immediate inner div/card to fill the whole height */
+.workflow-palette > div,
+.workflow-canvas-wrap > div,
+.workflow-props > div {
+    flex: 1 1 auto; /* This forces the inner div to stretch to the bottom */
+    height: 100%;   /* Backup rule to guarantee full height */
+}
+.workflow-block {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background-color: var(--white);
+	color: var(--body-color);
+	font-size: 13px;
+	text-align: start;
+	cursor: grab;
+	transition: all 0.2s ease;
+
+	& + .workflow-block {
+		margin-top: 8px;
+	}
+
+	&:hover {
+		border-color: var(--primary);
+		box-shadow: var(--box-shadow-sm);
+	}
+
+	&:active {
+		cursor: grabbing;
+	}
+
+	&.is-dragging {
+		opacity: 0.5;
+	}
+
+	i {
+		flex-shrink: 0;
+		width: 28px;
+		height: 28px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 6px;
+		font-size: 15px;
+	}
+}
+
+// ---------------------------------------------------------------------
+// centre: the canvas
+// ---------------------------------------------------------------------
+.workflow-canvas-wrap {
+	flex: 1 1 auto;
+	min-width: 0;
+	@media (max-width: 1199.98px) {
+		width: 100%;
+	}
+}
+
+.workflow-canvas {
+	position: relative;
+	min-height: 560px;
+	padding: 20px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	// faint dot grid so the area reads as a canvas
+	background-color: var(--light-100);
+	background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+	background-size: 18px 18px;
+	overflow-x: auto;
+
+	&.is-dragover {
+		border-color: var(--primary);
+	}
+}
+
+.workflow-flow {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 320px;
+	@include respond-below (sm) {
+        min-width: 260px;
+    }
+}
+
+// a single step in the flow
+.workflow-node {
+	position: relative;
+	width: 100%;
+	max-width: 420px;
+	padding: 14px 16px;
+	border: 1px solid var(--border-color);
+	border-left: 3px solid var(--gray-400);
+	border-radius: 8px;
+	background-color: var(--white);
+	box-shadow: var(--box-shadow-sm);
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover {
+		box-shadow: var(--box-shadow);
+	}
+
+	&.is-selected {
+		border-color: var(--primary);
+		border-left-color: var(--primary);
+		box-shadow: 0 0 0 3px var(--primary-transparent);
+	}
+
+	// colour the left rail by node kind
+	&[data-kind="trigger"] {
+		border-left-color: var(--primary);
+	}
+
+	&[data-kind="condition"] {
+		border-left-color: var(--warning);
+	}
+
+	&[data-kind="action"] {
+		border-left-color: var(--success);
+	}
+
+	&[data-kind="delay"] {
+		border-left-color: var(--purple);
+	}
+
+	.workflow-node-head {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.workflow-node-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: 34px;
+		height: 34px;
+		border-radius: 6px;
+		font-size: 17px;
+	}
+
+	.workflow-node-kind {
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--gray-600);
+	}
+
+	.workflow-node-title {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--heading-color);
+	}
+
+	.workflow-node-desc {
+		margin: 6px 0 0;
+		font-size: 12px;
+		color: var(--gray-600);
+	}
+
+	// hover-revealed step tools: reorder, duplicate, remove
+	.workflow-node-tools {
+		position: absolute;
+		top: 8px;
+		inset-inline-end: 8px;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		opacity: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.workflow-node-tool {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		border: 0;
+		border-radius: 4px;
+		background-color: transparent;
+		color: var(--gray-500);
+		font-size: 14px;
+		transition: all 0.2s ease;
+
+		&:hover:not(:disabled) {
+			background-color: var(--light-400);
+			color: var(--heading-color);
+		}
+
+		&:disabled {
+			opacity: 0.35;
+			cursor: not-allowed;
+		}
+	}
+
+	&:hover .workflow-node-tools,
+	&.is-selected .workflow-node-tools,
+	&:focus-within .workflow-node-tools {
+		opacity: 1;
+	}
+
+	.workflow-node-remove:hover:not(:disabled) {
+		background-color: var(--danger-transparent);
+		color: var(--danger);
+	}
+
+	// a step that fails validation
+	&.is-invalid {
+		border-color: var(--warning);
+		border-left-color: var(--warning);
+		background-color: var(--warning-transparent);
+	}
+
+	.workflow-node-issue {
+		margin: 8px 0 0;
+		padding-top: 8px;
+		border-top: 1px dashed var(--warning);
+		font-size: 12px;
+		color: var(--warning);
+	}
+}
+
+// vertical connector + inline "insert step" control
+.workflow-connector {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 46px;
+
+	// the line itself
+	&::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		inset-inline-start: 50%;
+		width: 2px;
+		transform: translateX(-50%);
+		background-color: var(--border-color);
+	}
+
+	.workflow-add {
+		position: relative;
+		z-index: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border: 1px solid var(--border-color);
+		border-radius: 50%;
+		background-color: var(--white);
+		color: var(--gray-600);
+		font-size: 14px;
+		opacity: 0;
+		transition: all 0.2s ease;
+	}
+
+	&:hover .workflow-add {
+		opacity: 1;
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+}
+
+// yes / no split under a condition node
+.workflow-branch {
+	display: flex;
+	gap: 16px;
+	width: 100%;
+	max-width: 620px;
+
+	@media (max-width: 575.98px) {
+		flex-direction: column;
+	}
+
+	.workflow-branch-col {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	.workflow-branch-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		margin-bottom: 10px;
+		padding: 2px 10px;
+		border-radius: 20px;
+		font-size: 11px;
+		font-weight: 600;
+	}
+
+	.workflow-branch-col--yes .workflow-branch-label {
+		background-color: var(--success-transparent);
+		color: var(--success);
+	}
+
+	.workflow-branch-col--no .workflow-branch-label {
+		background-color: var(--danger-transparent);
+		color: var(--danger);
+	}
+}
+
+// terminator pill at the end of the flow
+.workflow-end {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 16px;
+	border-radius: 20px;
+	background-color: var(--light-400);
+	color: var(--gray-700);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+// shown only while the flow has no steps
+.workflow-canvas-hint {
+	padding: 30px 20px;
+	border: 1px dashed var(--border-color);
+	border-radius: 8px;
+	text-align: center;
+	color: var(--gray-600);
+}
+
+// ---------------------------------------------------------------------
+// right: selected-node properties
+// ---------------------------------------------------------------------
+.workflow-props {
+	flex: 0 0 300px;
+	max-width: 300px;
+
+	@media (max-width: 1199.98px) {
+		flex: 1 1 auto;
+		max-width: none;
+		width:100%;
+	}
+
+	.workflow-props-empty {
+		padding: 30px 16px;
+		text-align: center;
+		color: var(--gray-600);
+
+		i {
+			font-size: 30px;
+			opacity: 0.5;
+		}
+	}
+}
+
+// ---------------------------------------------------------------------
+// run history status dots
+// ---------------------------------------------------------------------
+.workflow-run-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+
+	&::before {
+		content: "";
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: var(--gray-400);
+	}
+
+	&.is-success::before {
+		background-color: var(--success);
+	}
+
+	&.is-failed::before {
+		background-color: var(--danger);
+	}
+
+	&.is-running::before {
+		background-color: var(--warning);
+	}
+}

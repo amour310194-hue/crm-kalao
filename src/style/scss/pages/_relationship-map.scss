@@ -1,0 +1,314 @@
+//
+// relationship-map.scss
+// Radial relationship graph plus the account hierarchy view.
+// Node positions are computed in script.js; this file only styles them.
+//
+
+// ---------------------------------------------------------------------
+// Relationship strength - one scale reused by the graph, panel and lists
+// ---------------------------------------------------------------------
+
+
+@use "../variables" as *;
+@use "../utils/mixins" as *;
+
+.rel-strength {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 12px;
+	font-weight: 500;
+	white-space: nowrap;
+
+	&::before {
+		content: "";
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: var(--gray-400);
+		flex-shrink: 0;
+	}
+
+	&.is-strong::before {
+		background-color: var(--success);
+	}
+
+	&.is-good::before {
+		background-color: var(--info);
+	}
+
+	&.is-neutral::before {
+		background-color: var(--gray-500);
+	}
+
+	&.is-weak::before {
+		background-color: var(--warning);
+	}
+
+	&.is-risk::before {
+		background-color: var(--danger);
+	}
+}
+
+// ---------------------------------------------------------------------
+// Graph canvas
+// ---------------------------------------------------------------------
+.relmap {
+	position: relative;
+	min-height: 720px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	background-color: var(--light-100);
+	background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+	background-size: 20px 20px;
+	overflow: hidden;
+
+	// connector lines sit behind every node
+	.relmap-links {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+
+		line {
+			stroke: var(--border-color);
+			stroke-width: 2;
+			transition: stroke 0.2s ease, stroke-width 0.2s ease;
+		}
+
+		line.is-strong {
+			stroke: var(--success);
+		}
+
+		line.is-good {
+			stroke: var(--info);
+		}
+
+		line.is-weak {
+			stroke: var(--warning);
+		}
+
+		line.is-risk {
+			stroke: var(--danger);
+			stroke-dasharray: 5 4;
+		}
+
+		line.is-selected {
+			stroke-width: 3;
+		}
+
+		line.is-dim {
+			opacity: 0.25;
+		}
+	}
+
+	// the account at the centre
+	.relmap-center {
+		position: absolute;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		width: 168px;
+		padding: 14px 12px;
+		border: 2px solid var(--primary);
+		border-radius: 10px;
+		background-color: var(--white);
+		box-shadow: var(--box-shadow);
+		text-align: center;
+		transform: translate(-50%, -50%);
+	}
+
+	// satellite nodes
+	.relmap-node {
+		position: absolute;
+		z-index: 1;
+		width: 176px;
+		padding: 10px 12px;
+		border: 1px solid var(--border-color);
+		border-radius: 8px;
+		background-color: var(--white);
+		box-shadow: var(--box-shadow-sm);
+		text-align: start;
+		transform: translate(-50%, -50%);
+		transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+		cursor: pointer;
+
+		&:hover {
+			border-color: var(--primary);
+			box-shadow: var(--box-shadow);
+			z-index: 3;
+		}
+
+		&.is-selected {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px var(--primary-transparent);
+			z-index: 3;
+		}
+
+		&.is-dim {
+			opacity: 0.35;
+		}
+
+		// left rail carries the node kind
+		&::before {
+			content: "";
+			position: absolute;
+			top: 8px;
+			bottom: 8px;
+			inset-inline-start: 0;
+			width: 3px;
+			border-radius: 3px;
+			background-color: var(--gray-400);
+		}
+
+		&[data-kind="contact"]::before {
+			background-color: var(--primary);
+		}
+
+		&[data-kind="deal"]::before {
+			background-color: var(--success);
+		}
+
+		&[data-kind="owner"]::before {
+			background-color: var(--purple);
+		}
+
+		&[data-kind="project"]::before {
+			background-color: var(--info);
+		}
+
+		&[data-kind="company"]::before {
+			background-color: var(--warning);
+		}
+
+		.relmap-node-title {
+			margin: 0;
+			font-size: 13px;
+			font-weight: 600;
+			line-height: 1.3;
+			color: var(--heading-color);
+		}
+
+		.relmap-node-meta {
+			display: block;
+			font-size: 11px;
+			color: var(--gray-600);
+		}
+	}
+
+	// stacked fallback under md - a radial graph is unusable on a phone
+	&.is-stacked {
+		min-height: 0;
+		background-image: none;
+		padding: 14px;
+
+		.relmap-links {
+			display: none;
+		}
+
+		.relmap-center,
+		.relmap-node {
+			position: static;
+			width: 100%;
+			transform: none;
+			margin-bottom: 10px;
+		}
+	}
+}
+
+// legend under the canvas
+.relmap-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 18px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+
+	li {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 12px;
+		color: var(--gray-700);
+	}
+
+	.relmap-legend-rail {
+		width: 12px;
+		height: 3px;
+		border-radius: 3px;
+		background-color: var(--gray-400);
+	}
+}
+
+// ---------------------------------------------------------------------
+// Account hierarchy
+// ---------------------------------------------------------------------
+.relmap-tree {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+
+	ul {
+		list-style: none;
+		margin: 0;
+		padding-inline-start: 26px;
+	}
+
+	li {
+		position: relative;
+		padding: 6px 0 6px 0;
+	}
+
+	// elbow connectors
+	ul > li::before,
+	ul > li::after {
+		content: "";
+		position: absolute;
+		inset-inline-start: -14px;
+		background-color: var(--border-color);
+	}
+
+	ul > li::before {
+		top: 0;
+		bottom: 0;
+		width: 1px;
+	}
+
+	ul > li::after {
+		top: 22px;
+		width: 12px;
+		height: 1px;
+	}
+
+	ul > li:last-child::before {
+		bottom: auto;
+		height: 22px;
+	}
+
+	.relmap-tree-item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 8px 12px;
+		border: 1px solid var(--border-color);
+		border-radius: 8px;
+		background-color: var(--white);
+		transition: border-color 0.2s ease;
+		@include respond-below(md) {
+			flex-wrap: wrap; 
+		}
+
+		&:hover {
+			border-color: var(--primary);
+		}
+
+		&.is-current {
+			border-color: var(--primary);
+			background-color: var(--primary-transparent);
+		}
+	}
+}

@@ -1,0 +1,29 @@
+//
+// _layout.scss 
+//
+
+@use "../variables" as *;
+@use "../utils/mixins" as *;
+
+.page-wrapper {
+    @include transition(all 0.5s ease);
+    margin: 0 0 0 $sidenav-width;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    left: 0;
+    min-height: calc(100vh - ($topbar-height + 1px));
+    // A wide table inside a flex .card leaks its width to the document, which
+    // makes the whole page scroll sideways instead of the table scrolling
+    // inside its own .table-responsive. body already sets overflow-x: hidden;
+    // this completes that intent at the layout level.
+    overflow-x: hidden;
+    @include transition(all 0.2s ease);
+    @include respond-below(lg) {
+        margin: 0;
+    }
+    .content {
+        padding: 1.25rem;
+        min-height: calc(100vh - 96px);
+    }
+}

@@ -1,0 +1,78 @@
+//
+// automation.scss
+// Automation Rules / Webhooks / Automation Logs.
+//
+// Intentionally tiny - the tables, badges, meters, timelines and empty states
+// all reuse existing components. Only the horizontal execution path below is
+// genuinely new.
+//
+
+// Trigger -> Condition -> Action -> Completed
+.log-path {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 14px;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	background-color: var(--light-100);
+	overflow-x: auto;
+
+	.log-path-step {
+		display: inline-flex;
+		align-items: center;
+		padding: 5px 12px;
+		border: 1px solid var(--border-color);
+		border-radius: 20px;
+		background-color: var(--white);
+		font-size: 12px;
+		font-weight: 600;
+		white-space: nowrap;
+
+		&.is-success {
+			border-color: var(--success);
+			background-color: var(--success-transparent);
+			color: var(--success);
+		}
+
+		&.is-failed {
+			border-color: var(--danger);
+			background-color: var(--danger-transparent);
+			color: var(--danger);
+		}
+
+		&.is-running {
+			border-color: var(--warning);
+			background-color: var(--warning-transparent);
+			color: var(--warning);
+		}
+
+		&.is-skipped {
+			color: var(--gray-600);
+		}
+	}
+
+	.log-path-arrow {
+		display: inline-flex;
+		color: var(--gray-500);
+		font-size: 14px;
+		flex-shrink: 0;
+	}
+}
+
+// payload / response preview blocks in the webhook modal
+.webhook-code {
+	max-height: 260px;
+	overflow: auto;
+	padding: 12px;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background-color: var(--light-100);
+
+	pre {
+		margin: 0;
+		font-size: 12px;
+		color: var(--body-color);
+	}
+}
