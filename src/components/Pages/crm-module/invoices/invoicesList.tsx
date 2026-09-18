@@ -11,6 +11,7 @@ import Datatable from "@/core/common/dataTable";
 import ModalInvoice from "./modal/modalInvoice";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -18,7 +19,7 @@ const InvoicesListComponent = () => {
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
-  const data = InvoicesListData;
+  const data = useCrmList("invoices", InvoicesListData);
   const columns = [
     {
       title: "Invoice ID",
@@ -172,7 +173,7 @@ const InvoicesListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Invoices"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
           />

@@ -11,6 +11,7 @@ import PredefinedDatePicker from "@/core/common/common-dateRangePicker/Predefine
 import ModalContacts from "./modals/modalContacts";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const ContactsListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
@@ -23,7 +24,7 @@ const ContactsListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = ContactsListData;
+  const data = useCrmList("contacts", ContactsListData);
   const columns = [
     {
       title: "",
@@ -61,6 +62,21 @@ const ContactsListComponent = () => {
         </h6>
       ),
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
+    },
+    {
+      title: "Type",
+      dataIndex: "ClientType",
+      render: (text: string) => (
+        <span
+          className={`badge ${
+            text === "Particulier" ? "badge-soft-info" : "badge-soft-primary"
+          }`}
+        >
+          {text || "Société"}
+        </span>
+      ),
+      sorter: (a: any, b: any) =>
+        String(a.ClientType ?? "").localeCompare(String(b.ClientType ?? "")),
     },
     {
       title: "Phone",
@@ -212,7 +228,7 @@ const ContactsListComponent = () => {
         {/* Start Content */}
         <div className="content pb-0">
           {/* Page Header */}
-         <PageHeader title="Contacts" badgeCount={125} showModuleTile={false} showExport={true}/>
+         <PageHeader title="Contacts" badgeCount={data.length} showModuleTile={false} showExport={true}/>
           {/* End Page Header */}
           {/* card start */}
           <div className="card border-0 rounded-0">

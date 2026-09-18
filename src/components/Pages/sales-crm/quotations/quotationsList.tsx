@@ -14,10 +14,11 @@ import {
 } from "../../../../core/json/quotationsListData";
 import { all_routes } from "@/router/all_routes";
 import ModalQuotations from "./modal/modalQuotations";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const QuotationsListComponent = () => {
   const route = all_routes;
-  const data = QuotationsListData;
+  const data = useCrmList("quotations", QuotationsListData);
   const [searchText, setSearchText] = useState<string>("");
 
   const handleSearch = (value: string) => {
@@ -131,7 +132,7 @@ const QuotationsListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Quotations"
-            badgeCount={150}
+            badgeCount={data.length}
             showModuleTile={true}
             moduleTitle="Sales CRM"
             showExport={true}

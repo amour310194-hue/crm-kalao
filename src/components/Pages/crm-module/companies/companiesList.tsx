@@ -11,6 +11,7 @@ import Footer from "@/core/common/footer/footer";
 import ModalCompanies from "./modal/modalCompanies";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const CompaniesListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
@@ -22,7 +23,7 @@ const CompaniesListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = CompaniesListData;
+  const data = useCrmList("companies", CompaniesListData);
   const columns = [
     {
       title: "",
@@ -63,6 +64,15 @@ const CompaniesListComponent = () => {
         </h6>
       ),
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
+    },
+    {
+      title: "Type",
+      dataIndex: "ClientType",
+      render: (text: string) => (
+        <span className="badge badge-soft-primary">{text || "Société"}</span>
+      ),
+      sorter: (a: any, b: any) =>
+        String(a.ClientType ?? "").localeCompare(String(b.ClientType ?? "")),
     },
     {
       title: "Email",
@@ -201,7 +211,7 @@ const CompaniesListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Companies"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={false}
           />

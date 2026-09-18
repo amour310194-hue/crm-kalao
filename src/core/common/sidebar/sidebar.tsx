@@ -13,9 +13,11 @@ import { updateTheme } from "@/core/redux/themeSlice";
 import { setExpandMenu, setMobileSidebar } from "@/core/redux/sidebarSlice";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import { useI18n } from "@/i18n/I18nProvider";
 
 
 const Sidebar = () => {
+  const { t } = useI18n();
   const route = all_routes;
   const pathname = usePathname();
   // Track open state for each menu by label
@@ -207,14 +209,19 @@ const Sidebar = () => {
           <OverlayScrollbarsComponent style={{ height: "100%", width: "100%" }}>
             <div id="sidebar-menu" className="sidebar-menu">
               <ul>
-                {SidebarData?.map((mainLabel, index) => (
+                {SidebarData?.filter((section: any) => !section.hidden).map((mainLabel, index) => {
+                  const visibleItems = mainLabel?.submenuItems?.filter((item: any) => !item.hidden) ?? [];
+                  if (!visibleItems.length) {
+                    return null;
+                  }
+                  return (
                   <React.Fragment key={`main-${index}`}>
                     <li className="menu-title">
-                      <span>{mainLabel?.tittle}</span>
+                      <span>{t(mainLabel?.tittle)}</span>
                     </li>
                     <li>
                       <ul>
-                        {mainLabel?.submenuItems?.map((title: any, i) => {
+                        {visibleItems.map((title: any, i) => {
                           // If any submenu link is active
                           const isSubmenuActive =
                             (title?.submenuItems &&
@@ -250,7 +257,7 @@ const Sidebar = () => {
                                 className={`${isActive ? "active" : ""} ${isOpen ? "subdrop" : ""}`}
                               >
                                 <i className={`ti ti-${title.icon}`}></i>
-                                <span>{title?.label}</span>
+                                <span>{t(title?.label)}</span>
                                 {(title?.submenu || title?.customSubmenuTwo) && (
                                   <span className="menu-arrow"></span>
                                 )}
@@ -268,7 +275,7 @@ const Sidebar = () => {
                                     display: isOpen ? "block" : "none",
                                   }}
                                 >
-                                  {title?.submenuItems?.map(
+                                  {title?.submenuItems?.filter((item: any) => !item.hidden).map(
                                     (item: any, j: any) => {
                                       const isSubActive =
                                         item?.submenuItems
@@ -296,7 +303,7 @@ const Sidebar = () => {
                                             }`}
                                             // Add submenu toggle logic here if you want nested toggles
                                           >
-                                            {item?.label}
+                                            {t(item?.label)}
                                             {(item?.submenu ||
                                               item?.customSubmenuTwo) && (
                                               <span className="menu-arrow"></span>
@@ -308,7 +315,7 @@ const Sidebar = () => {
                                                 display: false ? "block" : "none", // Add nested submenu open logic if needed
                                               }}
                                             >
-                                              {item?.submenuItems?.map(
+                                              {item?.submenuItems?.filter((items: any) => !items.hidden).map(
                                                 (items: any, k: any) => {
                                                   const isSubSubActive =
                                                     items?.submenuItems
@@ -337,7 +344,7 @@ const Sidebar = () => {
                                                             : ""
                                                         }`}
                                                       >
-                                                        {items?.label}
+                                                        {t(items?.label)}
                                                       </Link>
                                                     </li>
                                                   );
@@ -357,7 +364,8 @@ const Sidebar = () => {
                       </ul>
                     </li>
                   </React.Fragment>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           </OverlayScrollbarsComponent>

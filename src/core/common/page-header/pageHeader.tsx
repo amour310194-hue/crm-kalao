@@ -1,7 +1,9 @@
+"use client";
 
 import { all_routes } from '@/router/all_routes';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 
 
 interface PageHeaderProps {
@@ -15,6 +17,7 @@ interface PageHeaderProps {
 }
 
 const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleTitle = "", showModuleTile = true, headerExtra }: PageHeaderProps) => {
+  const { t } = useI18n();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
@@ -45,21 +48,21 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
     <div className="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
       <div>
         <h4 className="mb-1">
-          {title}
+          {t(title)}
           <span className="badge badge-soft-primary ms-2">{badgeCount}</span>
         </h4>
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb mb-0 p-0">
             <li className="breadcrumb-item">
-              <Link href={all_routes.dealsDashboard}>Home</Link>
+              <Link href={all_routes.dealsDashboard}>{t("Home")}</Link>
             </li>
             {showModuleTile && (
             <li className="breadcrumb-item" aria-current="page">
-              <Link href="#">{moduleTitle}</Link>
+              <Link href="#">{t(moduleTitle)}</Link>
             </li>
             )}
             <li className="breadcrumb-item active" aria-current="page">
-              {title}
+              {t(title)}
             </li>
           </ol>
         </nav>
@@ -75,20 +78,20 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
               data-bs-toggle="dropdown"
             >
               <i className="ti ti-package-export me-2" />
-              Export
+              {t("Export")}
             </Link>
             <div className="dropdown-menu dropdown-menu-end">
               <ul>
                 <li>
                   <Link href="#" className="dropdown-item">
                     <i className="ti ti-file-type-pdf me-1" />
-                    Export as PDF
+                    {t("Export as PDF")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#" className="dropdown-item">
                     <i className="ti ti-file-type-xls me-1" />
-                    Export as Excel
+                    {t("Export as Excel")}
                   </Link>
                 </li>
               </ul>

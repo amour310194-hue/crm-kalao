@@ -12,6 +12,7 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const LeadsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -29,7 +30,7 @@ const LeadsListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = LeadsListData;
+  const data = useCrmList("leads", LeadsListData);
   const columns = [
     {
       title: "",
@@ -188,7 +189,7 @@ const LeadsListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Leads"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
           />

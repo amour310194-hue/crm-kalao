@@ -9,10 +9,15 @@ import { all_routes } from "@/router/all_routes";
 import { setMobileSidebar } from "@/core/redux/sidebarSlice";
 import { updateTheme } from "@/core/redux/themeSlice";
 import Link from "next/link";
+import { clearLocalSession, getLocalSession, type AuthSession } from "@/lib/auth/session";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useI18n } from "@/i18n/I18nProvider";
 
 
 const Header = () => {
-
+  const { t } = useI18n();
+  const [session, setSession] = useState<AuthSession | null>(null);
   const route = all_routes
   const dispatch = useDispatch();
   const themeSettings = useSelector((state: any) => state.theme.themeSettings);
@@ -42,6 +47,13 @@ const Header = () => {
     }
   };
 
+  const handleSignOut = () => {
+    clearLocalSession();
+    if (isSupabaseConfigured()) {
+      void getSupabaseBrowserClient().auth.signOut();
+    }
+  };
+
   const handleUpdateTheme = (key: string, value: string) => {
     if (themeSettings["dir"] === "rtl" && key !== "dir") {
       dispatch(updateTheme({ dir: "ltr" }));
@@ -50,6 +62,7 @@ const Header = () => {
   };
 
   useEffect(() => {
+    setSession(getLocalSession());
     const htmlElement: any = document.documentElement;
     Object.entries(themeSettings).forEach(([key, value]) => {
       htmlElement.setAttribute(key, value);
@@ -108,7 +121,7 @@ const Header = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Search Keyword"
+                  placeholder={t("Search Keyword")}
                 />
                 <span className="input-icon-addon d-inline-flex p-0 header-search-icon">
                   <i className="ti ti-command" />
@@ -142,6 +155,9 @@ const Header = () => {
               </div>
             </div>
             {/* Minimize */}
+            <div className="header-item d-none d-md-flex me-2">
+              <LanguageSwitcher />
+            </div>
             {/* Light/Dark Mode Button */}
             <div className="header-item d-none d-sm-flex me-2">
               <Link
@@ -523,20 +539,24 @@ const Header = () => {
                     alt=""
                   />
                   <div className="ms-2">
-                    <p className="fw-medium text-dark mb-0">Katherine Brooks</p>
-                    <span className="d-block fs-13">Installer</span>
+                    <p className="fw-medium text-dark mb-0">{session?.fullName ?? t("Superadmin")}</p>
+                    <span className="d-block fs-13">
+                      {session?.role === "super_admin"
+                        ? t("Super Admin")
+                        : t(session?.role ?? "Staff")}
+                    </span>
                   </div>
                 </div>
                 {/* Item*/}
                 <Link href={route.profile} className="dropdown-item">
                   <i className="ti ti-user-circle me-1 align-middle" />
-                  <span className="align-middle">Profile Settings</span>
+                  <span className="align-middle">{t("Profile Settings")}</span>
                 </Link>
                 {/* item */}
                 <div className="form-check form-switch form-check-reverse d-flex align-items-center justify-content-between dropdown-item mb-0">
                   <label className="form-check-label" htmlFor="notify">
                     <i className="ti ti-bell" />
-                    Notifications
+                    {t("Notifications")}
                   </label>
                   <input
                     className="form-check-input me-0"
@@ -548,18 +568,22 @@ const Header = () => {
                 {/* Item*/}
                 <Link href="#" className="dropdown-item">
                   <i className="ti ti-help-circle me-1 align-middle" />
-                  <span className="align-middle">Help &amp; Support</span>
+                  <span className="align-middle">{t("Help & Support")}</span>
                 </Link>
                 {/* Item*/}
                 <Link href={route.profile} className="dropdown-item">
                   <i className="ti ti-settings me-1 align-middle" />
-                  <span className="align-middle">Settings</span>
+                  <span className="align-middle">{t("Settings")}</span>
                 </Link>
                 {/* Item*/}
                 <div className="pt-2 mt-2 border-top">
-                  <Link href={route.login} className="dropdown-item text-danger">
+                  <Link
+                    href={route.login}
+                    className="dropdown-item text-danger"
+                    onClick={handleSignOut}
+                  >
                     <i className="ti ti-logout me-1 fs-17 align-middle" />
-                    <span className="align-middle">Sign Out</span>
+                    <span className="align-middle">{t("Sign Out")}</span>
                   </Link>
                 </div>
               </div>

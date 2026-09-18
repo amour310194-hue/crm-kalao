@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
@@ -8,41 +8,14 @@ import PredefinedDatePicker from "@/core/common/common-dateRangePicker/Predefine
 import Footer from "@/core/common/footer/footer";
 import {
   ProductsListData,
-  type ProductsListInterface,
 } from "../../../../core/json/productsListData";
 import { all_routes } from "@/router/all_routes";
 import ModalProducts from "./modal/modalProducts";
-import { fetchCatalogItems, toProductsListRow } from "@/lib/catalog";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const ProductsComponent = () => {
   const route = all_routes;
-  const [data, setData] = useState<ProductsListInterface[]>(ProductsListData);
-  const [source, setSource] = useState<"demo" | "supabase">("demo");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const items = await fetchCatalogItems();
-        if (cancelled || items === null) {
-          return;
-        }
-        setData(items.map(toProductsListRow));
-        setSource("supabase");
-      } catch {
-        if (!cancelled) {
-          setData(ProductsListData);
-          setSource("demo");
-        }
-      }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const data = useCrmList("catalog", ProductsListData);
 
   const columns = [
     {
@@ -173,12 +146,11 @@ const ProductsComponent = () => {
             moduleTitle="Sales CRM"
             showExport={true}
           />
-          {source === "demo" ? (
-            <p className="text-muted fs-13 mb-3">
-              Données de démonstration. Une fois Supabase configuré, le catalogue
-              réel s’affichera ici.
-            </p>
-          ) : null}
+          <p className="text-muted fs-13 mb-3">
+            Données de test Groupe Kalao servies par l’API interne. Les
+            intégrations externes (paiement, e-mail, SMS, etc.) seront
+            choisies ensuite.
+          </p>
           {/* End Page Header */}
           {/* card start */}
           <div className="card border-0 rounded-0">

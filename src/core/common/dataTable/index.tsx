@@ -1,7 +1,9 @@
-// index.tsx
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
 import { Pagination, Select, Table } from "antd";
 import { DatatableProps } from "@/core/data/interface";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const { Option } = Select;
 
@@ -11,6 +13,7 @@ const Datatable: React.FC<DatatableProps> = ({
   Selection,
   searchText,
 }) => {
+  const { t } = useI18n();
   const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
   const [Selections, setSelections] = useState<any>(true);
   const [filteredDataSource, setFilteredDataSource] = useState(dataSource);
@@ -41,6 +44,15 @@ const Datatable: React.FC<DatatableProps> = ({
     setFilteredDataSource(filteredData);
   }, [debouncedSearchText, dataSource]);
 
+  const translatedColumns = useMemo(
+    () =>
+      columns.map((column: any) => ({
+        ...column,
+        title: typeof column.title === "string" ? t(column.title) : column.title,
+      })),
+    [columns, t]
+  );
+
   const onSelectChange = (newSelectedRowKeys: any[]) => {
     setSelectedRowKeys(newSelectedRowKeys);
   };
@@ -62,7 +74,7 @@ const Datatable: React.FC<DatatableProps> = ({
       <Table
         className="table-nowrap mt-3 mb-3"
         rowSelection={Selections ? rowSelection : undefined}
-        columns={columns}
+        columns={translatedColumns}
         rowHoverable={false}
         dataSource={filteredDataSource.slice((current - 1) * pageSize, current * pageSize)}
         pagination={false} // disable built-in pagination
@@ -71,7 +83,7 @@ const Datatable: React.FC<DatatableProps> = ({
       <div className="col-md-6">
         <div className="datatable-length">
           <label>
-            Show
+            {t("Show")}
             <Select
               value={pageSize}
               onChange={(value) => handlePageChange(1, value)} // reset to page 1
@@ -83,7 +95,7 @@ const Datatable: React.FC<DatatableProps> = ({
               <Option value={50}>50</Option>
               <Option value={100}>100</Option>
             </Select>
-            entries
+            {t("entries")}
           </label>
         </div>
       </div>

@@ -10,6 +10,7 @@ import Datatable from "@/core/common/dataTable";
 import ModalDeals from "./modal/modalDeals";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const DealsListComponent = () => {
 const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>({});
@@ -20,7 +21,7 @@ const handleClick = (key: string) => {
     [key]: !prev[key], // toggle on/off
   }));
 };
-  const data = DealsListData;
+  const data = useCrmList("deals", DealsListData);
   const columns = [
   {
     title: "",
@@ -165,7 +166,7 @@ const handleClick = (key: string) => {
           {/* Page Header */}
           <PageHeader
             title="Deals"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
           />

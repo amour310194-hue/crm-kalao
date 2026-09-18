@@ -1,0 +1,282 @@
+import type { ProductsListInterface } from "@/core/json/productsListData";
+import { formatCatalogPrice } from "@/lib/catalog";
+import type {
+  ActivityRecord,
+  CatalogRecord,
+  CompanyRecord,
+  ContactRecord,
+  CrmResource,
+  DealRecord,
+  InvoiceRecord,
+  LeadRecord,
+  QuoteRecord,
+} from "./types";
+import { getStore } from "./store";
+
+const euro = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+});
+
+function companyName(id: string) {
+  return getStore().companies.find((row) => row.id === id)?.name ?? "";
+}
+
+function contactName(id: string) {
+  const contact = getStore().contacts.find((row) => row.id === id);
+  return contact ? `${contact.firstName} ${contact.lastName}` : "";
+}
+
+function partyName(companyId?: string, contactId?: string) {
+  return companyName(companyId ?? "") || contactName(contactId ?? "") || "—";
+}
+
+function companyImage(id: string) {
+  return getStore().companies.find((row) => row.id === id)?.image ?? "company-icon-01.svg";
+}
+
+function leadStatusLabel(status: LeadRecord["status"]) {
+  switch (status) {
+    case "converted":
+      return "Closed";
+    case "contacted":
+    case "qualified":
+      return "Contacted";
+    case "unqualified":
+      return "Closed";
+    default:
+      return "Not Contacted";
+  }
+}
+
+export function toCompanyRows(rows: CompanyRecord[]) {
+  return rows.map((row) => ({
+    kye: row.id,
+    key: row.id,
+    Image: row.image,
+    Name: row.name,
+    Email: row.email,
+    Tags: row.tags,
+    Owner: row.ownerName,
+    Owner_Img: row.ownerImage,
+    Status: row.status === "active" ? "Active" : "Inactive",
+    Contact: row.phone,
+    ClientType: "Société",
+  }));
+}
+
+export function toContactRows(rows: ContactRecord[]) {
+  return rows.map((row) => ({
+    key: row.id,
+    Name: `${row.firstName} ${row.lastName}`,
+    Role: row.jobTitle,
+    role: row.jobTitle,
+    Phone: row.phone,
+    Tags: row.tags,
+    Location: row.location,
+    Rating: row.rating,
+    Image: row.image,
+    Flags: row.flags,
+    Status: row.status === "active" ? "Active" : "Inactive",
+    ClientType: row.companyId ? "Société" : "Particulier",
+  }));
+}
+
+export function toLeadRows(rows: LeadRecord[]) {
+  return rows.map((row) => ({
+    key: row.id,
+    LeadImage: getStore().contacts.find((contact) => contact.id === row.contactId)?.image ?? "avatar-19.jpg",
+    LeadName: row.title,
+    CompanyName: partyName(row.companyId, row.contactId),
+    Location: getStore().companies.find((company) => company.id === row.companyId)?.city
+      ?? getStore().contacts.find((contact) => contact.id === row.contactId)?.location
+      ?? "—",
+    CompanyImage: companyImage(row.companyId),
+    Phone: getStore().contacts.find((contact) => contact.id === row.contactId)?.phone ?? "",
+    LeadStatus: leadStatusLabel(row.status),
+    LeadOwner: row.ownerName,
+    OwnerImage: row.ownerImage,
+    CreatedDate: row.createdDate,
+  }));
+}
+
+export function toDealRows(rows: DealRecord[]) {
+  return rows.map((row) => ({
+    key: row.id,
+    DealName: row.title,
+    Stage: row.stage,
+    DealValue: euro.format(row.amount),
+    Tags: row.tags,
+    ExpectedCloseDate: row.expectedCloseDate,
+    Probability: `${row.probability}%`,
+    Status: row.status,
+  }));
+}
+
+export function toCatalogRows(rows: CatalogRecord[]): ProductsListInterface[] {
+  return rows.map((row) => ({
+    key: row.id,
+    ProductID: `#${row.sku}`,
+    ProductName: row.name,
+    Category: row.category,
+    Kind: row.kind === "service" ? "Service" : "Produit",
+    SKU: row.sku,
+    UnitPrice: formatCatalogPrice(row.unitPrice),
+    Tax: String(row.taxRate),
+    Status: row.status === "active" ? "Active" : "Inactive",
+  }));
+}
+
+export function toQuoteRows(rows: QuoteRecord[]) {
+  return rows.map((row) => ({
+    key: row.id,
+    quoteId: row.number,
+    client: partyName(row.companyId),
+    clientImage: `assets/img/icons/${companyImage(row.companyId)}`,
+    quoteDate: row.quoteDate,
+    validTill: row.validTill,
+    totalAmount: euro.format(row.totalAmount),
+    discount: row.discount,
+    finalAmount: euro.format(row.finalAmount),
+  }));
+}
+
+export function toInvoiceRows(rows: InvoiceRecord[]) {
+  return rows.map((row) => ({
+    Key: row.id,
+    key: row.id,
+    Invoice_ID: row.number,
+    Client: partyName(row.companyId),
+    Client_Image: companyImage(row.companyId).replace("company-icon-", "company-"),
+    Project: row.project,
+    project: row.project,
+    Project_Image: row.projectImage,
+    Due_Date: row.dueDate,
+    Amount: euro.format(row.amount),
+    Paid_Amount: euro.format(row.paidAmount),
+    Status: row.status,
+  }));
+}
+
+export function toActivityRows(rows: ActivityRecord[]) {
+  return rows.map((row) => ({
+    key: row.id,
+    type: row.type,
+    subject: row.subject,
+    company: companyName(row.companyId),
+    dueAt: row.dueAt,
+    notes: row.notes,
+  }));
+}
+
+export function listUi(resource: CrmResource) {
+  const store = getStore();
+  switch (resource) {
+    case "companies":
+      return toCompanyRows(store.companies);
+    case "contacts":
+      return toContactRows(store.contacts);
+    case "leads":
+      return toLeadRows(store.leads);
+    case "deals":
+      return toDealRows(store.deals);
+    case "catalog":
+      return toCatalogRows(store.catalog);
+    case "quotes":
+      return toQuoteRows(store.quotes);
+    case "invoices":
+      return toInvoiceRows(store.invoices);
+    case "activities":
+      return toActivityRows(store.activities);
+    case "departments":
+      return store.departments.map((row) => ({
+        key: row.id,
+        DepartmentId: row.code,
+        DepartmentName: row.name,
+        HeadName: row.headName,
+        HeadImage: row.headImage,
+        MembersCount: row.membersCount,
+        LocationFlag: "assets/img/flags/fr.svg",
+        Location: row.location,
+        Status: row.status === "active" ? "Active" : "Inactive",
+      }));
+    case "travel":
+      return store.travel.map((row) => ({
+        ...row,
+        key: row.id,
+        Client: row.accountName,
+        Type: row.accountType === "individual" ? "Particulier" : "Société",
+        Amount: euro.format(row.amount),
+      }));
+    case "immigration":
+      return store.immigration.map((row) => ({
+        ...row,
+        key: row.id,
+        Client: row.accountName,
+        Type: row.accountType === "individual" ? "Particulier" : "Société",
+      }));
+    case "events":
+      return store.events.map((row) => ({
+        ...row,
+        key: row.id,
+        Client: row.accountName,
+        Type: row.accountType === "individual" ? "Particulier" : "Société",
+        Amount: euro.format(row.amount),
+      }));
+    case "plantations":
+      return store.plantations.map((row) => ({ ...row, key: row.id }));
+    case "sites":
+      return store.sites.map((row) => ({
+        ...row,
+        key: row.id,
+        Client: row.accountName,
+        Type: row.accountType === "individual" ? "Particulier" : "Société",
+        Amount: euro.format(row.amount),
+      }));
+    case "properties":
+      return store.properties.map((row) => ({
+        ...row,
+        key: row.id,
+        Client: row.accountName,
+        Type: row.accountType === "individual" ? "Particulier" : "Société",
+        Rent: euro.format(row.rent),
+      }));
+    case "payroll":
+      return store.payroll.map((row) => ({
+        ...row,
+        key: row.id,
+        Salary: euro.format(row.salary),
+        Bonus: euro.format(row.bonus),
+        Total: euro.format(row.salary + row.bonus),
+      }));
+    default:
+      return [];
+  }
+}
+
+export function toAccountRows() {
+  const store = getStore();
+  const companies = store.companies.map((row) => ({
+    key: row.id,
+    Name: row.name,
+    Type: "Société",
+    Email: row.email,
+    Phone: row.phone,
+    City: row.city,
+    Tags: row.tags,
+    Status: row.status === "active" ? "Active" : "Inactive",
+  }));
+  const people = store.contacts
+    .filter((row) => !row.companyId)
+    .map((row) => ({
+      key: row.id,
+      Name: `${row.firstName} ${row.lastName}`,
+      Type: "Particulier",
+      Email: row.email,
+      Phone: row.phone,
+      City: row.location,
+      Tags: row.tags,
+      Status: row.status === "active" ? "Active" : "Inactive",
+    }));
+  return [...people, ...companies];
+}

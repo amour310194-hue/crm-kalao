@@ -4,17 +4,25 @@ import { useRouter } from "next/navigation";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import { FormEvent, useState } from "react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
+import {
+  TEST_SUPER_ADMIN,
+  isTestSuperAdmin,
+  setLocalSession,
+} from "@/lib/auth/session";
 type PasswordField = "password" | "confirmPassword";
 
 const Login = () => {
+  const { t } = useI18n();
   const router = useRouter();
   const supabaseEnabled = isSupabaseConfigured();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(TEST_SUPER_ADMIN.email);
+  const [password, setPassword] = useState(TEST_SUPER_ADMIN.password);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState({
@@ -33,8 +41,18 @@ const Login = () => {
     event.preventDefault();
     setError(null);
 
+    if (isTestSuperAdmin(email, password)) {
+      setLocalSession({
+        email: TEST_SUPER_ADMIN.email,
+        fullName: TEST_SUPER_ADMIN.fullName,
+        role: TEST_SUPER_ADMIN.role,
+      });
+      router.push(all_routes.dealsDashboard);
+      return;
+    }
+
     if (!supabaseEnabled) {
-      router.push(all_routes.dashboard);
+      setError("Email ou mot de passe incorrect.");
       return;
     }
 
@@ -69,6 +87,9 @@ const Login = () => {
                 className=" vh-100 d-flex justify-content-between flex-column p-4 pb-0"
                 onSubmit={handleSubmit}
               >
+                <div className="d-flex justify-content-end mb-3">
+                  <LanguageSwitcher />
+                </div>
                 <div className="text-center mb-4 auth-logo">
                   <ImageWithBasePath
                     src="assets/img/logo.svg"
@@ -80,10 +101,14 @@ const Login = () => {
                   <div className="mb-3">
                     <h3 className="mb-2">Connexion</h3>
                     <p className="mb-0">
-                      {supabaseEnabled
-                        ? "Connectez-vous à CRM Kalao avec votre compte."
-                        : "Mode démo : le bouton Connexion ouvre le CRM. Ajoutez les clés Supabase pour activer la base réelle."}
+                      Compte test Super Admin prérempli. Cliquez sur Connexion
+                      pour entrer.
                     </p>
+                    <div className="alert alert-info py-2 mt-3 mb-0 fs-13">
+                      <strong>Email :</strong> {TEST_SUPER_ADMIN.email}
+                      <br />
+                      <strong>Mot de passe :</strong> {TEST_SUPER_ADMIN.password}
+                    </div>
                   </div>
                   {error ? (
                     <div className="alert alert-danger py-2" role="alert">
@@ -91,14 +116,14 @@ const Login = () => {
                     </div>
                   ) : null}
                   <div className="mb-3">
-                    <label className="form-label">Email Address</label>
+                    <label className="form-label">{t("Email Address")}</label>
                     <div className="input-group input-group-flat">
                       <input
                         type="email"
                         className="form-control"
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
-                        required={supabaseEnabled}
+                        required
                         autoComplete="email"
                       />
                       <span className="input-group-text">
@@ -107,7 +132,7 @@ const Login = () => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Password</label>
+                    <label className="form-label">{t("Password")}</label>
                     <div className="input-group input-group-flat pass-group">
                       <input
                         type={passwordVisibility.password ? "text" : "password"}
@@ -115,7 +140,7 @@ const Login = () => {
                         placeholder="****************"
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
-                        required={supabaseEnabled}
+                        required
                         autoComplete="current-password"
                       />
                       <span
@@ -139,7 +164,7 @@ const Login = () => {
                         className="form-check-label text-dark ms-1"
                         htmlFor="checkebox-md"
                       >
-                        Remember Me
+                        {t("Remember Me")}
                       </label>
                     </div>
                     <div className="text-end">
@@ -147,7 +172,7 @@ const Login = () => {
                         href={all_routes.forgotPassword}
                         className="link-danger fw-medium link-hover"
                       >
-                        Forgot Password?
+                        {t("Forgot Password?")}
                       </Link>
                     </div>
                   </div>
@@ -162,19 +187,19 @@ const Login = () => {
                   </div>
                   <div className="mb-3">
                     <p className="mb-0">
-                      New on our platform?
+                      {t("New on our platform?")}
                       <Link
                         href={all_routes.register}
                         className="link-indigo fw-bold link-hover"
                       >
                         {" "}
-                        Create an account
+                        {t("Create an account")}
                       </Link>
                     </p>
                   </div>
                   <div className="or-login text-center position-relative mb-3">
                     <h6 className="fs-14 mb-0 position-relative text-body">
-                      OR
+                      {t("OR")}
                     </h6>
                   </div>
                   <div className="d-flex align-items-center justify-content-center flex-wrap gap-2 mb-3">

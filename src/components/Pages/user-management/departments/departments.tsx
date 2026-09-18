@@ -7,6 +7,7 @@ import TableToolbar from "@/core/common/table-toolbar/tableToolbar";
 import { all_routes } from "@/router/all_routes";
 import { DepartmentsListData } from "../../../../core/json/departmentsListData";
 import ModalDepartments from "./modal/modalDepartments";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const route = all_routes;
 
@@ -15,7 +16,9 @@ const route = all_routes;
   each card in markup; here the same cards are rendered from the shared
   departmentsListData used by the list view, so the two stay in sync.
 */
-const DepartmentsComponent = () => (
+const DepartmentsComponent = () => {
+  const data = useCrmList("departments", DepartmentsListData);
+  return (
   <>
     {/* ========================
 			Start Page Content
@@ -26,7 +29,7 @@ const DepartmentsComponent = () => (
         {/* Page Header */}
         <PageHeader
           title="Departments"
-          badgeCount={125}
+          badgeCount={data.length}
           showModuleTile={true}
           moduleTitle="User Management"
           showExport={true}
@@ -98,7 +101,7 @@ const DepartmentsComponent = () => (
               ]} />
             {/* table header */}
             <div className="row row-gap-3">
-              {DepartmentsListData.map((department) => (
+              {data.map((department) => (
                 <div
                   className="col-xl-4 col-lg-6 col-md-6"
                   key={department.key}
@@ -175,7 +178,7 @@ const DepartmentsComponent = () => (
                       <p className="mb-0">
                         Total Members:{" "}
                         <span className="fw-normal text-dark">
-                          {department.MembersCount.replace(" Members", "")}
+                          {String(department.MembersCount).replace(/ Members| membres/gi, "")}
                         </span>
                       </p>
                     </div>
@@ -196,6 +199,7 @@ const DepartmentsComponent = () => (
 		========================= */}
     <ModalDepartments />
   </>
-);
+  );
+};
 
 export default DepartmentsComponent;

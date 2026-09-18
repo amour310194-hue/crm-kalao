@@ -10,11 +10,12 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import { DepartmentsListData } from "../../../../core/json/departmentsListData";
 import ModalDepartments from "./modal/modalDepartments";
+import { useCrmList } from "@/lib/api/useCrmList";
 
 const route = all_routes;
 
 const DepartmentsListComponent = () => {
-  const data = DepartmentsListData;
+  const data = useCrmList("departments", DepartmentsListData);
   const [searchText, setSearchText] = useState<string>("");
 
   const handleSearch = (value: string) => {
@@ -143,7 +144,7 @@ const DepartmentsListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Departments"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={true}
             moduleTitle="User Management"
             showExport={true}

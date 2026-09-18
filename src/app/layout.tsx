@@ -8,6 +8,7 @@ import "bootstrap-daterangepicker/daterangepicker.css";
 import "@/index.scss"; // Adjust path if needed
 
 import { COMPANY_NAME, SITE_NAME, SITE_URL } from "@/lib/site";
+import AppProviders from "@/components/providers/AppProviders";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -42,7 +43,9 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {children}
+        <AppProviders>
+          {children}
+        </AppProviders>
         <BootstrapJs />
       </body>
     </html>
