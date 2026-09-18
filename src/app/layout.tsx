@@ -7,11 +7,17 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap-daterangepicker/daterangepicker.css";
 import "@/index.scss"; // Adjust path if needed
 
+import { COMPANY_NAME, SITE_NAME, SITE_URL } from "@/lib/site";
+
 export const metadata = {
-  title: "Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
-  description: "Streamline your business with our advanced CRM template...",
-  keywords: "Advanced CRM template, customer relationship management...",
-  author: "Dreams Technologies",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: `CRM ${COMPANY_NAME} — ventes de produits et de services`,
+  keywords: "CRM, Groupe Kalao, ventes, produits, services",
+  authors: [{ name: COMPANY_NAME }],
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png", // Add shortcut icon for better support
@@ -26,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="fr">
        <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

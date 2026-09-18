@@ -78,11 +78,11 @@ const Login = () => {
                 </div>
                 <div>
                   <div className="mb-3">
-                    <h3 className="mb-2">Sign In</h3>
+                    <h3 className="mb-2">Connexion</h3>
                     <p className="mb-0">
                       {supabaseEnabled
-                        ? "Connectez-vous avec votre compte Supabase."
-                        : "Mode démo : le bouton Sign In ouvre le CRM sans compte. Ajoutez .env.local pour activer Supabase."}
+                        ? "Connectez-vous à CRM Kalao avec votre compte."
+                        : "Mode démo : le bouton Connexion ouvre le CRM. Ajoutez les clés Supabase pour activer la base réelle."}
                     </p>
                   </div>
                   {error ? (
@@ -157,7 +157,7 @@ const Login = () => {
                       className="btn btn-primary w-100"
                       disabled={loading}
                     >
-                      {loading ? "Connexion…" : "Sign In"}
+                      {loading ? "Connexion…" : "Connexion"}
                     </button>
                   </div>
                   <div className="mb-3">
@@ -217,7 +217,7 @@ const Login = () => {
                   </div>
                 </div>
                 <div className="text-center pb-4">
-                  <p className="text-dark mb-0">Copyright © 2025 - CRMS</p>
+                  <p className="text-dark mb-0">Copyright © {new Date().getFullYear()} — Groupe Kalao</p>
                 </div>
               </form>
             </div>{" "}
