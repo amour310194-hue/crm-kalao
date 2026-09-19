@@ -1,6 +1,9 @@
-import { redirect } from "next/navigation";
-import { all_routes } from "@/router/all_routes";
-
-export default function GrowthDashboard() {
-  redirect(all_routes.dashboard);
+import GrowthDashboardComponent from "@/components/Pages/dashboard/growth-dashboard/growthDashboard";
+export const metadata = {
+  title: "Growth Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+};
+export default function GrowthDashboard(){
+    return(
+        <><GrowthDashboardComponent/></>
+    )
 }

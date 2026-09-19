@@ -1,7 +1,7 @@
 import DepartmentsComponent from "@/components/Pages/user-management/departments/departments";
 
 export const metadata = {
-  title: "Départements | Groupe Kalao",
+  title: "Departments | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
 };
 
 export default function Departments(){

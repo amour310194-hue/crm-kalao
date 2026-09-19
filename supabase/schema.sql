@@ -18,7 +18,7 @@ $$;
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
-  role text not null default 'admin' check (role in ('super_admin', 'admin', 'manager', 'staff')),
+  role text not null default 'admin' check (role in ('admin', 'manager', 'staff')),
   created_at timestamptz not null default now()
 );
 
@@ -29,15 +29,8 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, role)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    case
-      when new.email = 'superadmin@groupe-kalao.com' then 'super_admin'
-      else 'admin'
-    end
-  );
+  insert into public.profiles (id, full_name)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)));
   return new;
 end;
 $$;
@@ -190,23 +183,6 @@ create table if not exists public.quote_lines (
   tax_rate numeric(5,2) not null default 20
 );
 
-create table if not exists public.invoices (
-  id uuid primary key default gen_random_uuid(),
-  number text unique,
-  company_id uuid references public.companies(id) on delete set null,
-  project text,
-  due_date date,
-  amount numeric(12,2) not null default 0,
-  paid_amount numeric(12,2) not null default 0,
-  status text not null default 'unpaid' check (status in ('paid', 'partially_paid', 'unpaid', 'overdue')),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create trigger invoices_updated_at
-  before update on public.invoices
-  for each row execute procedure public.set_updated_at();
-
 -- Activités
 create table if not exists public.activities (
   id uuid primary key default gen_random_uuid(),
@@ -230,7 +206,6 @@ alter table public.deals enable row level security;
 alter table public.deal_lines enable row level security;
 alter table public.quotes enable row level security;
 alter table public.quote_lines enable row level security;
-alter table public.invoices enable row level security;
 alter table public.activities enable row level security;
 
 -- Entreprise unique : tout utilisateur connecté peut lire/écrire
@@ -240,7 +215,7 @@ declare
 begin
   foreach tbl in array array[
     'profiles', 'companies', 'contacts', 'leads', 'catalog_items',
-    'deals', 'deal_lines', 'quotes', 'quote_lines', 'invoices', 'activities'
+    'deals', 'deal_lines', 'quotes', 'quote_lines', 'activities'
   ]
   loop
     execute format('drop policy if exists authenticated_all on public.%I', tbl);

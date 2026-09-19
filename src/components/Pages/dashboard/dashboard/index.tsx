@@ -1,47 +1,17 @@
 "use client";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PerformanceStatsChart from "./chart/performanceStatsChart";
-import PredefinedDatePicker, {
-  type DatePickerRange,
-} from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
+import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
 import TrafficSourcesChart from "./chart/trafficSourcesChart";
+import ContactChart from "./chart/contactChart";
 import PipelineChart from "./chart/pipelineChart";
 import ProfitChart from "./chart/profitChart";
 import CommonFooter from "@/core/common/common-footer/commonFooter";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import DashboardKpis from "./dashboardKpis";
-import { thisMonthRange } from "@/lib/backend/period";
-import { useI18n } from "@/i18n/I18nProvider";
-import { useCallback, useState, type MouseEvent } from "react";
-
-function formatPeriod(range: DatePickerRange) {
-  const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
-  return `${range.from.toLocaleDateString("fr-FR", options)} – ${range.to.toLocaleDateString("fr-FR", options)}`;
-}
-
-function exportHref(format: "pdf" | "csv", range: DatePickerRange) {
-  const params = new URLSearchParams({
-    format,
-    from: range.from.toISOString(),
-    to: range.to.toISOString(),
-  });
-  return `/api/v1/export/dashboard?${params.toString()}`;
-}
 
 const MainDashboardComponent = () => {
-  const { t } = useI18n();
-  const [range, setRange] = useState<DatePickerRange>(() => thisMonthRange());
-  const onRangeChange = useCallback((next: DatePickerRange) => {
-    setRange(next);
-  }, []);
-
-  const handleExport = (format: "pdf" | "csv") => (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    window.location.assign(exportHref(format, range));
-  };
-
   return (
     <>
       {/* ========================
@@ -53,10 +23,7 @@ const MainDashboardComponent = () => {
           {/* Page Header */}
           <div className="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
             <div>
-              <h4 className="mb-0">{t("Dashboard")}</h4>
-              <p className="text-muted mb-0 fs-13" data-period-label>
-                {t("Period")} : {formatPeriod(range)}
-              </p>
+              <h4 className="mb-0">Dashboard</h4>
             </div>
             <div className="gap-2 d-flex align-items-center flex-wrap">
               <div className="avatar-list-stacked me-2">
@@ -117,44 +84,21 @@ const MainDashboardComponent = () => {
                   +
                 </Link>
               </div>
-              <PredefinedDatePicker defaultPreset="thisMonth" onChange={onRangeChange} />
-              <div className="dropdown">
-                <Link
-                  href="#"
-                  className="btn btn-icon btn-outline-light shadow dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  data-bs-placement="top"
-                  aria-label={t("Export")}
-                  data-dashboard-export
-                >
-                  <i className="ti ti-download" />
-                </Link>
-                <div className="dropdown-menu dropdown-menu-end">
-                  <Link
-                    href={exportHref("pdf", range)}
-                    className="dropdown-item"
-                    data-export="pdf"
-                    onClick={handleExport("pdf")}
-                  >
-                    <i className="ti ti-file-type-pdf me-1" />
-                    {t("Export as PDF")}
-                  </Link>
-                  <Link
-                    href={exportHref("csv", range)}
-                    className="dropdown-item"
-                    data-export="excel"
-                    onClick={handleExport("csv")}
-                  >
-                    <i className="ti ti-file-type-xls me-1" />
-                    {t("Export as Excel")}
-                  </Link>
-                </div>
-              </div>
+              <PredefinedDatePicker />
+              <Link
+                href="#"
+                className="btn btn-icon btn-outline-light shadow"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                aria-label="Download"
+                data-bs-original-title="Download"
+              >
+                <i className="ti ti-download" />
+              </Link>
               <CollapseIcons />
             </div>
           </div>
           {/* End Page Header */}
-          <DashboardKpis from={range.from} to={range.to} />
           {/* start row */}
           <div className="row">
             <div className="col-xxl-8 col-xl-7 d-flex">
@@ -270,6 +214,136 @@ const MainDashboardComponent = () => {
                       Social Media
                     </p>
                     <p className="text-dark fw-semibold mb-0">845</p>
+                  </div>
+                </div>
+              </div>{" "}
+              {/* end card */}
+            </div>{" "}
+            {/* end col */}
+          </div>
+          {/* end row */}
+          {/* start row */}
+          <div className="row">
+            <div className="col-xl-3 col-sm-6 d-flex">
+              <div className="card flex-fill">
+                <div className="card-body position-relative">
+                  <p className="fw-medium mb-1">Revenue</p>
+                  <h4 className="mb-3">$15,44,540</h4>
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                      +2.5%
+                    </span>
+                    <p className="text-dark mb-0">From Last Week</p>
+                  </div>
+                  <div className="custom-card-icon">
+                    <div className="avatar avatar-rounded avatar-lg bg-primary-gradient-100 position-absolute top-0 end-0">
+                      <ImageWithBasePath
+                        src="assets/img/icons/revenue-icon.svg"
+                        alt="icon"
+                        className="img-fluid w-auto h-auto"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>{" "}
+            {/* end col */}
+            <div className="col-xl-3 col-sm-6 d-flex">
+              <div className="card flex-fill">
+                <div className="card-body position-relative">
+                  <p className="fw-medium mb-1">Active Deals</p>
+                  <h4 className="mb-3">147</h4>
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-danger border-0">
+                      -21.15%
+                    </span>
+                    <p className="text-dark mb-0">From Last Week</p>
+                  </div>
+                  <div className="custom-card-icon">
+                    <div className="avatar avatar-rounded avatar-lg bg-info-gradient-100 position-absolute top-0 end-0">
+                      <ImageWithBasePath
+                        src="assets/img/icons/deal-icon.svg"
+                        alt="icon"
+                        className="img-fluid w-auto h-auto"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>{" "}
+            {/* end col */}
+            <div className="col-xl-3 col-sm-6 d-flex">
+              <div className="card flex-fill">
+                <div className="card-body position-relative">
+                  <p className="fw-medium mb-1">Conversion Rate</p>
+                  <h4 className="mb-3">32.8%</h4>
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                      +15.5%
+                    </span>
+                    <p className="text-dark mb-0">From Last Week</p>
+                  </div>
+                  <div className="custom-card-icon">
+                    <div className="avatar avatar-rounded avatar-lg bg-pink-gradient-100 position-absolute top-0 end-0">
+                      <ImageWithBasePath
+                        src="assets/img/icons/conversion-icon.svg"
+                        alt="icon"
+                        className="img-fluid w-auto h-auto"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>{" "}
+            {/* end col */}
+            <div className="col-xl-3 col-sm-6 d-flex">
+              <div className="card flex-fill">
+                <div className="card-body position-relative">
+                  <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3">
+                    <div>
+                      <div className="d-flex align-items-center gap-1">
+                        <h4 className="mb-0">4569</h4>
+                        <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                          +2.5%
+                        </span>
+                      </div>
+                      <p className="fw-medium mb-1">Total Contacts</p>
+                    </div>
+                    <div id="contact-chart">
+                      <ContactChart />
+                    </div>
+                  </div>
+                  <div className="d-flex alig-items-center gap-2">
+                    <div className="avatar-list-stacked avatar-group-sm">
+                      <span className="avatar avatar-rounded">
+                        <ImageWithBasePath
+                          className="border border-white"
+                          src="assets/img/profiles/avatar-03.jpg"
+                          alt="img"
+                        />
+                      </span>
+                      <span className="avatar avatar-rounded">
+                        <ImageWithBasePath
+                          className="border border-white"
+                          src="assets/img/profiles/avatar-05.jpg"
+                          alt="img"
+                        />
+                      </span>
+                      <span className="avatar avatar-rounded">
+                        <ImageWithBasePath
+                          className="border border-white"
+                          src="assets/img/profiles/avatar-01.jpg"
+                          alt="img"
+                        />
+                      </span>
+                      <Link
+                        className="avatar bg-light text-dark fs-10 avatar-rounded"
+                        href="#"
+                      >
+                        +4
+                      </Link>
+                    </div>
+                    <p className="text-dark mb-0">From Last Week</p>
                   </div>
                 </div>
               </div>{" "}

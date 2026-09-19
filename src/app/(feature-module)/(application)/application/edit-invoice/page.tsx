@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
-import { all_routes } from "@/router/all_routes";
+import EditInoivceComponent from "@/components/Pages/application-module/invoice/edit-invoice/editInoivce";
 
-export default function EditInvoice() {
-  redirect(all_routes.InvoiceList);
+export const metadata = {
+  title: "Edit Invoice | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+};
+
+export default function EditInvoice(){
+    return(
+        <><EditInoivceComponent/></>
+    )
 }

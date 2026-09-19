@@ -1,17 +1,11 @@
-import AppUnavailable from "@/components/Pages/kalao/AppUnavailable";
-import { all_routes } from "@/router/all_routes";
+import SocialFeedComponent from "@/components/Pages/application-module/social-feed/socialFeed";
 
 export const metadata = {
-  title: "Social Feed | CRM Kalao",
+  title: "Social Feed | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
 };
 
-export default function SocialFeed() {
-  return (
-    <AppUnavailable
-      title="Social"
-      reason="Aucun réseau social n’est connecté. Cette maquette n’est pas utilisée par Kalao."
-      href={all_routes.dashboard}
-      hrefLabel="Retour au tableau de bord"
-    />
-  );
+export default function SocialFeed(){
+    return(
+        <><SocialFeedComponent/></>
+    )
 }

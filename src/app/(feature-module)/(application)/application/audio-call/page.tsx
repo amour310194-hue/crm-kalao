@@ -1,17 +1,11 @@
-import AppUnavailable from "@/components/Pages/kalao/AppUnavailable";
-import { all_routes } from "@/router/all_routes";
+import AudioCallComponent from "@/components/Pages/application-module/chat/calls/audioCall";
 
 export const metadata = {
-  title: "Appel audio | CRM Kalao",
+  title: "Audio Call | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
 };
 
-export default function AudioCall() {
-  return (
-    <AppUnavailable
-      title="Appels"
-      reason="Aucun opérateur téléphonique n’est branché. Les appels se journalisent dans les activités CRM."
-      href={all_routes.activities}
-      hrefLabel="Ouvrir les activités"
-    />
-  );
+export default function AudioCall(){
+    return(
+        <><AudioCallComponent/></>
+    )
 }

@@ -1,7 +1,7 @@
 import UserActivityLogsComponent from "@/components/Pages/user-management/user-activity-logs/userActivityLogs";
 
 export const metadata = {
-  title: "Journaux d’activité | Groupe Kalao",
+  title: "User Activity Logs | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
 };
 
 export default function UserActivityLogs(){

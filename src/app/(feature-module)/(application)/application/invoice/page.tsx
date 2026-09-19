@@ -1,6 +1,12 @@
-import { redirect } from "next/navigation";
-import { all_routes } from "@/router/all_routes";
+import InvoiceComponent from "@/components/Pages/application-module/invoice/invoice";
 
-export default function Invoice() {
-  redirect(all_routes.InvoiceList);
+export const metadata = {
+  title: "Invoice | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+};
+
+
+export default function Invoice(){
+    return(
+        <><InvoiceComponent/></>
+    )
 }

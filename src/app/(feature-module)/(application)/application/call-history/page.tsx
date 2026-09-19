@@ -1,17 +1,12 @@
-import AppUnavailable from "@/components/Pages/kalao/AppUnavailable";
-import { all_routes } from "@/router/all_routes";
+import CallHistoryComponent from "@/components/Pages/application-module/chat/calls/callHistory";
 
 export const metadata = {
-  title: "Historique d’appels | CRM Kalao",
+  title: "Call History | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
 };
 
-export default function CallHistory() {
-  return (
-    <AppUnavailable
-      title="Appels"
-      reason="Aucun opérateur téléphonique n’est branché. Les appels se journalisent dans les activités CRM."
-      href={all_routes.activities}
-      hrefLabel="Ouvrir les activités"
-    />
-  );
+
+export default function CallHistory(){
+    return(
+        <><CallHistoryComponent/></>
+    )
 }

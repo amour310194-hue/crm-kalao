@@ -11,20 +11,10 @@ import Footer from "@/core/common/footer/footer";
 import ModalCompanies from "./modal/modalCompanies";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { useCrmCollection } from "@/lib/api/useCrmList";
-import { deleteCrmRecord } from "@/lib/api/crmClient";
-import KalaoFormModal from "@/components/Pages/kalao/KalaoFormModal";
 
 const CompaniesListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
     {}
-  );
-  const [open, setOpen] = useState(false);
-  const [current, setCurrent] = useState<Record<string, unknown> | null>(null);
-  const [error, setError] = useState("");
-  const { data, reload } = useCrmCollection<Record<string, unknown>>(
-    "companies",
-    CompaniesListData as unknown as Record<string, unknown>[]
   );
   const handleClick = (key: string) => {
     setFilledStars((prev) => ({
@@ -32,34 +22,7 @@ const CompaniesListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-
-  const companyId = (record: Record<string, unknown>) =>
-    String(record.id || record.key || "");
-
-  const openCreate = () => {
-    setCurrent(null);
-    setError("");
-    setOpen(true);
-  };
-
-  const openEdit = (record: Record<string, unknown>) => {
-    setCurrent(record);
-    setError("");
-    setOpen(true);
-  };
-
-  const removeCompany = async (record: Record<string, unknown>) => {
-    const id = companyId(record);
-    if (!id) return;
-    if (!window.confirm("Supprimer cette société ?")) return;
-    try {
-      await deleteCrmRecord("companies", id);
-      setError("");
-      reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Suppression impossible");
-    }
-  };
+  const data = CompaniesListData;
   const columns = [
     {
       title: "",
@@ -100,15 +63,6 @@ const CompaniesListComponent = () => {
         </h6>
       ),
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
-    },
-    {
-      title: "Type",
-      dataIndex: "ClientType",
-      render: (text: string) => (
-        <span className="badge badge-soft-primary">{text || "Société"}</span>
-      ),
-      sorter: (a: any, b: any) =>
-        String(a.ClientType ?? "").localeCompare(String(b.ClientType ?? "")),
     },
     {
       title: "Email",
@@ -194,7 +148,7 @@ const CompaniesListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: (_: unknown, record: Record<string, unknown>) => (
+      render: () => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -205,12 +159,22 @@ const CompaniesListComponent = () => {
             <i className="ti ti-dots-vertical" />
           </Link>
           <div className="dropdown-menu dropdown-menu-right">
-            <button type="button" className="dropdown-item" onClick={() => openEdit(record)}>
+            <Link
+              className="dropdown-item"
+              href="#"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvas_edit"
+            >
               <i className="ti ti-edit text-blue" /> Edit
-            </button>
-            <button type="button" className="dropdown-item" onClick={() => void removeCompany(record)}>
+            </Link>
+            <Link
+              className="dropdown-item"
+              href="#"
+              data-bs-toggle="modal"
+              data-bs-target="#delete_contact"
+            >
               <i className="ti ti-trash" /> Delete
-            </button>
+            </Link>
             <Link className="dropdown-item" href={all_routes.companiesDetails}>
               <i className="ti ti-eye text-blue-light" /> Preview
             </Link>
@@ -237,10 +201,9 @@ const CompaniesListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Companies"
-            badgeCount={data.length}
+            badgeCount={125}
             showModuleTile={false}
             showExport={false}
-            onRefresh={reload}
           />
 
           {/* End Page Header */}
@@ -253,13 +216,17 @@ const CompaniesListComponent = () => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <button type="button" className="btn btn-primary" onClick={openCreate}>
+              <Link
+                href="#"
+                className="btn btn-primary"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvas_add"
+              >
                 <i className="ti ti-square-rounded-plus-filled me-1" />
                 Add Company
-              </button>
+              </Link>
             </div>
             <div className="card-body">
-              {error ? <div className="alert alert-danger">{error}</div> : null}
               {/* table header */}
               <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -1033,16 +1000,6 @@ const CompaniesListComponent = () => {
 			End Page Content
 		========================= */}
     <ModalCompanies/>
-    <KalaoFormModal
-      resource="companies"
-      open={open}
-      record={current}
-      onClose={() => setOpen(false)}
-      onSaved={() => {
-        setError("");
-        reload();
-      }}
-    />
     </>
   );
 };

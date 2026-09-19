@@ -13,11 +13,9 @@ import { updateTheme } from "@/core/redux/themeSlice";
 import { setExpandMenu, setMobileSidebar } from "@/core/redux/sidebarSlice";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { useI18n } from "@/i18n/I18nProvider";
 
 
 const Sidebar = () => {
-  const { t } = useI18n();
   const route = all_routes;
   const pathname = usePathname();
   // Track open state for each menu by label
@@ -90,7 +88,7 @@ const Sidebar = () => {
       dir: "ltr",
     };
 
-    let redirectUrl = "/dashboard"; // default
+    let redirectUrl = "/deals-dashboard"; // default
 
     switch (layout) {
       case "Default":
@@ -178,15 +176,15 @@ const Sidebar = () => {
         <div className="sidebar-logo">
           <div>
             {/* Logo Normal */}
-            <Link href={route.dashboard} className="logo logo-normal">
+            <Link href={route.dealsDashboard} className="logo logo-normal">
               <ImageWithBasePath src="assets/img/logo.svg" alt="Logo" />
             </Link>
             {/* Logo Small */}
-            <Link href={route.dashboard} className="logo-small">
+            <Link href={route.dealsDashboard} className="logo-small">
               <ImageWithBasePath src="assets/img/logo-small.svg" alt="Logo" />
             </Link>
             {/* Logo Dark */}
-            <Link href={route.dashboard} className="dark-logo">
+            <Link href={route.dealsDashboard} className="dark-logo">
               <ImageWithBasePath src="assets/img/logo-white.svg" alt="Logo" />
             </Link>
           </div>
@@ -209,19 +207,14 @@ const Sidebar = () => {
           <OverlayScrollbarsComponent style={{ height: "100%", width: "100%" }}>
             <div id="sidebar-menu" className="sidebar-menu">
               <ul>
-                {SidebarData?.filter((section: any) => !section.hidden).map((mainLabel, index) => {
-                  const visibleItems = mainLabel?.submenuItems?.filter((item: any) => !item.hidden) ?? [];
-                  if (!visibleItems.length) {
-                    return null;
-                  }
-                  return (
+                {SidebarData?.map((mainLabel, index) => (
                   <React.Fragment key={`main-${index}`}>
                     <li className="menu-title">
-                      <span>{t(mainLabel?.tittle)}</span>
+                      <span>{mainLabel?.tittle}</span>
                     </li>
                     <li>
                       <ul>
-                        {visibleItems.map((title: any, i) => {
+                        {mainLabel?.submenuItems?.map((title: any, i) => {
                           // If any submenu link is active
                           const isSubmenuActive =
                             (title?.submenuItems &&
@@ -257,7 +250,7 @@ const Sidebar = () => {
                                 className={`${isActive ? "active" : ""} ${isOpen ? "subdrop" : ""}`}
                               >
                                 <i className={`ti ti-${title.icon}`}></i>
-                                <span>{t(title?.label)}</span>
+                                <span>{title?.label}</span>
                                 {(title?.submenu || title?.customSubmenuTwo) && (
                                   <span className="menu-arrow"></span>
                                 )}
@@ -275,7 +268,7 @@ const Sidebar = () => {
                                     display: isOpen ? "block" : "none",
                                   }}
                                 >
-                                  {title?.submenuItems?.filter((item: any) => !item.hidden).map(
+                                  {title?.submenuItems?.map(
                                     (item: any, j: any) => {
                                       const isSubActive =
                                         item?.submenuItems
@@ -303,7 +296,7 @@ const Sidebar = () => {
                                             }`}
                                             // Add submenu toggle logic here if you want nested toggles
                                           >
-                                            {t(item?.label)}
+                                            {item?.label}
                                             {(item?.submenu ||
                                               item?.customSubmenuTwo) && (
                                               <span className="menu-arrow"></span>
@@ -315,7 +308,7 @@ const Sidebar = () => {
                                                 display: false ? "block" : "none", // Add nested submenu open logic if needed
                                               }}
                                             >
-                                              {item?.submenuItems?.filter((items: any) => !items.hidden).map(
+                                              {item?.submenuItems?.map(
                                                 (items: any, k: any) => {
                                                   const isSubSubActive =
                                                     items?.submenuItems
@@ -344,7 +337,7 @@ const Sidebar = () => {
                                                             : ""
                                                         }`}
                                                       >
-                                                        {t(items?.label)}
+                                                        {items?.label}
                                                       </Link>
                                                     </li>
                                                   );
@@ -364,8 +357,7 @@ const Sidebar = () => {
                       </ul>
                     </li>
                   </React.Fragment>
-                  );
-                })}
+                ))}
               </ul>
             </div>
           </OverlayScrollbarsComponent>

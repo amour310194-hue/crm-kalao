@@ -9,16 +9,10 @@ import { all_routes } from "@/router/all_routes";
 import { setMobileSidebar } from "@/core/redux/sidebarSlice";
 import { updateTheme } from "@/core/redux/themeSlice";
 import Link from "next/link";
-import { clearLocalSession, getLocalSession, type AuthSession } from "@/lib/auth/session";
-import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import LanguageSwitcher from "@/components/common/LanguageSwitcher";
-import HeaderCrmAlerts from "@/components/Pages/kalao/HeaderCrmAlerts";
-import { useI18n } from "@/i18n/I18nProvider";
 
 
 const Header = () => {
-  const { t } = useI18n();
-  const [session, setSession] = useState<AuthSession | null>(null);
+
   const route = all_routes
   const dispatch = useDispatch();
   const themeSettings = useSelector((state: any) => state.theme.themeSettings);
@@ -48,13 +42,6 @@ const Header = () => {
     }
   };
 
-  const handleSignOut = () => {
-    clearLocalSession();
-    if (isSupabaseConfigured()) {
-      void getSupabaseBrowserClient().auth.signOut();
-    }
-  };
-
   const handleUpdateTheme = (key: string, value: string) => {
     if (themeSettings["dir"] === "rtl" && key !== "dir") {
       dispatch(updateTheme({ dir: "ltr" }));
@@ -63,7 +50,6 @@ const Header = () => {
   };
 
   useEffect(() => {
-    setSession(getLocalSession());
     const htmlElement: any = document.documentElement;
     Object.entries(themeSettings).forEach(([key, value]) => {
       htmlElement.setAttribute(key, value);
@@ -77,7 +63,7 @@ const Header = () => {
         <div className="page-container topbar-menu">
           <div className="d-flex align-items-center gap-2">
             {/* Logo */}
-            <Link href={route.dashboard} className="logo">
+            <Link href={route.dealsDashboard} className="logo">
               {/* Logo Normal */}
               <span className="logo-light">
                 <span className="logo-lg">
@@ -122,7 +108,7 @@ const Header = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder={t("Search Keyword")}
+                  placeholder="Search Keyword"
                 />
                 <span className="input-icon-addon d-inline-flex p-0 header-search-icon">
                   <i className="ti ti-command" />
@@ -156,9 +142,6 @@ const Header = () => {
               </div>
             </div>
             {/* Minimize */}
-            <div className="header-item d-none d-md-flex me-2">
-              <LanguageSwitcher />
-            </div>
             {/* Light/Dark Mode Button */}
             <div className="header-item d-none d-sm-flex me-2">
               <Link
@@ -256,8 +239,260 @@ const Header = () => {
                 </Link>
               </div>
             </div>
+            {/* report */}
+            <div className="header-item d-none d-sm-flex">
+              <div className="dropdown me-2">
+                <Link
+                  href={route.leadReports}
+                  className="btn topbar-link topbar-warning-link"
+                >
+                  <i className="ti ti-chart-pie" />
+                </Link>
+              </div>
+            </div>
             <div className="header-line" />
-            <HeaderCrmAlerts />
+            {/* message */}
+            <div className="header-item">
+              <div className="dropdown me-2">
+                <Link href={route.chat} className="btn topbar-link">
+                  <i className="ti ti-message-circle-exclamation" />
+                  <span className="badge rounded-pill">14</span>
+                </Link>
+              </div>
+            </div>
+            {/* Notification Dropdown */}
+            <div className="header-item">
+              <div className="dropdown me-2">
+                <button
+                  className="topbar-link btn topbar-link dropdown-toggle drop-arrow-none"
+                  data-bs-toggle="dropdown"
+                  data-bs-offset="0,24"
+                  type="button"
+                  aria-haspopup="false"
+                  aria-expanded="false"
+                >
+                  <i className="ti ti-bell-check fs-16 animate-ring" />
+                  <span className="badge rounded-pill">10</span>
+                </button>
+                <div
+                  className="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg"
+                  style={{ minHeight: 300 }}
+                >
+                  <div className="p-2 border-bottom">
+                    <div className="row align-items-center">
+                      <div className="col">
+                        <h6 className="m-0 fs-16 fw-semibold">
+                          {" "}
+                          Notifications
+                        </h6>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Notification Body */}
+                  <div
+                    className="notification-body position-relative z-2 rounded-0"
+                    data-simplebar=""
+                  >
+                    {/* Item*/}
+                    <div
+                      className="dropdown-item notification-item py-3 text-wrap border-bottom"
+                      id="notification-1"
+                    >
+                      <div className="d-flex">
+                        <div className="me-2 position-relative flex-shrink-0">
+                          <ImageWithBasePath
+                            src="assets/img/users/user-01.jpg"
+                            className="avatar-md rounded-circle"
+                            alt=""
+                          />
+                        </div>
+                        <div className="flex-grow-1">
+                          <p className="mb-0 fw-medium text-dark">John Doe</p>
+                          <p className="mb-1 text-wrap">
+                            left 6 comments on{" "}
+                            <span className="fw-medium text-dark">
+                              Isla Nublar SOC2 compliance report
+                            </span>
+                          </p>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="fs-12">
+                              <i className="ti ti-clock me-1" />4 min ago
+                            </span>
+                            <div className="notification-action d-flex align-items-center float-end gap-2">
+                              <Link
+                                href="#"
+                                className="notification-read rounded-circle bg-danger"
+                                data-bs-toggle="tooltip"
+                                title=""
+                                data-bs-original-title="Make as Read"
+                                aria-label="Make as Read"
+                              />
+                              <button
+                                className="btn rounded-circle p-0"
+                                data-dismissible="#notification-1"
+                              >
+                                <i className="ti ti-x" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Item*/}
+                    <div
+                      className="dropdown-item notification-item py-3 text-wrap border-bottom"
+                      id="notification-2"
+                    >
+                      <div className="d-flex">
+                        <div className="me-2 position-relative flex-shrink-0">
+                          <ImageWithBasePath
+                            src="assets/img/users/user-12.jpg"
+                            className="avatar-md rounded-circle"
+                            alt=""
+                          />
+                        </div>
+                        <div className="flex-grow-1">
+                          <p className="mb-0 fw-medium text-dark">
+                            Thomas William
+                          </p>
+                          <p className="mb-1 text-wrap">
+                            “Oh, I finished de-bugging the phones, but the
+                            system's compiling for eighteen minutes, or
+                            twenty...”
+                          </p>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="fs-12">
+                              <i className="ti ti-clock me-1" />8 min ago
+                            </span>
+                            <div className="notification-action d-flex align-items-center float-end gap-2">
+                              <Link
+                                href="#"
+                                className="notification-read rounded-circle bg-danger"
+                                data-bs-toggle="tooltip"
+                                title=""
+                                data-bs-original-title="Make as Read"
+                                aria-label="Make as Read"
+                              />
+                              <button
+                                className="btn rounded-circle p-0"
+                                data-dismissible="#notification-2"
+                              >
+                                <i className="ti ti-x" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Item*/}
+                    <div
+                      className="dropdown-item notification-item py-3 text-wrap border-bottom"
+                      id="notification-3"
+                    >
+                      <div className="d-flex">
+                        <div className="me-2 position-relative flex-shrink-0">
+                          <ImageWithBasePath
+                            src="assets/img/profiles/avatar-12.jpg"
+                            className="avatar-md rounded-circle"
+                            alt=""
+                          />
+                        </div>
+                        <div className="flex-grow-1">
+                          <p className="mb-0 fw-medium text-dark">
+                            Sarah Anderson
+                          </p>
+                          <p className="mb-1 text-wrap">
+                            attached a file to{" "}
+                            <span className="fw-medium text-dark">
+                              Isla Nublar SOC2 compliance report
+                            </span>
+                          </p>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="fs-12">
+                              <i className="ti ti-clock me-1" />
+                              15 min ago
+                            </span>
+                            <div className="notification-action d-flex align-items-center float-end gap-2">
+                              <Link
+                                href="#"
+                                className="notification-read rounded-circle bg-danger"
+                                data-bs-toggle="tooltip"
+                                title=""
+                                data-bs-original-title="Make as Read"
+                                aria-label="Make as Read"
+                              />
+                              <button
+                                className="btn rounded-circle p-0"
+                                data-dismissible="#notification-3"
+                              >
+                                <i className="ti ti-x" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Item*/}
+                    <div
+                      className="dropdown-item notification-item py-3 text-wrap"
+                      id="notification-4"
+                    >
+                      <div className="d-flex">
+                        <div className="me-2 position-relative flex-shrink-0">
+                          <ImageWithBasePath
+                            src="assets/img/profiles/avatar-08.jpg"
+                            className="avatar-md rounded-circle"
+                            alt=""
+                          />
+                        </div>
+                        <div className="flex-grow-1">
+                          <p className="mb-0 fw-medium text-dark">
+                            Ann McClure
+                          </p>
+                          <p className="mb-1 text-wrap">
+                            mentioned you in{" "}
+                            <span className="fw-medium text-dark">
+                              Bug Fix Review - Task #432
+                            </span>
+                          </p>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="fs-12">
+                              <i className="ti ti-clock me-1" />
+                              20 min ago
+                            </span>
+                            <div className="notification-action d-flex align-items-center float-end gap-2">
+                              <Link
+                                href="#"
+                                className="notification-read rounded-circle bg-danger"
+                                data-bs-toggle="tooltip"
+                                title=""
+                                data-bs-original-title="Make as Read"
+                                aria-label="Make as Read"
+                              />
+                              <button
+                                className="btn rounded-circle p-0"
+                                data-dismissible="#notification-4"
+                              >
+                                <i className="ti ti-x" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* View All*/}
+                  <div className="p-2 rounded-bottom border-top text-center">
+                    <Link
+                      href={route.notificationbell}
+                      className="text-center text-decoration-underline fs-14 mb-0"
+                    >
+                      View All Notifications
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
             {/* User Dropdown */}
             <div className="dropdown profile-dropdown d-flex align-items-center justify-content-center">
               <Link
@@ -288,24 +523,20 @@ const Header = () => {
                     alt=""
                   />
                   <div className="ms-2">
-                    <p className="fw-medium text-dark mb-0">{session?.fullName ?? t("Superadmin")}</p>
-                    <span className="d-block fs-13">
-                      {session?.role === "super_admin"
-                        ? t("Super Admin")
-                        : t(session?.role ?? "Staff")}
-                    </span>
+                    <p className="fw-medium text-dark mb-0">Katherine Brooks</p>
+                    <span className="d-block fs-13">Installer</span>
                   </div>
                 </div>
                 {/* Item*/}
                 <Link href={route.profile} className="dropdown-item">
                   <i className="ti ti-user-circle me-1 align-middle" />
-                  <span className="align-middle">{t("Profile Settings")}</span>
+                  <span className="align-middle">Profile Settings</span>
                 </Link>
                 {/* item */}
                 <div className="form-check form-switch form-check-reverse d-flex align-items-center justify-content-between dropdown-item mb-0">
                   <label className="form-check-label" htmlFor="notify">
                     <i className="ti ti-bell" />
-                    {t("Notifications")}
+                    Notifications
                   </label>
                   <input
                     className="form-check-input me-0"
@@ -317,22 +548,18 @@ const Header = () => {
                 {/* Item*/}
                 <Link href="#" className="dropdown-item">
                   <i className="ti ti-help-circle me-1 align-middle" />
-                  <span className="align-middle">{t("Help & Support")}</span>
+                  <span className="align-middle">Help &amp; Support</span>
                 </Link>
                 {/* Item*/}
                 <Link href={route.profile} className="dropdown-item">
                   <i className="ti ti-settings me-1 align-middle" />
-                  <span className="align-middle">{t("Settings")}</span>
+                  <span className="align-middle">Settings</span>
                 </Link>
                 {/* Item*/}
                 <div className="pt-2 mt-2 border-top">
-                  <Link
-                    href={route.login}
-                    className="dropdown-item text-danger"
-                    onClick={handleSignOut}
-                  >
+                  <Link href={route.login} className="dropdown-item text-danger">
                     <i className="ti ti-logout me-1 fs-17 align-middle" />
-                    <span className="align-middle">{t("Sign Out")}</span>
+                    <span className="align-middle">Sign Out</span>
                   </Link>
                 </div>
               </div>

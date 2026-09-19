@@ -1,330 +1,471 @@
 "use client";
-
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import Footer from "@/core/common/footer/footer";
 import Datatable from "@/core/common/dataTable";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import { QuotationsListData } from "../../../../core/json/quotationsListData";
+import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
+import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
+import {
+  QuotationsListData,
+  QuotationFilterClientList,
+} from "../../../../core/json/quotationsListData";
 import { all_routes } from "@/router/all_routes";
-import ModalQuotations, { type QuoteEditorRecord } from "./modal/modalQuotations";
-import { useCrmCollection } from "@/lib/api/useCrmList";
-import { convertQuoteToInvoice, deleteCrmRecord, fetchCrmRecord } from "@/lib/api/crmClient";
-import { useI18n } from "@/i18n/I18nProvider";
-
-const statusTone: Record<string, string> = {
-  draft: "secondary",
-  sent: "info",
-  accepted: "success",
-  rejected: "danger",
-};
-
-const statusLabel: Record<string, string> = {
-  draft: "Brouillon",
-  sent: "Envoyé",
-  accepted: "Accepté",
-  rejected: "Refusé",
-};
+import ModalQuotations from "./modal/modalQuotations";
 
 const QuotationsListComponent = () => {
-  const { t } = useI18n();
   const route = all_routes;
-  const { data, reload } = useCrmCollection<QuoteEditorRecord>(
-    "quotations",
-    QuotationsListData as unknown as QuoteEditorRecord[]
-  );
-  const { data: catalog } = useCrmCollection<Record<string, unknown>>("catalog", []);
-  const { data: companies } = useCrmCollection<Record<string, unknown>>("companies", []);
-  const [searchText, setSearchText] = useState("");
-  const [open, setOpen] = useState(false);
-  const [current, setCurrent] = useState<QuoteEditorRecord | null>(null);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [convertingId, setConvertingId] = useState("");
+  const data = QuotationsListData;
+  const [searchText, setSearchText] = useState<string>("");
 
-  const catalogOptions = useMemo(
-    () =>
-      catalog.map((item) => ({
-        id: String(item.id || item.key || ""),
-        name: String(item.name || item.ProductName || ""),
-        unitPrice: Number(item.unitPrice) || 0,
-        taxRate: Number(item.taxRate ?? item.Tax) || 18,
-        status: item.status != null ? String(item.status) : undefined,
-        Status: item.Status != null ? String(item.Status) : undefined,
-        ProductName: item.ProductName != null ? String(item.ProductName) : undefined,
-      })),
-    [catalog]
-  );
-
-  const companyOptions = useMemo(
-    () =>
-      companies.map((company) => ({
-        id: String(company.id || company.key || ""),
-        key: String(company.key || company.id || ""),
-        Name: String(company.Name || company.name || ""),
-        name: String(company.name || company.Name || ""),
-      })),
-    [companies]
-  );
-
-  const openCreate = () => {
-    setCurrent(null);
-    setError("");
-    setOpen(true);
-  };
-
-  const openEdit = async (record: QuoteEditorRecord) => {
-    const id = String(record.id || record.key || "");
-    setCurrent(record);
-    setError("");
-    setOpen(true);
-    if (!id) return;
-    try {
-      const detail = await fetchCrmRecord<QuoteEditorRecord>("quotations", id);
-      setCurrent({
-        ...record,
-        ...detail,
-        id: detail.id || id,
-        lines: Array.isArray(detail.lines) ? detail.lines : record.lines,
-      });
-    } catch {
-      setCurrent(record);
-    }
-  };
-
-  const removeQuote = async (record: QuoteEditorRecord) => {
-    const id = String(record.id || record.key || "");
-    if (!id) return;
-    if (!window.confirm("Supprimer ce devis et ses lignes ?")) return;
-    try {
-      await deleteCrmRecord("quotations", id);
-      setError("");
-      setSuccess("");
-      reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Suppression impossible");
-    }
-  };
-
-  const convertQuote = async (record: QuoteEditorRecord) => {
-    const id = String(record.id || record.key || "");
-    if (!id) return;
-    const number = String(record.quoteId || record.number || id);
-    const existingInvoice = String(record.invoiceNumber || "");
-    if (existingInvoice) {
-      setSuccess(`Ce devis a déjà la facture ${existingInvoice}.`);
-      setError("");
-      return;
-    }
-    if (!window.confirm(`Convertir le devis ${number} en facture ?`)) return;
-    setConvertingId(id);
-    try {
-      const result = await convertQuoteToInvoice(id);
-      const invoiceNumber = String(result.data?.Invoice_ID || result.data?.number || "");
-      setSuccess(
-        result.created
-          ? `Facture ${invoiceNumber} créée depuis ${number}.`
-          : `Ce devis a déjà la facture ${invoiceNumber}.`
-      );
-      setError("");
-      setOpen(false);
-      setCurrent(null);
-      reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Conversion en facture impossible");
-    } finally {
-      setConvertingId("");
-    }
+  const handleSearch = (value: string) => {
+    setSearchText(value);
   };
 
   const columns = [
     {
       title: "Quote ID",
       dataIndex: "quoteId",
-      render: (text: string, record: QuoteEditorRecord) => (
-        <button type="button" className="btn btn-link p-0 title-name" onClick={() => void openEdit(record)}>
+      render: (text: string) => (
+        <Link
+          href="#"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#edit-offcanvas"
+        >
           {text}
-        </button>
+        </Link>
       ),
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.quoteId ?? "").localeCompare(String(b.quoteId ?? "")),
+      sorter: (a: any, b: any) => a.quoteId.length - b.quoteId.length,
     },
     {
       title: "Client",
       dataIndex: "client",
-      render: (text: string, record: QuoteEditorRecord) => (
-        <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
-          <Link href={route.companiesDetails} className="avatar avatar-sm border rounded-circle me-2">
+      render: (text: string, record: any) => (
+        <h6 className="d-flex align-items-center fs-14 fw-medium">
+          <Link
+            href={route.companiesDetails}
+            className="avatar avatar-sm border rounded-circle me-2"
+          >
             <ImageWithBasePath
               className="w-auto h-auto"
-              src={String(record.clientImage || "assets/img/icons/company-icon-01.svg")}
-              alt=""
+              src={record.clientImage}
+              alt="User Image"
             />
           </Link>
           <Link href={route.companiesDetails}>{text}</Link>
         </h6>
       ),
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.client ?? "").localeCompare(String(b.client ?? ""), "fr"),
+      sorter: (a: any, b: any) => a.client.length - b.client.length,
     },
     {
       title: "Quote Date",
       dataIndex: "quoteDate",
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.quoteDate ?? "").localeCompare(String(b.quoteDate ?? "")),
+      sorter: (a: any, b: any) => a.quoteDate.length - b.quoteDate.length,
     },
     {
       title: "Valid Till",
       dataIndex: "validTill",
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.validTill ?? "").localeCompare(String(b.validTill ?? "")),
+      sorter: (a: any, b: any) => a.validTill.length - b.validTill.length,
     },
     {
-      title: "Lines",
-      dataIndex: "lineCount",
-      render: (value: number, record: QuoteEditorRecord) => (
-        <button type="button" className="btn btn-sm btn-outline-light" onClick={() => openEdit(record)}>
-          {Number(value) || 0}
-        </button>
-      ),
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) => Number(a.lineCount || 0) - Number(b.lineCount || 0),
-    },
-    {
-      title: "HT",
+      title: "Total Amount",
       dataIndex: "totalAmount",
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.totalAmount ?? "").localeCompare(String(b.totalAmount ?? ""), "fr", { numeric: true }),
+      sorter: (a: any, b: any) => a.totalAmount.length - b.totalAmount.length,
     },
     {
-      title: "TVA",
-      dataIndex: "taxAmount",
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.taxAmount ?? "").localeCompare(String(b.taxAmount ?? ""), "fr", { numeric: true }),
+      title: "Discount",
+      dataIndex: "discount",
+      sorter: (a: any, b: any) => a.discount.length - b.discount.length,
     },
     {
-      title: "TTC",
+      title: "Final Amount",
       dataIndex: "finalAmount",
-      render: (text: string) => <span className="fw-semibold">{text}</span>,
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.finalAmount ?? "").localeCompare(String(b.finalAmount ?? ""), "fr", { numeric: true }),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (value: string) => (
-        <span className={`badge badge-soft-${statusTone[value] || "secondary"}`}>
-          {t(statusLabel[value] || value || "—")}
-        </span>
-      ),
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.status ?? "").localeCompare(String(b.status ?? "")),
-    },
-    {
-      title: t("Invoice"),
-      dataIndex: "invoiceNumber",
-      render: (_: unknown, record: QuoteEditorRecord) => {
-        const invoiceNumber = String(record.invoiceNumber || "");
-        if (invoiceNumber) {
-          return (
-            <Link href={route.InvoiceList} className="title-name">
-              {invoiceNumber}
-            </Link>
-          );
-        }
-        if (record.status === "rejected") {
-          return <span className="text-muted">—</span>;
-        }
-        const id = String(record.id || record.key || "");
-        return (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-primary"
-            disabled={convertingId === id}
-            onClick={() => void convertQuote(record)}
-          >
-            {convertingId === id ? "..." : t("Facturer")}
-          </button>
-        );
-      },
-      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
-        String(a.invoiceNumber ?? "").localeCompare(String(b.invoiceNumber ?? "")),
+      sorter: (a: any, b: any) => a.finalAmount.length - b.finalAmount.length,
     },
     {
       title: "Action",
       dataIndex: "Action",
-      render: (_: unknown, record: QuoteEditorRecord) => {
-        const invoiceNumber = String(record.invoiceNumber || "");
-        return (
-          <div className="dropdown table-action">
+      render: () => (
+        <div className="dropdown table-action">
+          <Link
+            href="#"
+            className="action-icon btn btn-xs shadow btn-icon btn-outline-light"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="ti ti-dots-vertical" />
+          </Link>
+          <div className="dropdown-menu dropdown-menu-right">
             <Link
+              className="dropdown-item"
               href="#"
-              className="action-icon btn btn-xs shadow btn-icon btn-outline-light"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#edit-offcanvas"
             >
-              <i className="ti ti-dots-vertical" />
+              <i className="ti ti-edit text-blue" /> Edit
             </Link>
-            <div className="dropdown-menu dropdown-menu-right">
-              <button type="button" className="dropdown-item" onClick={() => void openEdit(record)}>
-                <i className="ti ti-edit text-blue" /> {t("Edit")}
-              </button>
-              {invoiceNumber ? (
-                <Link href={route.InvoiceList} className="dropdown-item">
-                  <i className="ti ti-file-invoice text-success" /> {t("View Invoice")} {invoiceNumber}
-                </Link>
-              ) : record.status === "rejected" ? null : (
-                <button type="button" className="dropdown-item" onClick={() => void convertQuote(record)}>
-                  <i className="ti ti-file-invoice text-blue" /> {t("Convert to Invoice")}
-                </button>
-              )}
-              <button type="button" className="dropdown-item" onClick={() => void removeQuote(record)}>
-                <i className="ti ti-trash" /> {t("Delete")}
-              </button>
-            </div>
+            <Link
+              className="dropdown-item"
+              href="#"
+              data-bs-toggle="modal"
+              data-bs-target="#delete_modal"
+            >
+              <i className="ti ti-trash" /> Delete
+            </Link>
           </div>
-        );
-      },
+        </div>
+      ),
     },
   ];
 
   return (
     <>
+      {/* ========================
+			Start Page Content
+		========================= */}
       <div className="page-wrapper">
+        {/* Start Content */}
         <div className="content pb-0">
+          {/* Page Header */}
           <PageHeader
             title="Quotations"
-            badgeCount={data.length}
+            badgeCount={150}
             showModuleTile={true}
             moduleTitle="Sales CRM"
             showExport={true}
-            exportPdfResource="quotes"
-            onRefresh={reload}
           />
+          {/* End Page Header */}
+          {/* card start */}
           <div className="card border-0 rounded-0">
             <div className="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
               <div className="input-icon input-icon-start position-relative">
                 <span className="input-icon-addon text-dark">
                   <i className="ti ti-search" />
                 </span>
-                <SearchInput value={searchText} onChange={setSearchText} />
+                <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <button type="button" className="btn btn-primary" onClick={openCreate}>
+              <Link
+                href="#"
+                className="btn btn-primary"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#add-offcanvas"
+              >
                 <i className="ti ti-square-rounded-plus-filled me-1" />
-                {t("Add Quotation")}
-              </button>
+                Add Quotation
+              </Link>
             </div>
             <div className="card-body">
-              {error ? <div className="alert alert-danger">{error}</div> : null}
-              {success ? (
-                <div className="alert alert-success d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                  <span>{success}</span>
-                  <Link href={route.InvoiceList} className="btn btn-sm btn-success">
-                    {t("View Invoice")}
-                  </Link>
+              {/* table header */}
+              <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <div className="dropdown">
+                    <Link
+                      href="#"
+                      className="dropdown-toggle btn btn-outline-light shadow"
+                      data-bs-toggle="dropdown"
+                    >
+                      <i className="ti ti-sort-ascending-2 me-2" />
+                      Sort By
+                    </Link>
+                    <div className="dropdown-menu">
+                      <ul>
+                        <li>
+                          <Link href="#" className="dropdown-item">
+                            Newest
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="#" className="dropdown-item">
+                            Oldest
+                          </Link>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <PredefinedDatePicker />
                 </div>
-              ) : null}
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <div className="dropdown">
+                    <Link
+                      href="#"
+                      className="btn btn-outline-light shadow px-2"
+                      data-bs-toggle="dropdown"
+                      data-bs-auto-close="outside"
+                    >
+                      <i className="ti ti-filter me-2" />
+                      Filter
+                      <i className="ti ti-chevron-down ms-2" />
+                    </Link>
+                    <div className="filter-dropdown-menu dropdown-menu dropdown-menu-lg p-0">
+                      <div className="filter-header d-flex align-items-center justify-content-between border-bottom">
+                        <h4 className="mb-0 fs-16">
+                          <i className="ti ti-filter me-1" />
+                          Filter
+                        </h4>
+                        <button
+                          type="button"
+                          className="btn-close close-filter-btn"
+                          data-bs-dismiss="dropdown-menu"
+                          aria-label="Close"
+                        />
+                      </div>
+                      <div className="filter-set-view p-3">
+                        <div className="accordion" id="accordionExample">
+                          <div className="filter-set-content">
+                            <div className="filter-set-content-head">
+                              <Link
+                                href="#"
+                                className="collapsed"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseTwo"
+                                aria-expanded="false"
+                                aria-controls="collapseTwo"
+                              >
+                                Client
+                              </Link>
+                            </div>
+                            <div
+                              className="filter-set-contents accordion-collapse collapse"
+                              id="collapseTwo"
+                              data-bs-parent="#accordionExample"
+                            >
+                              <div className="filter-content-list bg-light rounded border p-2 shadow mt-2">
+                                <div className="mb-2">
+                                  <div className="input-icon-start input-icon position-relative">
+                                    <span className="input-icon-addon fs-12">
+                                      <i className="ti ti-search" />
+                                    </span>
+                                    <input
+                                      type="text"
+                                      className="form-control form-control-md"
+                                      placeholder="Search"
+                                    />
+                                  </div>
+                                </div>
+                                <ul className="mb-0">
+                                  {QuotationFilterClientList.map((client) => (
+                                    <li className="mb-1" key={client.key}>
+                                      <label className="dropdown-item px-2 d-flex align-items-center">
+                                        <input
+                                          className="form-check-input m-0 me-1"
+                                          type="checkbox"
+                                        />
+                                        <span className="avatar avatar-xs rounded-circle me-2 border rounded-circle me-2 p-1">
+                                          <ImageWithBasePath
+                                            src={client.image}
+                                            className="flex-shrink-0 rounded-circle"
+                                            alt="img"
+                                          />
+                                        </span>
+                                        {client.name}
+                                      </label>
+                                    </li>
+                                  ))}
+                                  <li>
+                                    <Link
+                                      href="#"
+                                      className="link-primary text-decoration-underline p-2 pt-0 d-flex"
+                                    >
+                                      View More
+                                    </Link>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="filter-set-content">
+                            <div className="filter-set-content-head">
+                              <Link
+                                href="#"
+                                className="collapsed"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#Status"
+                                aria-expanded="false"
+                                aria-controls="Status"
+                              >
+                                Quote Date
+                              </Link>
+                            </div>
+                            <div
+                              className="filter-set-contents accordion-collapse collapse"
+                              id="Status"
+                              data-bs-parent="#accordionExample"
+                            >
+                              <div className="filter-content-list bg-light rounded border p-2 shadow mt-2">
+                                <div className="input-group w-auto input-group-flat">
+                                  <CommonDatePicker placeholder="dd/mm/yyyy" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="filter-set-content">
+                            <div className="filter-set-content-head">
+                              <Link
+                                href="#"
+                                className="collapsed"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#validity"
+                                aria-expanded="false"
+                                aria-controls="validity"
+                              >
+                                Valid Till
+                              </Link>
+                            </div>
+                            <div
+                              className="filter-set-contents accordion-collapse collapse"
+                              id="validity"
+                              data-bs-parent="#accordionExample"
+                            >
+                              <div className="filter-content-list bg-light rounded border p-2 shadow mt-2">
+                                <div className="input-group w-auto input-group-flat">
+                                  <CommonDatePicker placeholder="dd/mm/yyyy" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                          <Link href="#" className="btn btn-outline-light w-100">
+                            Reset
+                          </Link>
+                          <Link href="#" className="btn btn-primary w-100">
+                            Filter
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="dropdown">
+                    <Link
+                      href="#"
+                      className="btn bg-soft-indigo border-0"
+                      data-bs-toggle="dropdown"
+                      data-bs-auto-close="outside"
+                    >
+                      <i className="ti ti-columns-3 me-2" />
+                      Manage Columns
+                    </Link>
+                    <div className="dropdown-menu dropdown-menu-md dropdown-md p-3">
+                      <ul>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Quote ID</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                                defaultChecked
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Client</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                                defaultChecked
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Quote Date</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                                defaultChecked
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Valid Till</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                                defaultChecked
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Total Amount</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                                defaultChecked
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Discount</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-2">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Final Amount</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                              />
+                            </label>
+                          </div>
+                        </li>
+                        <li className="gap-1 d-flex align-items-center mb-0">
+                          <i className="ti ti-columns me-1" />
+                          <div className="form-check form-switch w-100 ps-0">
+                            <label className="form-check-label d-flex align-items-center gap-2 w-100">
+                              <span>Action</span>
+                              <input
+                                className="form-check-input switchCheckDefault ms-auto"
+                                type="checkbox"
+                                role="switch"
+                                defaultChecked
+                              />
+                            </label>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* table header */}
+              {/* Quotations List */}
               <div className="custom-table table-nowrap">
                 <Datatable
                   columns={columns}
@@ -333,25 +474,28 @@ const QuotationsListComponent = () => {
                   searchText={searchText}
                 />
               </div>
+              <div className="row align-items-center">
+                <div className="col-md-6">
+                  <div className="datatable-length" />
+                </div>
+                <div className="col-md-6">
+                  <div className="datatable-paginate" />
+                </div>
+              </div>
+              {/* /Quotations List */}
             </div>
           </div>
+          {/* card end */}
         </div>
+        {/* End Content */}
+        {/* Start Footer */}
         <Footer />
+        {/* End Footer */}
       </div>
-      <ModalQuotations
-        key={open ? String(current?.id || current?.key || "new") : "closed"}
-        open={open}
-        record={current}
-        catalog={catalogOptions}
-        companies={companyOptions}
-        converting={Boolean(current && convertingId === String(current.id || current.key || ""))}
-        onClose={() => {
-          setOpen(false);
-          setCurrent(null);
-        }}
-        onSaved={reload}
-        onConvert={(record) => void convertQuote(record)}
-      />
+      {/* ========================
+			End Page Content
+		========================= */}
+      <ModalQuotations />
     </>
   );
 };

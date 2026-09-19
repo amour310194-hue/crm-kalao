@@ -3,25 +3,16 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { all_routes } from "@/router/all_routes";
-import { getLocalSession } from "@/lib/auth/session";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(!isSupabaseConfigured());
 
   useEffect(() => {
-    const allow = () => setReady(true);
-    const deny = () => router.replace(all_routes.login);
-
-    if (getLocalSession()) {
-      allow();
-      return;
-    }
-
     if (!isSupabaseConfigured()) {
-      deny();
+      setReady(true);
       return;
     }
 
@@ -30,10 +21,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const redirectIfUnauthenticated = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        deny();
+        router.replace(all_routes.login);
         return;
       }
-      allow();
+      setReady(true);
     };
 
     void redirectIfUnauthenticated();
@@ -41,8 +32,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session && !getLocalSession()) {
-        deny();
+      if (!session) {
+        router.replace(all_routes.login);
       }
     });
 

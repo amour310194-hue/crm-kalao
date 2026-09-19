@@ -7,29 +7,12 @@ import { useState } from "react";
 import { DealsListData } from "../../../../core/json/dealsListData";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import Datatable from "@/core/common/dataTable";
+import ModalDeals from "./modal/modalDeals";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { useCrmCollection } from "@/lib/api/useCrmList";
-import { deleteCrmRecord, updateCrmRecord } from "@/lib/api/crmClient";
-import KalaoFormModal from "@/components/Pages/kalao/KalaoFormModal";
-import { useI18n } from "@/i18n/I18nProvider";
-
-type DealOutcome = "Open" | "Won" | "Lost";
-
-function dealOutcome(record: Record<string, unknown>): DealOutcome {
-  const status = String(record.Status || record.status || "Open");
-  if (status === "Won" || status === "Lost") return status;
-  return "Open";
-}
 
 const DealsListComponent = () => {
-const { t } = useI18n();
 const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>({});
-const [open, setOpen] = useState(false);
-const [current, setCurrent] = useState<Record<string, unknown> | null>(null);
-const [error, setError] = useState("");
-const [changingId, setChangingId] = useState("");
-const { data, reload } = useCrmCollection<Record<string, unknown>>("deals", DealsListData as unknown as Record<string, unknown>[]);
 
 const handleClick = (key: string) => {
   setFilledStars((prev) => ({
@@ -37,48 +20,7 @@ const handleClick = (key: string) => {
     [key]: !prev[key], // toggle on/off
   }));
 };
-
-const dealId = (record: Record<string, unknown>) => String(record.id || record.key || "");
-
-const openCreate = () => {
-  setCurrent(null);
-  setError("");
-  setOpen(true);
-};
-
-const openEdit = (record: Record<string, unknown>) => {
-  setCurrent(record);
-  setError("");
-  setOpen(true);
-};
-
-const changeStage = async (record: Record<string, unknown>, status: DealOutcome) => {
-  const id = dealId(record);
-  if (!id || dealOutcome(record) === status) return;
-  setChangingId(id);
-  try {
-    await updateCrmRecord("deals", id, { status });
-    setError("");
-    reload();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Changement d’étape impossible");
-  } finally {
-    setChangingId("");
-  }
-};
-
-const removeDeal = async (record: Record<string, unknown>) => {
-  const id = dealId(record);
-  if (!id) return;
-  if (!window.confirm("Supprimer cette affaire ?")) return;
-  try {
-    await deleteCrmRecord("deals", id);
-    setError("");
-    reload();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Suppression impossible");
-  }
-};
+  const data = DealsListData;
   const columns = [
   {
     title: "",
@@ -108,8 +50,7 @@ const removeDeal = async (record: Record<string, unknown>) => {
     {
       title: "Stage",
       dataIndex: "Stage",
-      render: (text: string) => t(text) || text,
-      sorter: (a: any, b: any) => String(a.Stage).localeCompare(String(b.Stage)),
+      sorter: (a: any, b: any) => a.Stage.length - b.Stage.length,
     },
     {
       title: "Deal Value",
@@ -150,32 +91,25 @@ const removeDeal = async (record: Record<string, unknown>) => {
     {
       title: "Status",
       dataIndex: "Status",
-      render: (_: unknown, record: Record<string, unknown>) => {
-        const status = dealOutcome(record);
-        const id = dealId(record);
-        return (
-          <select
-            className="form-select form-select-sm"
-            style={{ minWidth: 132 }}
-            aria-label={t("Change stage")}
-            value={status}
-            disabled={changingId === id}
-            onClick={(event) => event.stopPropagation()}
-            onMouseDown={(event) => event.stopPropagation()}
-            onChange={(event) => void changeStage(record, event.target.value as DealOutcome)}
-          >
-            <option value="Open">{t("Pipeline")}</option>
-            <option value="Won">{t("Won")}</option>
-            <option value="Lost">{t("Lost")}</option>
-          </select>
-        );
-      },
-      sorter: (a: any, b: any) => String(a.Status).localeCompare(String(b.Status)),
+      render: (text: any) => (
+        <span
+          className={`badge badge-pill badge-status ${
+            text === "Won"
+              ? "bg-success"
+              : text === "Open"
+              ? "bg-purple"
+              : "bg-danger"
+          } `}
+        >
+          {text}
+        </span>
+      ),
+      sorter: (a: any, b: any) => a.Status.length - b.Status.length,
     },
     {
       title: "Action",
       dataIndex: "Action",
-      render: (_: unknown, record: Record<string, unknown>) => (
+      render: () => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -189,27 +123,29 @@ const removeDeal = async (record: Record<string, unknown>) => {
             <Link className="dropdown-item" href="#">
               <i className="ti ti-bounce-right" /> Add Activity
             </Link>
-            <button type="button" className="dropdown-item" onClick={() => void changeStage(record, "Won")}>
-              <i className="ti ti-trophy text-success" /> {t("Mark as Won")}
-            </button>
-            <button type="button" className="dropdown-item" onClick={() => void changeStage(record, "Lost")}>
-              <i className="ti ti-thumb-down text-danger" /> {t("Mark as Lost")}
-            </button>
-            <button type="button" className="dropdown-item" onClick={() => void changeStage(record, "Open")}>
-              <i className="ti ti-git-branch text-purple" /> {t("Back to pipeline")}
-            </button>
-            <button type="button" className="dropdown-item" onClick={() => openEdit(record)}>
+            <Link
+              className="dropdown-item"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvas_edit"
+              href="#"
+            >
               <i className="ti ti-edit text-blue" /> Edit
-            </button>
-            <button type="button" className="dropdown-item" onClick={() => void removeDeal(record)}>
+            </Link>
+            <Link
+              className="dropdown-item"
+              href="#"
+              data-bs-toggle="modal"
+              data-bs-target="#delete_deal"
+            >
               <i className="ti ti-trash" /> Delete
-            </button>
+            </Link>
             <Link className="dropdown-item" href={all_routes.dealsDetails}>
               <i className="ti ti-eye text-blue-light" /> Preview
             </Link>
           </div>
         </div>
       ),
+      sorter: (a: any, b: any) => a.Action.length - b.Action.length,
     },
   ];
 
@@ -229,11 +165,9 @@ const removeDeal = async (record: Record<string, unknown>) => {
           {/* Page Header */}
           <PageHeader
             title="Deals"
-            badgeCount={data.length}
+            badgeCount={125}
             showModuleTile={false}
             showExport={true}
-            exportPdfResource="deals"
-            onRefresh={reload}
           />
           {/* End Page Header */}
           {/* card start */}
@@ -245,13 +179,17 @@ const removeDeal = async (record: Record<string, unknown>) => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <button type="button" className="btn btn-primary" onClick={openCreate}>
+              <Link
+                href="#"
+                className="btn btn-primary"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvas_add"
+              >
                 <i className="ti ti-square-rounded-plus-filled me-1" />
                 Add Deal
-              </button>
+              </Link>
             </div>
             <div className="card-body">
-              {error ? <div className="alert alert-danger">{error}</div> : null}
               {/* table header */}
               <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -921,16 +859,7 @@ const removeDeal = async (record: Record<string, unknown>) => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <KalaoFormModal
-      resource="deals"
-      open={open}
-      record={current}
-      onClose={() => setOpen(false)}
-      onSaved={() => {
-        setError("");
-        reload();
-      }}
-    />
+    <ModalDeals/>
     </>
   );
 };

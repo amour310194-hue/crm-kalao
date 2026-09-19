@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
-import { all_routes } from "@/router/all_routes";
+import ProjectDashboardComponent from "@/components/Pages/dashboard/project-dashboard/projectDashboard";
 
-export default function ProjectDashboard() {
-  redirect(all_routes.dashboard);
+export const metadata = {
+  title: "Project Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+};
+
+export default function ProjectDashboard(){
+    return(
+        <><ProjectDashboardComponent/></>
+    )
 }

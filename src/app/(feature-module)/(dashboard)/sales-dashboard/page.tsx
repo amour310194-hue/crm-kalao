@@ -1,6 +1,12 @@
-import { redirect } from "next/navigation";
-import { all_routes } from "@/router/all_routes";
 
-export default function SalesDashboard() {
-  redirect(all_routes.dashboard);
+import SalesDashboardComponent from "@/components/Pages/dashboard/sales-dashboard/salesDashboard";
+
+export const metadata = {
+  title: "Sales Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+};
+
+export default function SalesDashboard(){
+    return(
+        <><SalesDashboardComponent/></>
+    )
 }
