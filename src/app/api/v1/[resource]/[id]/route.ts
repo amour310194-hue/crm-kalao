@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auditMutation } from "@/lib/backend/audit";
+import { getAccountFiche } from "@/lib/backend/views";
 import {
   deleteAccount,
   deleteRecord,
@@ -29,7 +30,7 @@ function isAccounts(raw: string) {
 export async function GET(_request: Request, context: RouteContext) {
   const { resource: raw, id } = await context.params;
   if (isAccounts(raw)) {
-    const record = getById("companies", id) ?? getById("contacts", id);
+    const record = getAccountFiche(id);
     if (!record) {
       return NextResponse.json({ error: "Introuvable" }, { status: 404 });
     }

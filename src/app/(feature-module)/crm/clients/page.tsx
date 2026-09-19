@@ -10,6 +10,7 @@ export default function ClientsPage() {
       resource="accounts"
       title="Clients"
       moduleTitle="CRM"
+      detailBase="/crm/clients"
       columns={[
         { title: "Name", dataIndex: "Name" },
         { title: "Type", dataIndex: "Type" },

@@ -288,29 +288,180 @@ export function listUi(resource: CrmResource) {
   }
 }
 
+export type AccountRow = {
+  id: string;
+  key: string;
+  Name: string;
+  Type: "Particulier" | "Société";
+  Email: string;
+  Phone: string;
+  City: string;
+  Tags: string;
+  Status: string;
+};
+
+export type AccountDossierRow = {
+  id: string;
+  kind: string;
+  number: string;
+  title: string;
+  status: string;
+  href: string;
+  amount: string;
+};
+
+export type AccountFiche = AccountRow & {
+  deals: ReturnType<typeof toDealRows>;
+  invoices: ReturnType<typeof toInvoiceRows>;
+  dossiers: AccountDossierRow[];
+  totals: {
+    dealsCount: number;
+    dealsAmount: number;
+    invoicesCount: number;
+    invoicesAmount: number;
+    invoicesOutstanding: number;
+    dossiersCount: number;
+  };
+};
+
+function sameName(left: string, right: string) {
+  return left.trim().toLowerCase().replace(/\s+/g, " ") === right.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function moneyOrDash(value: number | undefined) {
+  if (value == null || Number.isNaN(value)) return "—";
+  return euro.format(value);
+}
+
+export function getAccountRow(id: string): AccountRow | null {
+  const store = getStore();
+  const company = store.companies.find((row) => row.id === id);
+  if (company) {
+    return {
+      id: company.id,
+      key: company.id,
+      Name: company.name,
+      Type: "Société",
+      Email: company.email,
+      Phone: company.phone,
+      City: company.city,
+      Tags: company.tags,
+      Status: company.status === "active" ? "Active" : "Inactive",
+    };
+  }
+  const contact = store.contacts.find((row) => row.id === id);
+  if (!contact) return null;
+  return {
+    id: contact.id,
+    key: contact.id,
+    Name: `${contact.firstName} ${contact.lastName}`.trim(),
+    Type: contact.companyId ? "Société" : "Particulier",
+    Email: contact.email,
+    Phone: contact.phone,
+    City: contact.location,
+    Tags: contact.tags,
+    Status: contact.status === "active" ? "Active" : "Inactive",
+  };
+}
+
+export function getAccountFiche(id: string): AccountFiche | null {
+  const account = getAccountRow(id);
+  if (!account) return null;
+  const store = getStore();
+  const name = account.Name;
+  const deals = store.deals.filter((row) => row.companyId === id || row.contactId === id);
+  const invoices = store.invoices.filter((row) => row.companyId === id);
+  const dossiers: AccountDossierRow[] = [
+    ...store.travel
+      .filter((row) => sameName(row.accountName, name))
+      .map((row) => ({
+        id: row.id,
+        kind: "Voyages",
+        number: row.number,
+        title: row.destination,
+        status: row.status,
+        href: `/metiers/voyages/${row.id}`,
+        amount: moneyOrDash(row.amount),
+      })),
+    ...store.immigration
+      .filter((row) => sameName(row.accountName, name))
+      .map((row) => ({
+        id: row.id,
+        kind: "Immigration",
+        number: row.number,
+        title: `${row.procedure}${row.country ? ` · ${row.country}` : ""}`,
+        status: row.status,
+        href: `/metiers/immigration/${row.id}`,
+        amount: "—",
+      })),
+    ...store.events
+      .filter((row) => sameName(row.accountName, name))
+      .map((row) => ({
+        id: row.id,
+        kind: "Événements",
+        number: row.number,
+        title: row.title,
+        status: row.status,
+        href: "/metiers/evenements",
+        amount: moneyOrDash(row.amount),
+      })),
+    ...store.sites
+      .filter((row) => sameName(row.accountName, name))
+      .map((row) => ({
+        id: row.id,
+        kind: "BTP",
+        number: row.number,
+        title: row.name,
+        status: row.status,
+        href: "/metiers/chantiers",
+        amount: moneyOrDash(row.amount),
+      })),
+    ...store.properties
+      .filter((row) => sameName(row.accountName, name))
+      .map((row) => ({
+        id: row.id,
+        kind: "Immobilier",
+        number: row.name,
+        title: row.kind,
+        status: row.status,
+        href: "/metiers/immobilier",
+        amount: moneyOrDash(row.rent),
+      })),
+    ...store.leases
+      .filter((row) => sameName(row.tenant, name))
+      .map((row) => ({
+        id: row.id,
+        kind: "Immobilier",
+        number: row.propertyName,
+        title: row.tenant,
+        status: row.status,
+        href: "/metiers/immobilier/baux",
+        amount: moneyOrDash(row.rent),
+      })),
+  ];
+  const invoicesOutstanding = invoices.reduce(
+    (total, row) => total + Math.max(0, (Number(row.amount) || 0) - (Number(row.paidAmount) || 0)),
+    0,
+  );
+  return {
+    ...account,
+    deals: toDealRows(deals),
+    invoices: toInvoiceRows(invoices),
+    dossiers,
+    totals: {
+      dealsCount: deals.length,
+      dealsAmount: deals.reduce((total, row) => total + (Number(row.amount) || 0), 0),
+      invoicesCount: invoices.length,
+      invoicesAmount: invoices.reduce((total, row) => total + (Number(row.amount) || 0), 0),
+      invoicesOutstanding,
+      dossiersCount: dossiers.length,
+    },
+  };
+}
+
 export function toAccountRows() {
   const store = getStore();
-  const companies = store.companies.map((row) => ({
-    key: row.id,
-    Name: row.name,
-    Type: "Société",
-    Email: row.email,
-    Phone: row.phone,
-    City: row.city,
-    Tags: row.tags,
-    Status: row.status === "active" ? "Active" : "Inactive",
-  }));
-  const people = store.contacts
-    .filter((row) => !row.companyId)
-    .map((row) => ({
-      key: row.id,
-      Name: `${row.firstName} ${row.lastName}`,
-      Type: "Particulier",
-      Email: row.email,
-      Phone: row.phone,
-      City: row.location,
-      Tags: row.tags,
-      Status: row.status === "active" ? "Active" : "Inactive",
-    }));
+  const companies = store.companies.map((row) => getAccountRow(row.id)!);
+  const people = store.contacts.filter((row) => !row.companyId).map((row) => getAccountRow(row.id)!);
   return [...people, ...companies];
 }

@@ -52,6 +52,7 @@ export const all_routes = {
   companiesGrid: "/crm/companies-grid",
   companiesList:"/crm/companies-list",
   clients: "/crm/clients",
+  clientFiche: "/crm/clients",
   travel: "/metiers/voyages",
   immigration: "/metiers/immigration",
   events: "/metiers/evenements",
