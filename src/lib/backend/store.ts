@@ -2,6 +2,7 @@ import { createSeedStore } from "./seed";
 import { formatDisplayDate, toIsoDateString } from "./period";
 import { discountLabelFromLines, quoteTotalsFromLines } from "./quote-totals";
 import type {
+  ActivityRecord,
   CatalogRecord,
   CompanyRecord,
   ContactRecord,
@@ -435,6 +436,45 @@ export function convertQuoteToInvoice(id: string) {
     invoice,
     quote: getQuoteDetail(id),
   };
+}
+
+function activityType(
+  payload: Record<string, unknown>,
+  fallback: ActivityRecord["type"] = "task"
+): ActivityRecord["type"] {
+  const raw = text(payload, "type").toLowerCase();
+  if (raw === "call" || raw === "email" || raw === "meeting" || raw === "task" || raw === "note") {
+    return raw;
+  }
+  return fallback;
+}
+
+export function createActivity(payload: Record<string, unknown>) {
+  return createRecord("activities", {
+    type: activityType(payload),
+    subject: text(payload, "subject", "title", "Subject") || "Activité",
+    companyId: text(payload, "companyId"),
+    contactId: text(payload, "contactId"),
+    dealId: text(payload, "dealId"),
+    dueAt: text(payload, "dueAt") || new Date().toISOString().slice(0, 16),
+    notes: text(payload, "notes"),
+  });
+}
+
+export function updateActivity(id: string, payload: Record<string, unknown>) {
+  const existing = getById("activities", id) as ActivityRecord | null;
+  if (!existing) return null;
+  const next: Record<string, unknown> = {};
+  if (payload.type != null) next.type = activityType(payload, existing.type);
+  if (payload.subject != null || payload.title != null || payload.Subject != null) {
+    next.subject = text(payload, "subject", "title", "Subject");
+  }
+  if (payload.companyId != null) next.companyId = text(payload, "companyId");
+  if (payload.contactId != null) next.contactId = text(payload, "contactId");
+  if (payload.dealId != null) next.dealId = text(payload, "dealId");
+  if (payload.dueAt != null) next.dueAt = text(payload, "dueAt");
+  if (payload.notes != null) next.notes = text(payload, "notes");
+  return updateRecord("activities", id, next);
 }
 
 export function updateDeal(id: string, payload: Record<string, unknown>) {

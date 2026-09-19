@@ -1,12 +1,6 @@
-import KanbanViewComponent from "@/components/Pages/application-module/kanban-view/kanbanView";
+import { redirect } from "next/navigation";
+import { all_routes } from "@/router/all_routes";
 
-export const metadata = {
-  title: "Kanban View | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
-};
-
-
-export default function KanbanView(){
-    return(
-        <><KanbanViewComponent/></>
-    )
+export default function KanbanView() {
+  redirect(all_routes.pipeline);
 }

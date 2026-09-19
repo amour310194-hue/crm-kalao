@@ -3,11 +3,46 @@ export type DateRange = {
   to: Date;
 };
 
+const MONTHS: Record<string, number> = {
+  jan: 0, january: 0, janv: 0,
+  feb: 1, february: 1, fevr: 1, févr: 1,
+  mar: 2, march: 2, mars: 2,
+  apr: 3, april: 3, avr: 3,
+  may: 4, mai: 4,
+  jun: 5, june: 5, juin: 5,
+  jul: 6, july: 6, juil: 6,
+  aug: 7, august: 7, aout: 7, août: 7,
+  sep: 8, sept: 8, september: 8, septembre: 8,
+  oct: 9, october: 9, octobre: 9,
+  nov: 10, november: 10, novembre: 10,
+  dec: 11, december: 11, decembre: 11, décembre: 11,
+};
+
 export function parseCrmDate(value: string | undefined | null): Date | null {
   if (!value) return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
   if (/^\d{4}$/.test(trimmed)) return null;
+
+  const isoLocal = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/.exec(trimmed);
+  if (isoLocal) {
+    return new Date(
+      Number(isoLocal[1]),
+      Number(isoLocal[2]) - 1,
+      Number(isoLocal[3]),
+      Number(isoLocal[4] || 0),
+      Number(isoLocal[5] || 0),
+      Number(isoLocal[6] || 0)
+    );
+  }
+
+  const named = /^(\d{1,2})\s+([A-Za-zÀ-ÿ.]+)\s+(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/.exec(trimmed.replace(",", ""));
+  if (named) {
+    const month = MONTHS[named[2].replace(/\./g, "").toLowerCase()];
+    if (month != null) {
+      return new Date(Number(named[3]), month, Number(named[1]), Number(named[4] || 0), Number(named[5] || 0));
+    }
+  }
 
   const cleaned = trimmed.replace(",", "");
   const timestamp = Date.parse(cleaned);

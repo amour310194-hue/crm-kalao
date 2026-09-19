@@ -13,7 +13,7 @@ import type {
   QuoteRecord,
 } from "./types";
 import { getStore } from "./store";
-import { formatDisplayDate, nightsBetween, toIsoDateString } from "./period";
+import { formatDisplayDate, formatDisplayDateTime, nightsBetween, parseCrmDate, toIsoDateString } from "./period";
 import { quoteTotalsFromLines } from "./quote-totals";
 
 const euro = new Intl.NumberFormat("fr-FR", {
@@ -209,14 +209,24 @@ export function toInvoiceRows(rows: InvoiceRecord[]) {
   }));
 }
 
+const activityTypeLabel: Record<ActivityRecord["type"], string> = {
+  call: "Appel",
+  email: "E-mail",
+  meeting: "Réunion",
+  task: "Tâche",
+  note: "Note",
+};
+
 export function toActivityRows(rows: ActivityRecord[]) {
   return rows.map((row) => ({
+    ...row,
     key: row.id,
-    type: row.type,
-    subject: row.subject,
-    company: companyName(row.companyId),
-    dueAt: row.dueAt,
-    notes: row.notes,
+    id: row.id,
+    Type: activityTypeLabel[row.type] || row.type,
+    Subject: row.subject,
+    Company: partyName(row.companyId, row.contactId),
+    company: partyName(row.companyId, row.contactId),
+    DueAt: formatDisplayDateTime(parseCrmDate(row.dueAt) ?? row.dueAt),
   }));
 }
 
@@ -333,7 +343,10 @@ export function listUi(resource: CrmResource) {
         Amount: euro.format(row.amount),
       }));
     case "attachments":
-      return store.attachments.map((row) => ({ ...row, key: row.id }));
+      return store.attachments.map((row) => {
+        const { contentBase64: _omit, ...rest } = row;
+        return { ...rest, key: row.id, url: `/api/v1/files/${row.id}` };
+      });
     default:
       return [];
   }

@@ -286,6 +286,8 @@ export type AttachmentRecord = {
   parentId: string;
   name: string;
   url: string;
+  mimeType?: string;
+  contentBase64?: string;
   createdAt: string;
 };
 

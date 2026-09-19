@@ -198,6 +198,13 @@ export const resourceFields: Record<string, FormField[]> = {
     { name: "method", label: "Mode", type: "select", options: ["Espèces", "Virement", "Chèque", "Mobile money"] },
     { name: "paidAt", label: "Date" },
   ],
+  activities: [
+    { name: "type", label: "Type", type: "select", options: ["call", "email", "meeting", "task", "note"], required: true },
+    { name: "subject", label: "Objet", required: true },
+    { name: "companyId", label: "ID société" },
+    { name: "dueAt", label: "Échéance" },
+    { name: "notes", label: "Notes", type: "textarea", wide: true },
+  ],
 };
 
 const aliases: Record<string, string> = {

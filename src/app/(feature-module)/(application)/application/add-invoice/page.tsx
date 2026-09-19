@@ -1,10 +1,6 @@
-import AddInoivceComponent from "@/components/Pages/application-module/invoice/add-invoice/addInoivce";
+import { redirect } from "next/navigation";
+import { all_routes } from "@/router/all_routes";
 
-export const metadata = {
-  title: "Add Invoice | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
-};
-export default function AddInvoice(){
-    return(
-        <><AddInoivceComponent/></>
-    )
+export default function AddInvoice() {
+  redirect(all_routes.InvoiceList);
 }

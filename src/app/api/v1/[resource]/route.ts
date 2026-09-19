@@ -3,6 +3,7 @@ import { auditMutation } from "@/lib/backend/audit";
 import { listUi, toAccountRows } from "@/lib/backend/views";
 import {
   createAccount,
+  createActivity,
   createCompany,
   createContact,
   createDeal,
@@ -109,6 +110,12 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (resource === "quotes") {
     const record = createQuote(payload);
+    await auditMutation(request, "create", resource, record);
+    return NextResponse.json({ resource, data: record }, { status: 201 });
+  }
+
+  if (resource === "activities") {
+    const record = createActivity(payload);
     await auditMutation(request, "create", resource, record);
     return NextResponse.json({ resource, data: record }, { status: 201 });
   }

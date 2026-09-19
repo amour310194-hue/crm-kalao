@@ -23,7 +23,7 @@ export const SidebarData = [
       },
       {
         label: "Applications",
-        link: route.chat,
+        link: route.calendar,
         submenu: true,
         showSubRoute: false,
         icon: "brand-airtable",
@@ -31,7 +31,7 @@ export const SidebarData = [
         materialicons: "start",
         dot: true,
         submenuItems: [
-          { label: "Chat", link: route.chat },
+          { label: "Chat", link: route.chat, hidden: true },
           {
             label: "Calls",
             hidden: true,
@@ -77,9 +77,10 @@ export const SidebarData = [
           { label: "Notes", link: route.notes },
           { label: "File Manager", link: route.fileManager },
           { label: "Social Feed", link: route.socialfeed, hidden: true },
-          { label: "Kanban", link: route.kanbanview },
+          { label: "Kanban", link: route.kanbanview, hidden: true },
           {
             label: "Invoices",
+            hidden: true,
             link: route.invoice,
             relatedRoutes: [route.invoice_details],
           },

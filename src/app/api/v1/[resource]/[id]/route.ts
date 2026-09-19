@@ -9,6 +9,7 @@ import {
   getQuoteDetail,
   resolveResource,
   updateAccount,
+  updateActivity,
   updateCompany,
   updateContact,
   updateDeal,
@@ -130,6 +131,15 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (resource === "quotes") {
     const record = updateQuote(id, payload);
+    if (!record) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    await auditMutation(request, "update", resource, record, id);
+    return NextResponse.json({ resource, data: record });
+  }
+
+  if (resource === "activities") {
+    const record = updateActivity(id, payload);
     if (!record) {
       return NextResponse.json({ error: "Introuvable" }, { status: 404 });
     }

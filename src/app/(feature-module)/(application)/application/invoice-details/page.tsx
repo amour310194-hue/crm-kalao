@@ -1,7 +1,6 @@
-import InvoiceDetailsComponent from "@/components/Pages/application-module/invoice/invoiceDetails";
+import { redirect } from "next/navigation";
+import { all_routes } from "@/router/all_routes";
 
-export default function InvoiceDetails(){
-    return(
-        <><InvoiceDetailsComponent/></>
-    )
+export default function InvoiceDetails() {
+  redirect(all_routes.InvoiceList);
 }
