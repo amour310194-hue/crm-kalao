@@ -26,7 +26,9 @@ export const resourceFields: Record<string, FormField[]> = {
     { name: "phone", label: "Téléphone" },
     { name: "city", label: "Ville" },
     { name: "industry", label: "Secteur" },
+    { name: "website", label: "Site web" },
     { name: "tags", label: "Tags" },
+    { name: "status", label: "Statut", type: "select", options: ["active", "inactive"] },
   ],
   contacts: [
     { name: "firstName", label: "Prénom", required: true },

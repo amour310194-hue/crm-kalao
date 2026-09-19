@@ -1,6 +1,16 @@
 import { createSeedStore } from "./seed";
 import { toIsoDateString } from "./period";
-import type { ContactRecord, CrmResource, CrmStore, DealRecord } from "./types";
+import { discountLabelFromLines, quoteTotalsFromLines } from "./quote-totals";
+import type {
+  CatalogRecord,
+  CompanyRecord,
+  ContactRecord,
+  CrmResource,
+  CrmStore,
+  DealRecord,
+  QuoteLineRecord,
+  QuoteRecord,
+} from "./types";
 
 type GlobalStore = typeof globalThis & {
   __crmKalaoStore?: CrmStore;
@@ -15,6 +25,10 @@ const aliases: Record<string, CrmResource> = {
   products: "catalog",
   quotes: "quotes",
   quotations: "quotes",
+  quoteLines: "quoteLines",
+  quotelines: "quoteLines",
+  "quote-lines": "quoteLines",
+  quote_lines: "quoteLines",
   invoices: "invoices",
   activities: "activities",
   departments: "departments",
@@ -81,7 +95,12 @@ export function resolveResource(name: string): CrmResource | null {
 
 export function getStore(): CrmStore {
   const glob = globalThis as GlobalStore;
-  if (!glob.__crmKalaoStore || !glob.__crmKalaoStore.siteEquipment || !glob.__crmKalaoStore.payments) {
+  if (
+    !glob.__crmKalaoStore ||
+    !glob.__crmKalaoStore.siteEquipment ||
+    !glob.__crmKalaoStore.payments ||
+    !glob.__crmKalaoStore.quoteLines
+  ) {
     glob.__crmKalaoStore = createSeedStore();
   }
   return glob.__crmKalaoStore;
@@ -199,6 +218,125 @@ export function createDeal(payload: Record<string, unknown>) {
   });
 }
 
+function quoteStatus(payload: Record<string, unknown>, fallback: QuoteRecord["status"] = "draft"): QuoteRecord["status"] {
+  const raw = text(payload, "status", "Status");
+  if (raw === "sent" || raw === "accepted" || raw === "rejected" || raw === "draft") return raw;
+  return fallback;
+}
+
+function nextQuoteNumber() {
+  const year = new Date().getFullYear();
+  const prefix = `DEV-${year}-`;
+  const max = getStore().quotes.reduce((current, row) => {
+    const match = String(row.number ?? "").match(/(\d+)$/);
+    return Math.max(current, match ? Number(match[1]) : 0);
+  }, 0);
+  return `${prefix}${String(max + 1).padStart(3, "0")}`;
+}
+
+function linesForQuote(quoteId: string) {
+  return getStore().quoteLines.filter((line) => line.quoteId === quoteId);
+}
+
+function applyQuoteTotals(quoteId: string) {
+  const lines = linesForQuote(quoteId);
+  const totals = quoteTotalsFromLines(lines);
+  return updateRecord("quotes", quoteId, {
+    totalAmount: totals.ht,
+    taxAmount: totals.tva,
+    finalAmount: totals.ttc,
+    discount: discountLabelFromLines(lines),
+  }) as QuoteRecord | null;
+}
+
+function parseQuoteLines(quoteId: string, raw: unknown): QuoteLineRecord[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item, index) => {
+    const row = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    const catalogId = text(row, "catalogId");
+    const catalog = catalogId ? (getById("catalog", catalogId) as CatalogRecord | null) : null;
+    const quantity = numberFrom(row, "quantity") ?? 0;
+    const unitPrice = numberFrom(row, "unitPrice") ?? catalog?.unitPrice ?? 0;
+    const taxRate = numberFrom(row, "taxRate") ?? catalog?.taxRate ?? 18;
+    const discountRate = numberFrom(row, "discountRate") ?? 0;
+    const label = text(row, "label", "name") || catalog?.name || "";
+    if (quantity <= 0 || (!catalogId && !label)) return [];
+    return [
+      {
+        id: text(row, "id") || `ql-${Date.now()}-${index}`,
+        quoteId,
+        catalogId,
+        label,
+        quantity,
+        unitPrice,
+        taxRate,
+        discountRate,
+      },
+    ];
+  });
+}
+
+function replaceQuoteLines(quoteId: string, raw: unknown) {
+  const store = getStore();
+  store.quoteLines = store.quoteLines.filter((line) => line.quoteId !== quoteId);
+  store.quoteLines.push(...parseQuoteLines(quoteId, raw));
+}
+
+export function getQuoteDetail(id: string) {
+  const quote = getById("quotes", id) as QuoteRecord | null;
+  if (!quote) return null;
+  return { ...quote, lines: linesForQuote(id) };
+}
+
+export function createQuote(payload: Record<string, unknown>) {
+  const record = createRecord("quotes", {
+    number: text(payload, "number", "quoteId") || nextQuoteNumber(),
+    companyId: text(payload, "companyId"),
+    quoteDate:
+      toIsoDateString(payload.quoteDate) ??
+      text(payload, "quoteDate") ??
+      new Date().toISOString().slice(0, 10),
+    validTill: toIsoDateString(payload.validTill) ?? text(payload, "validTill"),
+    totalAmount: 0,
+    taxAmount: 0,
+    discount: "0%",
+    finalAmount: 0,
+    status: quoteStatus(payload),
+  }) as QuoteRecord;
+  if (payload.lines != null) {
+    replaceQuoteLines(record.id, payload.lines);
+  }
+  applyQuoteTotals(record.id);
+  return getQuoteDetail(record.id);
+}
+
+export function updateQuote(id: string, payload: Record<string, unknown>) {
+  const existing = getById("quotes", id) as QuoteRecord | null;
+  if (!existing) return null;
+  const next: Record<string, unknown> = {};
+  if (payload.companyId != null) next.companyId = text(payload, "companyId");
+  if (payload.quoteDate != null) {
+    next.quoteDate = toIsoDateString(payload.quoteDate) ?? text(payload, "quoteDate");
+  }
+  if (payload.validTill != null) {
+    next.validTill = toIsoDateString(payload.validTill) ?? text(payload, "validTill");
+  }
+  if (payload.status != null || payload.Status != null) next.status = quoteStatus(payload, existing.status);
+  if (payload.number != null || payload.quoteId != null) next.number = text(payload, "number", "quoteId");
+  updateRecord("quotes", id, next);
+  if (payload.lines != null) {
+    replaceQuoteLines(id, payload.lines);
+  }
+  applyQuoteTotals(id);
+  return getQuoteDetail(id);
+}
+
+export function deleteQuote(id: string) {
+  const store = getStore();
+  store.quoteLines = store.quoteLines.filter((line) => line.quoteId !== id);
+  return deleteRecord("quotes", id);
+}
+
 export function updateDeal(id: string, payload: Record<string, unknown>) {
   const existing = getById("deals", id) as DealRecord | null;
   if (!existing) return null;
@@ -288,6 +426,51 @@ export function updateContact(id: string, payload: Record<string, unknown>) {
   return updateRecord("contacts", id, next);
 }
 
+function companyStatus(payload: Record<string, unknown>, current?: CompanyRecord["status"]): CompanyRecord["status"] {
+  const raw = text(payload, "status", "Status").toLowerCase();
+  if (raw === "inactive") return "inactive";
+  if (raw === "active") return "active";
+  return current ?? "active";
+}
+
+export function createCompany(payload: Record<string, unknown>) {
+  return createRecord("companies", {
+    name: text(payload, "name", "Name") || "Société",
+    industry: text(payload, "industry", "Industry") || "Services",
+    website: text(payload, "website", "Website"),
+    phone: text(payload, "phone", "Phone", "Contact"),
+    email: text(payload, "email", "Email"),
+    address: text(payload, "address", "Address"),
+    city: text(payload, "city", "City"),
+    country: text(payload, "country", "Country") || "Côte d'Ivoire",
+    tags: text(payload, "tags", "Tags"),
+    ownerName: text(payload, "ownerName", "Owner") || "Super Admin Kalao",
+    ownerImage: text(payload, "ownerImage", "Owner_Img") || "avatar-01.jpg",
+    image: text(payload, "image", "Image") || "company-icon-01.svg",
+    status: companyStatus(payload),
+  });
+}
+
+export function updateCompany(id: string, payload: Record<string, unknown>) {
+  const existing = getById("companies", id) as CompanyRecord | null;
+  if (!existing) return null;
+  const next: Record<string, unknown> = {};
+  if (payload.name != null || payload.Name != null) next.name = text(payload, "name", "Name") || existing.name;
+  if (payload.industry != null || payload.Industry != null) next.industry = text(payload, "industry", "Industry");
+  if (payload.website != null || payload.Website != null) next.website = text(payload, "website", "Website");
+  if (payload.phone != null || payload.Phone != null || payload.Contact != null) {
+    next.phone = text(payload, "phone", "Phone", "Contact");
+  }
+  if (payload.email != null || payload.Email != null) next.email = text(payload, "email", "Email");
+  if (payload.address != null || payload.Address != null) next.address = text(payload, "address", "Address");
+  if (payload.city != null || payload.City != null) next.city = text(payload, "city", "City");
+  if (payload.country != null || payload.Country != null) next.country = text(payload, "country", "Country");
+  if (payload.tags != null || payload.Tags != null) next.tags = text(payload, "tags", "Tags");
+  if (payload.ownerName != null || payload.Owner != null) next.ownerName = text(payload, "ownerName", "Owner");
+  if (payload.status != null || payload.Status != null) next.status = companyStatus(payload, existing.status);
+  return updateRecord("companies", id, next);
+}
+
 export function createAccount(payload: Record<string, unknown>) {
   const type = text(payload, "Type", "type", "accountType");
   const isPerson = type === "Particulier" || type === "individual";
@@ -309,21 +492,7 @@ export function createAccount(payload: Record<string, unknown>) {
       status: "active",
     });
   }
-  return createRecord("companies", {
-    name: text(payload, "Name", "name") || "Société",
-    industry: text(payload, "industry") || "Services",
-    website: "",
-    phone: text(payload, "Phone", "phone"),
-    email: text(payload, "Email", "email"),
-    address: "",
-    city: text(payload, "City", "city"),
-    country: "Côte d'Ivoire",
-    tags: text(payload, "Tags", "tags"),
-    ownerName: "Super Admin Kalao",
-    ownerImage: "avatar-01.jpg",
-    image: "company-icon-01.svg",
-    status: "active",
-  });
+  return createCompany(payload);
 }
 
 function accountTarget(id: string): { resource: CrmResource; id: string } | null {

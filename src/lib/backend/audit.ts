@@ -45,6 +45,7 @@ const MODULE_LABEL: Record<string, string> = {
   deals: "Affaires",
   catalog: "Catalogue",
   quotes: "Devis",
+  quoteLines: "Lignes devis",
   invoices: "Factures",
   payments: "Paiements",
   activities: "Activités",

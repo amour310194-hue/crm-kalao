@@ -27,7 +27,8 @@ const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormM
     }
     const next: Record<string, string> = {};
     fields.forEach((field) => {
-      const value = record?.[field.name];
+      const alias = field.name.charAt(0).toUpperCase() + field.name.slice(1);
+      const value = record?.[field.name] ?? record?.[alias];
       if (field.type === "date") {
         next[field.name] = toIsoDateString(value) ?? "";
       } else {

@@ -9,10 +9,12 @@ import type {
   DealRecord,
   InvoiceRecord,
   LeadRecord,
+  QuoteLineRecord,
   QuoteRecord,
 } from "./types";
 import { getStore } from "./store";
-import { formatDisplayDate, nightsBetween } from "./period";
+import { formatDisplayDate, nightsBetween, toIsoDateString } from "./period";
+import { quoteTotalsFromLines } from "./quote-totals";
 
 const euro = new Intl.NumberFormat("fr-FR", {
   style: "currency",
@@ -52,6 +54,7 @@ function leadStatusLabel(status: LeadRecord["status"]) {
 
 export function toCompanyRows(rows: CompanyRecord[]) {
   return rows.map((row) => ({
+    ...row,
     kye: row.id,
     key: row.id,
     Image: row.image,
@@ -116,32 +119,70 @@ export function toDealRows(rows: DealRecord[]) {
   }));
 }
 
-export function toCatalogRows(rows: CatalogRecord[]): ProductsListInterface[] {
+export function toCatalogRows(rows: CatalogRecord[]): Array<ProductsListInterface & {
+  id: string;
+  name: string;
+  unitPrice: number;
+  taxRate: number;
+  status: CatalogRecord["status"];
+}> {
   return rows.map((row) => ({
     key: row.id,
+    id: row.id,
+    name: row.name,
     ProductID: `#${row.sku}`,
     ProductName: row.name,
     Category: row.category,
     Kind: row.kind === "service" ? "Service" : "Produit",
     SKU: row.sku,
     UnitPrice: formatCatalogPrice(row.unitPrice),
+    unitPrice: row.unitPrice,
     Tax: String(row.taxRate),
+    taxRate: row.taxRate,
     Status: row.status === "active" ? "Active" : "Inactive",
+    status: row.status,
   }));
 }
 
+function quoteLineRows(lines: QuoteLineRecord[]) {
+  return lines.map((line) => {
+    const amounts = quoteTotalsFromLines([line]);
+    return {
+      ...line,
+      key: line.id,
+      ht: amounts.ht,
+      tva: amounts.tva,
+      ttc: amounts.ttc,
+    };
+  });
+}
+
 export function toQuoteRows(rows: QuoteRecord[]) {
-  return rows.map((row) => ({
-    key: row.id,
-    quoteId: row.number,
-    client: partyName(row.companyId),
-    clientImage: `assets/img/icons/${companyImage(row.companyId)}`,
-    quoteDate: row.quoteDate,
-    validTill: row.validTill,
-    totalAmount: euro.format(row.totalAmount),
-    discount: row.discount,
-    finalAmount: euro.format(row.finalAmount),
-  }));
+  const store = getStore();
+  return rows.map((row) => {
+    const lines = store.quoteLines.filter((line) => line.quoteId === row.id);
+    const totals = lines.length
+      ? quoteTotalsFromLines(lines)
+      : { ht: row.totalAmount, tva: row.taxAmount ?? 0, ttc: row.finalAmount };
+    return {
+      ...row,
+      key: row.id,
+      id: row.id,
+      quoteId: row.number,
+      client: partyName(row.companyId),
+      clientImage: `assets/img/icons/${companyImage(row.companyId)}`,
+      quoteDate: formatDisplayDate(row.quoteDate) || row.quoteDate,
+      validTill: formatDisplayDate(row.validTill) || row.validTill,
+      quoteDateIso: toIsoDateString(row.quoteDate) ?? "",
+      validTillIso: toIsoDateString(row.validTill) ?? "",
+      totalAmount: euro.format(totals.ht),
+      taxAmount: euro.format(totals.tva),
+      finalAmount: euro.format(totals.ttc),
+      discount: row.discount,
+      lineCount: lines.length,
+      lines: quoteLineRows(lines),
+    };
+  });
 }
 
 export function toInvoiceRows(rows: InvoiceRecord[]) {
@@ -187,6 +228,8 @@ export function listUi(resource: CrmResource) {
       return toCatalogRows(store.catalog);
     case "quotes":
       return toQuoteRows(store.quotes);
+    case "quoteLines":
+      return quoteLineRows(store.quoteLines);
     case "invoices":
       return toInvoiceRows(store.invoices);
     case "activities":
@@ -319,8 +362,8 @@ export type AccountFiche = AccountRow & {
     dealsCount: number;
     dealsAmount: number;
     invoicesCount: number;
-    invoicesAmount: number;
     invoicesOutstanding: number;
+    invoicesAmount: number;
     dossiersCount: number;
   };
 };

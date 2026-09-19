@@ -3,12 +3,16 @@ import { auditMutation } from "@/lib/backend/audit";
 import { getAccountFiche } from "@/lib/backend/views";
 import {
   deleteAccount,
+  deleteQuote,
   deleteRecord,
   getById,
+  getQuoteDetail,
   resolveResource,
   updateAccount,
+  updateCompany,
   updateContact,
   updateDeal,
+  updateQuote,
   updateRecord,
 } from "@/lib/backend/store";
 import { deleteTravel, getTravel, updateTravel } from "@/lib/backend/travel-db";
@@ -51,6 +55,14 @@ export async function GET(_request: Request, context: RouteContext) {
     } catch (error) {
       return persistError(error);
     }
+  }
+
+  if (resource === "quotes") {
+    const detail = getQuoteDetail(id);
+    if (!detail) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    return NextResponse.json({ resource, data: detail });
   }
 
   const record = getById(resource, id);
@@ -107,6 +119,24 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ resource, data: record });
   }
 
+  if (resource === "companies") {
+    const record = updateCompany(id, payload);
+    if (!record) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    await auditMutation(request, "update", resource, record, id);
+    return NextResponse.json({ resource, data: record });
+  }
+
+  if (resource === "quotes") {
+    const record = updateQuote(id, payload);
+    if (!record) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    await auditMutation(request, "update", resource, record, id);
+    return NextResponse.json({ resource, data: record });
+  }
+
   const record = updateRecord(resource, id, payload);
   if (!record) {
     return NextResponse.json({ error: "Introuvable" }, { status: 404 });
@@ -145,6 +175,16 @@ export async function DELETE(request: Request, context: RouteContext) {
     } catch (error) {
       return persistError(error);
     }
+  }
+
+  if (resource === "quotes") {
+    const existing = getById(resource, id);
+    const ok = deleteQuote(id);
+    if (!ok) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    await auditMutation(request, "delete", resource, existing ?? { id }, id);
+    return NextResponse.json({ ok: true });
   }
 
   const existing = getById(resource, id);

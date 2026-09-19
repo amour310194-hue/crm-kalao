@@ -11,11 +11,20 @@ import Footer from "@/core/common/footer/footer";
 import ModalCompanies from "./modal/modalCompanies";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { useCrmList } from "@/lib/api/useCrmList";
+import { useCrmCollection } from "@/lib/api/useCrmList";
+import { deleteCrmRecord } from "@/lib/api/crmClient";
+import KalaoFormModal from "@/components/Pages/kalao/KalaoFormModal";
 
 const CompaniesListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
     {}
+  );
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState("");
+  const { data, reload } = useCrmCollection<Record<string, unknown>>(
+    "companies",
+    CompaniesListData as unknown as Record<string, unknown>[]
   );
   const handleClick = (key: string) => {
     setFilledStars((prev) => ({
@@ -23,7 +32,34 @@ const CompaniesListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = useCrmList("companies", CompaniesListData);
+
+  const companyId = (record: Record<string, unknown>) =>
+    String(record.id || record.key || "");
+
+  const openCreate = () => {
+    setCurrent(null);
+    setError("");
+    setOpen(true);
+  };
+
+  const openEdit = (record: Record<string, unknown>) => {
+    setCurrent(record);
+    setError("");
+    setOpen(true);
+  };
+
+  const removeCompany = async (record: Record<string, unknown>) => {
+    const id = companyId(record);
+    if (!id) return;
+    if (!window.confirm("Supprimer cette société ?")) return;
+    try {
+      await deleteCrmRecord("companies", id);
+      setError("");
+      reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Suppression impossible");
+    }
+  };
   const columns = [
     {
       title: "",
@@ -158,7 +194,7 @@ const CompaniesListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: unknown, record: Record<string, unknown>) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -169,22 +205,12 @@ const CompaniesListComponent = () => {
             <i className="ti ti-dots-vertical" />
           </Link>
           <div className="dropdown-menu dropdown-menu-right">
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvas_edit"
-            >
+            <button type="button" className="dropdown-item" onClick={() => openEdit(record)}>
               <i className="ti ti-edit text-blue" /> Edit
-            </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="modal"
-              data-bs-target="#delete_contact"
-            >
+            </button>
+            <button type="button" className="dropdown-item" onClick={() => void removeCompany(record)}>
               <i className="ti ti-trash" /> Delete
-            </Link>
+            </button>
             <Link className="dropdown-item" href={all_routes.companiesDetails}>
               <i className="ti ti-eye text-blue-light" /> Preview
             </Link>
@@ -214,6 +240,7 @@ const CompaniesListComponent = () => {
             badgeCount={data.length}
             showModuleTile={false}
             showExport={false}
+            onRefresh={reload}
           />
 
           {/* End Page Header */}
@@ -226,17 +253,13 @@ const CompaniesListComponent = () => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <Link
-                href="#"
-                className="btn btn-primary"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#offcanvas_add"
-              >
+              <button type="button" className="btn btn-primary" onClick={openCreate}>
                 <i className="ti ti-square-rounded-plus-filled me-1" />
                 Add Company
-              </Link>
+              </button>
             </div>
             <div className="card-body">
+              {error ? <div className="alert alert-danger">{error}</div> : null}
               {/* table header */}
               <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -1010,6 +1033,16 @@ const CompaniesListComponent = () => {
 			End Page Content
 		========================= */}
     <ModalCompanies/>
+    <KalaoFormModal
+      resource="companies"
+      open={open}
+      record={current}
+      onClose={() => setOpen(false)}
+      onSaved={() => {
+        setError("");
+        reload();
+      }}
+    />
     </>
   );
 };

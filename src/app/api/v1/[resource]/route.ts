@@ -3,8 +3,10 @@ import { auditMutation } from "@/lib/backend/audit";
 import { listUi, toAccountRows } from "@/lib/backend/views";
 import {
   createAccount,
+  createCompany,
   createContact,
   createDeal,
+  createQuote,
   createRecord,
   listResource,
   resolveResource,
@@ -95,6 +97,18 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (resource === "contacts") {
     const record = createContact(payload);
+    await auditMutation(request, "create", resource, record);
+    return NextResponse.json({ resource, data: record }, { status: 201 });
+  }
+
+  if (resource === "companies") {
+    const record = createCompany(payload);
+    await auditMutation(request, "create", resource, record);
+    return NextResponse.json({ resource, data: record }, { status: 201 });
+  }
+
+  if (resource === "quotes") {
+    const record = createQuote(payload);
     await auditMutation(request, "create", resource, record);
     return NextResponse.json({ resource, data: record }, { status: 201 });
   }

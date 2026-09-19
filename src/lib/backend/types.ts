@@ -81,9 +81,21 @@ export type QuoteRecord = {
   quoteDate: string;
   validTill: string;
   totalAmount: number;
+  taxAmount: number;
   discount: string;
   finalAmount: number;
   status: "draft" | "sent" | "accepted" | "rejected";
+};
+
+export type QuoteLineRecord = {
+  id: string;
+  quoteId: string;
+  catalogId: string;
+  label: string;
+  quantity: number;
+  unitPrice: number;
+  taxRate: number;
+  discountRate: number;
 };
 
 export type InvoiceRecord = {
@@ -282,6 +294,7 @@ export type CrmStore = {
   deals: DealRecord[];
   catalog: CatalogRecord[];
   quotes: QuoteRecord[];
+  quoteLines: QuoteLineRecord[];
   invoices: InvoiceRecord[];
   activities: ActivityRecord[];
   departments: DepartmentRecord[];
