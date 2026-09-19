@@ -255,17 +255,6 @@ const Header = () => {
                 </Link>
               </div>
             </div>
-            {/* report */}
-            <div className="header-item d-none d-sm-flex">
-              <div className="dropdown me-2">
-                <Link
-                  href={route.leadReports}
-                  className="btn topbar-link topbar-warning-link"
-                >
-                  <i className="ti ti-chart-pie" />
-                </Link>
-              </div>
-            </div>
             <div className="header-line" />
             {/* message */}
             <div className="header-item">

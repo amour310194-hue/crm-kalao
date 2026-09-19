@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
       { source: "/project-dashboard", destination: KALAO_DASHBOARD, permanent: false },
       { source: "/revenue-summary-dashboard", destination: KALAO_DASHBOARD, permanent: false },
       { source: "/growth-dashboard", destination: KALAO_DASHBOARD, permanent: false },
+      { source: "/reports/:path*", destination: KALAO_DASHBOARD, permanent: false },
     ];
   },
 };

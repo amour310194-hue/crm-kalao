@@ -927,6 +927,7 @@ export const SidebarData = [
   },
   {
     tittle: "Reports",
+    hidden: true,
     icon: "airplay",
     showAsTab: true,
     separateRoute: false,
