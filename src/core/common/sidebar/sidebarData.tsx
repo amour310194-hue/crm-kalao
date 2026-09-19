@@ -146,7 +146,7 @@ export const SidebarData = [
     submenuItems: [
       {
         label: "Contacts",
-        link: route.contactGrid,
+        link: route.contactList,
         relatedRoutes: [
           route.contactGrid,
           route.contactList,

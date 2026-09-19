@@ -77,6 +77,7 @@ export function toContactRows(rows: ContactRecord[]) {
     Role: row.jobTitle,
     role: row.jobTitle,
     Phone: row.phone,
+    Email: row.email,
     Tags: row.tags,
     Location: row.location,
     Rating: row.rating,
@@ -84,7 +85,36 @@ export function toContactRows(rows: ContactRecord[]) {
     Flags: row.flags,
     Status: row.status === "active" ? "Active" : "Inactive",
     ClientType: row.companyId ? "Société" : "Particulier",
+    Company: companyName(row.companyId) || (row.companyId ? row.companyId : "Particulier"),
   }));
+}
+
+export function getContactFiche(id: string) {
+  const store = getStore();
+  const contact = store.contacts.find((row) => row.id === id);
+  if (!contact) return null;
+  const row = toContactRows([contact])[0];
+  const company = contact.companyId
+    ? store.companies.find((item) => item.id === contact.companyId) ?? null
+    : null;
+  const deals = store.deals.filter(
+    (deal) => deal.contactId === id || (contact.companyId && deal.companyId === contact.companyId)
+  );
+  const activities = store.activities.filter(
+    (activity) =>
+      activity.contactId === id || (contact.companyId && activity.companyId === contact.companyId)
+  );
+  return {
+    ...row,
+    company,
+    deals: toDealRows(deals),
+    activities: activities.map((activity) => ({
+      ...activity,
+      key: activity.id,
+      Subject: activity.subject,
+      DueAt: formatDisplayDateTime(activity.dueAt) || activity.dueAt,
+    })),
+  };
 }
 
 export function toLeadRows(rows: LeadRecord[]) {

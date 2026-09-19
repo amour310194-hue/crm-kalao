@@ -7,6 +7,7 @@ export type FormField = {
   options?: string[];
   required?: boolean;
   wide?: boolean;
+  relation?: "companies";
 };
 
 const accountType = { name: "accountType", label: "Type client", type: "select" as const, options: ["individual", "company"] };
@@ -37,7 +38,8 @@ export const resourceFields: Record<string, FormField[]> = {
     { name: "phone", label: "Téléphone" },
     { name: "jobTitle", label: "Fonction" },
     { name: "location", label: "Ville" },
-    { name: "companyId", label: "ID société (vide = particulier)" },
+    { name: "companyId", label: "Société", relation: "companies" },
+    { name: "status", label: "Statut", type: "select", options: ["active", "inactive"] },
   ],
   leads: [
     { name: "title", label: "Intitulé", required: true },

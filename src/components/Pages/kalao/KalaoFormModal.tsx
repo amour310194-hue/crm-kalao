@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createCrmRecord, updateCrmRecord } from "@/lib/api/crmClient";
 import { fieldsFor } from "@/lib/forms/resourceFields";
+import { useCrmCollection } from "@/lib/api/useCrmList";
 import { useI18n } from "@/i18n/I18nProvider";
 import { nightsBetween, toIsoDateString } from "@/lib/backend/period";
 
@@ -17,6 +18,8 @@ type KalaoFormModalProps = {
 const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormModalProps) => {
   const { t } = useI18n();
   const fields = fieldsFor(resource);
+  const needsCompanies = fields.some((field) => field.relation === "companies");
+  const { data: companies } = useCrmCollection<Record<string, unknown>>("companies", []);
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -103,6 +106,22 @@ const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormM
                         value={values[field.name] ?? ""}
                         onChange={(event) => setValues((prev) => ({ ...prev, [field.name]: event.target.value }))}
                       />
+                    ) : field.relation === "companies" ? (
+                      <select
+                        className="form-select"
+                        value={values[field.name] ?? ""}
+                        onChange={(event) => setValues((prev) => ({ ...prev, [field.name]: event.target.value }))}
+                      >
+                        <option value="">{t("Particulier")}</option>
+                        {(needsCompanies ? companies : []).map((company) => {
+                          const id = String(company.id || company.key || "");
+                          return (
+                            <option key={id} value={id}>
+                              {String(company.Name || company.name || id)}
+                            </option>
+                          );
+                        })}
+                      </select>
                     ) : field.type === "select" ? (
                       <select
                         className="form-select"

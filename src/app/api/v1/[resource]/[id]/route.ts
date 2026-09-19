@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auditMutation } from "@/lib/backend/audit";
-import { getAccountFiche } from "@/lib/backend/views";
+import { getAccountFiche, getContactFiche } from "@/lib/backend/views";
 import {
   deleteAccount,
   deleteQuote,
@@ -64,6 +64,14 @@ export async function GET(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Introuvable" }, { status: 404 });
     }
     return NextResponse.json({ resource, data: detail });
+  }
+
+  if (resource === "contacts") {
+    const fiche = getContactFiche(id);
+    if (!fiche) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    return NextResponse.json({ resource, data: fiche });
   }
 
   const record = getById(resource, id);

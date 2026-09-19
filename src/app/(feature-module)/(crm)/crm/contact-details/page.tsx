@@ -1,11 +1,14 @@
+import { Suspense } from "react";
 import ContactsDetailsComponent from "@/components/Pages/crm-module/contacts/contactsDetails";
 
 export const metadata = {
-  title: "Contact Details | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Contact Details | CRM Kalao",
 };
 
-export default function ContactDetails(){
-    return(
-        <><ContactsDetailsComponent/></>
-    )
+export default function ContactDetails() {
+  return (
+    <Suspense fallback={null}>
+      <ContactsDetailsComponent />
+    </Suspense>
+  );
 }
