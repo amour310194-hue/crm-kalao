@@ -206,6 +206,7 @@ export function listUi(resource: CrmResource) {
         key: row.id,
         Client: row.accountName,
         Type: row.accountType === "individual" ? "Particulier" : "Société",
+        Pax: row.pax ?? "",
         Amount: euro.format(row.amount),
       }));
     case "immigration":
@@ -233,6 +234,12 @@ export function listUi(resource: CrmResource) {
         Type: row.accountType === "individual" ? "Particulier" : "Société",
         Amount: euro.format(row.amount),
       }));
+    case "siteEquipment":
+      return store.siteEquipment.map((row) => ({ ...row, key: row.id }));
+    case "siteAssignments":
+      return store.siteAssignments.map((row) => ({ ...row, key: row.id }));
+    case "siteMilestones":
+      return store.siteMilestones.map((row) => ({ ...row, key: row.id }));
     case "properties":
       return store.properties.map((row) => ({
         ...row,
@@ -249,6 +256,26 @@ export function listUi(resource: CrmResource) {
         Bonus: euro.format(row.bonus),
         Total: euro.format(row.salary + row.bonus),
       }));
+    case "eventLines":
+      return store.eventLines.map((row) => ({
+        ...row,
+        key: row.id,
+        Amount: euro.format(row.quantity * row.unitPrice),
+      }));
+    case "leases":
+      return store.leases.map((row) => ({
+        ...row,
+        key: row.id,
+        Rent: euro.format(row.rent),
+      }));
+    case "payments":
+      return store.payments.map((row) => ({
+        ...row,
+        key: row.id,
+        Amount: euro.format(row.amount),
+      }));
+    case "attachments":
+      return store.attachments.map((row) => ({ ...row, key: row.id }));
     default:
       return [];
   }

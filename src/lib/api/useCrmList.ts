@@ -11,8 +11,11 @@ export async function fetchCrmResource<T>(resource: string): Promise<T[]> {
   return json.data ?? [];
 }
 
-export function useCrmList<T>(resource: string, fallback: T[]) {
+export function useCrmCollection<T>(resource: string, fallback: T[]) {
   const [data, setData] = useState<T[]>(fallback);
+  const [reloadTick, setReloadTick] = useState(0);
+
+  const reload = () => setReloadTick((tick) => tick + 1);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +23,7 @@ export function useCrmList<T>(resource: string, fallback: T[]) {
     const load = async () => {
       try {
         const rows = await fetchCrmResource<T>(resource);
-        if (!cancelled && rows.length) {
+        if (!cancelled) {
           setData(rows);
         }
       } catch {
@@ -34,7 +37,12 @@ export function useCrmList<T>(resource: string, fallback: T[]) {
     return () => {
       cancelled = true;
     };
-  }, [resource]);
+  }, [resource, reloadTick]);
 
+  return { data, reload };
+}
+
+export function useCrmList<T>(resource: string, fallback: T[]) {
+  const { data } = useCrmCollection<T>(resource, fallback);
   return data;
 }

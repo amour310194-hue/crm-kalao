@@ -11,6 +11,7 @@ import { all_routes } from "@/router/all_routes";
 import { DepartmentsListData } from "../../../../core/json/departmentsListData";
 import ModalDepartments from "./modal/modalDepartments";
 import { useCrmList } from "@/lib/api/useCrmList";
+import CrmLiveAdd from "@/components/Pages/kalao/CrmLiveAdd";
 
 const route = all_routes;
 
@@ -173,15 +174,7 @@ const DepartmentsListComponent = () => {
                     <i className="ti ti-grid-dots" />
                   </Link>
                 </div>
-                <Link
-                  href="#"
-                  className="btn btn-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#add_department"
-                >
-                  <i className="ti ti-square-rounded-plus-filled me-1" />
-                  Add Department
-                </Link>
+                <CrmLiveAdd resource="departments" label="Add Department" />
               </div>
             </div>
             <div className="card-body">

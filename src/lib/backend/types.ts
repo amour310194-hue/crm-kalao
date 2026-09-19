@@ -130,6 +130,8 @@ export type TravelRecord = {
   returnDate: string;
   status: string;
   amount: number;
+  pax?: number;
+  itinerary?: string;
 };
 
 export type ImmigrationRecord = {
@@ -141,6 +143,7 @@ export type ImmigrationRecord = {
   country: string;
   status: string;
   dueDate: string;
+  step?: string;
 };
 
 export type EventJobRecord = {
@@ -167,13 +170,51 @@ export type PlantationRecord = {
 
 export type SiteRecord = {
   id: string;
+  number: string;
   name: string;
   accountName: string;
   accountType: "individual" | "company";
   location: string;
+  phase: string;
   progress: string;
+  manager: string;
+  startDate: string;
+  endDate: string;
+  teamSize: string;
   status: string;
   amount: number;
+};
+
+export type SiteEquipmentRecord = {
+  id: string;
+  code: string;
+  name: string;
+  kind: "Engin" | "Outil" | "Stock";
+  siteName: string;
+  quantity: string;
+  condition: string;
+  status: string;
+};
+
+export type SiteAssignmentRecord = {
+  id: string;
+  employee: string;
+  role: string;
+  siteName: string;
+  startDate: string;
+  endDate: string;
+  attendance: string;
+  status: string;
+};
+
+export type SiteMilestoneRecord = {
+  id: string;
+  siteName: string;
+  phase: string;
+  progress: string;
+  recordedAt: string;
+  note: string;
+  status: string;
 };
 
 export type PropertyRecord = {
@@ -197,6 +238,43 @@ export type PayrollRecord = {
   status: string;
 };
 
+export type EventLineRecord = {
+  id: string;
+  eventId: string;
+  eventNumber: string;
+  label: string;
+  quantity: number;
+  unitPrice: number;
+};
+
+export type LeaseRecord = {
+  id: string;
+  propertyName: string;
+  tenant: string;
+  startDate: string;
+  endDate: string;
+  rent: number;
+  status: string;
+};
+
+export type PaymentRecord = {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  method: string;
+  paidAt: string;
+  status: string;
+};
+
+export type AttachmentRecord = {
+  id: string;
+  parentType: string;
+  parentId: string;
+  name: string;
+  url: string;
+  createdAt: string;
+};
+
 export type CrmStore = {
   companies: CompanyRecord[];
   contacts: ContactRecord[];
@@ -212,8 +290,15 @@ export type CrmStore = {
   events: EventJobRecord[];
   plantations: PlantationRecord[];
   sites: SiteRecord[];
+  siteEquipment: SiteEquipmentRecord[];
+  siteAssignments: SiteAssignmentRecord[];
+  siteMilestones: SiteMilestoneRecord[];
   properties: PropertyRecord[];
   payroll: PayrollRecord[];
+  eventLines: EventLineRecord[];
+  leases: LeaseRecord[];
+  payments: PaymentRecord[];
+  attachments: AttachmentRecord[];
 };
 
 export type CrmResource = keyof CrmStore;

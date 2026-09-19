@@ -803,7 +803,14 @@ export function createSeedStore(): CrmStore {
     events: [],
     plantations: [],
     sites: [],
+    siteEquipment: [],
+    siteAssignments: [],
+    siteMilestones: [],
     properties: [],
     payroll: [],
+    eventLines: [],
+    leases: [],
+    payments: [],
+    attachments: [],
   });
 }

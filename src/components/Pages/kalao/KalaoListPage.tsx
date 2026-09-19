@@ -5,8 +5,11 @@ import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
-import { useCrmList } from "@/lib/api/useCrmList";
+import { useCrmCollection } from "@/lib/api/useCrmList";
+import { deleteCrmRecord } from "@/lib/api/crmClient";
 import { useI18n } from "@/i18n/I18nProvider";
+import KalaoFormModal from "@/components/Pages/kalao/KalaoFormModal";
+import Link from "next/link";
 
 export type KalaoColumn = {
   title: string;
@@ -18,20 +21,25 @@ type KalaoListPageProps = {
   title: string;
   moduleTitle?: string;
   columns: KalaoColumn[];
+  addLabel?: string;
+  detailBase?: string;
 };
 
 const badgeSoft = (text: string) => {
   const value = String(text ?? "");
   if (value === "Particulier") return "badge-soft-info";
   if (value === "Société") return "badge-soft-primary";
-  if (["Confirmé", "Validé", "Payé", "Occupé", "En production", "Active"].includes(value)) {
+  if (["Confirmé", "Validé", "Payé", "Occupé", "En production", "Active", "Terminé", "En service", "En stock", "Présent", "Affecté", "Visa obtenu", "Actif"].includes(value)) {
     return "badge-soft-success";
   }
-  if (["Devis", "Préparation", "À verser", "Libre", "Semis", "Fondations"].includes(value)) {
+  if (["Devis", "Préparation", "À verser", "Libre", "Semis", "Fondations", "Maintenance", "Congé", "Pièces", "Dossier ouvert"].includes(value)) {
     return "badge-soft-warning";
   }
-  if (["En cours", "Pièces en cours", "Dépôt prévu", "Entretien", "Finitions"].includes(value)) {
+  if (["En cours", "Pièces en cours", "Dépôt prévu", "Entretien", "Finitions", "Disponible", "Dépôt"].includes(value)) {
     return "badge-soft-info";
+  }
+  if (["Absent"].includes(value)) {
+    return "badge-soft-danger";
   }
   return "badge-soft-secondary";
 };
@@ -41,23 +49,69 @@ const KalaoListPage = ({
   title,
   moduleTitle = "Métiers",
   columns,
+  addLabel = "Add",
+  detailBase,
 }: KalaoListPageProps) => {
   const { t } = useI18n();
-  const data = useCrmList<Record<string, unknown>>(resource, []);
+  const { data, reload } = useCrmCollection<Record<string, unknown>>(resource, []);
   const [searchText, setSearchText] = useState("");
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState<Record<string, unknown> | null>(null);
 
-  const tableColumns = columns.map((column) => ({
-    title: t(column.title),
-    dataIndex: column.dataIndex,
-    sorter: (a: Record<string, unknown>, b: Record<string, unknown>) =>
-      String(a[column.dataIndex] ?? "").localeCompare(String(b[column.dataIndex] ?? "")),
-    render:
-      column.dataIndex === "Type" ||
-      column.dataIndex === "status" ||
-      column.dataIndex === "Status"
-        ? (text: string) => <span className={`badge ${badgeSoft(text)}`}>{t(text)}</span>
-        : (text: string) => <span>{text ?? "—"}</span>,
-  }));
+  const tableColumns = [
+    ...columns.map((column) => ({
+      title: t(column.title),
+      dataIndex: column.dataIndex,
+      sorter: (a: Record<string, unknown>, b: Record<string, unknown>) =>
+        String(a[column.dataIndex] ?? "").localeCompare(String(b[column.dataIndex] ?? "")),
+      render:
+        column.dataIndex === "Type" ||
+        column.dataIndex === "status" ||
+        column.dataIndex === "Status" ||
+        column.dataIndex === "step" ||
+        column.dataIndex === "Step"
+          ? (text: string) => <span className={`badge ${badgeSoft(text)}`}>{t(text)}</span>
+          : (text: string, row: Record<string, unknown>) =>
+              detailBase && (column.dataIndex === "number" || column.dataIndex === "Name" || column.dataIndex === "name") ? (
+                <Link href={`${detailBase}/${row.id || row.key}`}>{text ?? "—"}</Link>
+              ) : (
+                <span>{text ?? "—"}</span>
+              ),
+    })),
+    {
+      title: t("Action"),
+      dataIndex: "id",
+      render: (_text: string, row: Record<string, unknown>) => (
+        <div className="d-flex gap-1">
+          {detailBase ? (
+            <Link className="btn btn-sm btn-outline-light" href={`${detailBase}/${row.id || row.key}`}>
+              {t("View Details")}
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-light"
+            onClick={() => {
+              setCurrent(row);
+              setOpen(true);
+            }}
+          >
+            {t("Edit")}
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-danger"
+            onClick={async () => {
+              await deleteCrmRecord(resource, String(row.id || row.key));
+              reload();
+            }}
+          >
+            {t("Delete")}
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="page-wrapper">
@@ -68,6 +122,8 @@ const KalaoListPage = ({
           showModuleTile
           moduleTitle={moduleTitle}
           showExport
+          exportPdfResource={resource}
+          onRefresh={reload}
         />
         <div className="card border-0 rounded-0">
           <div className="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
@@ -77,6 +133,17 @@ const KalaoListPage = ({
               </span>
               <SearchInput value={searchText} onChange={setSearchText} />
             </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                setCurrent(null);
+                setOpen(true);
+              }}
+            >
+              <i className="ti ti-square-rounded-plus-filled me-1" />
+              {t(addLabel)}
+            </button>
           </div>
           <div className="card-body">
             <div className="custom-table">
@@ -90,6 +157,13 @@ const KalaoListPage = ({
           </div>
         </div>
       </div>
+      <KalaoFormModal
+        resource={resource}
+        open={open}
+        record={current}
+        onClose={() => setOpen(false)}
+        onSaved={reload}
+      />
       <Footer />
     </div>
   );

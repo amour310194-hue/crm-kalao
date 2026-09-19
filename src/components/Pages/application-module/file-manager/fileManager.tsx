@@ -4,6 +4,7 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import FileManagerLive from "@/components/Pages/kalao/FileManagerLive";
 
 
 const FileManagerComponent = () => {
@@ -22,6 +23,7 @@ const FileManagerComponent = () => {
             moduleTitle="Application"
             showExport={false}
           />
+          <FileManagerLive />
 
           {/* End Page Header */}
           <div className="d-flex align-items-center justify-content-between flex-wrap mb-2">
