@@ -5,6 +5,7 @@ import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { fetchCrmFiles, fetchCrmRecord, updateCrmRecord, uploadCrmFile } from "@/lib/api/crmClient";
 import { useI18n } from "@/i18n/I18nProvider";
+import { formatDisplayDate, nightsBetween } from "@/lib/backend/period";
 import Link from "next/link";
 
 const VISA_STEPS = ["Dossier ouvert", "Pièces", "Dépôt", "Entretien", "Décision", "Visa obtenu"];
@@ -16,6 +17,15 @@ type KalaoFicheProps = {
   backHref: string;
   kind: "travel" | "immigration";
 };
+
+function fieldValue(record: Record<string, unknown> | null, ...keys: string[]) {
+  if (!record) return "";
+  for (const key of keys) {
+    const value = record[key];
+    if (value != null && String(value).trim() !== "") return String(value);
+  }
+  return "";
+}
 
 const KalaoFiche = ({ resource, id, title, backHref, kind }: KalaoFicheProps) => {
   const { t } = useI18n();
@@ -50,6 +60,12 @@ const KalaoFiche = ({ resource, id, title, backHref, kind }: KalaoFicheProps) =>
     await load();
   };
 
+  const departure = fieldValue(record, "departureDate");
+  const returnDate = fieldValue(record, "returnDate");
+  const nights = nightsBetween(departure, returnDate);
+  const itinerary = fieldValue(record, "itinerary");
+  const pax = fieldValue(record, "pax") || "1";
+
   return (
     <div className="page-wrapper">
       <div className="content pb-0">
@@ -62,20 +78,81 @@ const KalaoFiche = ({ resource, id, title, backHref, kind }: KalaoFicheProps) =>
         </div>
         <div className="row">
           <div className="col-lg-7">
-            <div className="card">
-              <div className="card-body">
-                {record
-                  ? Object.entries(record)
-                      .filter(([key]) => !["id", "image"].includes(key))
-                      .map(([key, value]) => (
-                        <div className="d-flex justify-content-between border-bottom py-2" key={key}>
-                          <span className="text-muted">{t(key)}</span>
-                          <strong>{String(value ?? "—")}</strong>
-                        </div>
-                      ))
-                  : t("Loading")}
+            {kind === "travel" ? (
+              <>
+                <div className="card">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between border-bottom py-2">
+                      <span className="text-muted">{t("Quote ID")}</span>
+                      <strong>{fieldValue(record, "number") || "—"}</strong>
+                    </div>
+                    <div className="d-flex justify-content-between border-bottom py-2">
+                      <span className="text-muted">{t("Client")}</span>
+                      <strong>{fieldValue(record, "accountName", "Client") || "—"}</strong>
+                    </div>
+                    <div className="d-flex justify-content-between border-bottom py-2">
+                      <span className="text-muted">{t("Destination")}</span>
+                      <strong>{fieldValue(record, "destination") || "—"}</strong>
+                    </div>
+                    <div className="d-flex justify-content-between border-bottom py-2">
+                      <span className="text-muted">{t("Status")}</span>
+                      <strong>{fieldValue(record, "status") || "—"}</strong>
+                    </div>
+                    <div className="d-flex justify-content-between py-2">
+                      <span className="text-muted">{t("Amount")}</span>
+                      <strong>
+                        {record?.amount != null
+                          ? new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
+                              Number(record.amount) || 0,
+                            )
+                          : "—"}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="card-body">
+                    <h6 className="mb-3">{t("Itinerary")}</h6>
+                    <div className="row g-3 mb-3">
+                      <div className="col-md-3">
+                        <div className="text-muted small">{t("Pax")}</div>
+                        <strong>{pax}</strong>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="text-muted small">{t("Departure Date")}</div>
+                        <strong>{formatDisplayDate(departure) || "—"}</strong>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="text-muted small">{t("Return Date")}</div>
+                        <strong>{formatDisplayDate(returnDate) || "—"}</strong>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="text-muted small">{t("Nights")}</div>
+                        <strong>{nights == null || nights < 0 ? "—" : nights}</strong>
+                      </div>
+                    </div>
+                    <p className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
+                      {itinerary || "—"}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="card">
+                <div className="card-body">
+                  {record
+                    ? Object.entries(record)
+                        .filter(([key]) => !["id", "image"].includes(key))
+                        .map(([key, value]) => (
+                          <div className="d-flex justify-content-between border-bottom py-2" key={key}>
+                            <span className="text-muted">{t(key)}</span>
+                            <strong>{String(value ?? "—")}</strong>
+                          </div>
+                        ))
+                    : t("Loading")}
+                </div>
               </div>
-            </div>
+            )}
             {kind === "immigration" ? (
               <div className="card">
                 <div className="card-body">

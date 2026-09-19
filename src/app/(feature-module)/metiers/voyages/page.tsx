@@ -17,8 +17,10 @@ export default function VoyagesPage() {
         { title: "Type", dataIndex: "Type" },
         { title: "Destination", dataIndex: "destination" },
         { title: "Pax", dataIndex: "Pax" },
-        { title: "Departure Date", dataIndex: "departureDate" },
-        { title: "Return Date", dataIndex: "returnDate" },
+        { title: "Itinerary", dataIndex: "Itinerary" },
+        { title: "Departure Date", dataIndex: "departureDateLabel" },
+        { title: "Return Date", dataIndex: "returnDateLabel" },
+        { title: "Nights", dataIndex: "Nights" },
         { title: "Status", dataIndex: "status" },
         { title: "Amount", dataIndex: "Amount" },
       ]}

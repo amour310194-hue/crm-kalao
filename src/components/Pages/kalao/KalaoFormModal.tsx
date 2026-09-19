@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createCrmRecord, updateCrmRecord } from "@/lib/api/crmClient";
 import { fieldsFor } from "@/lib/forms/resourceFields";
 import { useI18n } from "@/i18n/I18nProvider";
+import { nightsBetween, toIsoDateString } from "@/lib/backend/period";
 
 type KalaoFormModalProps = {
   resource: string;
@@ -27,7 +28,11 @@ const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormM
     const next: Record<string, string> = {};
     fields.forEach((field) => {
       const value = record?.[field.name];
-      next[field.name] = value == null ? "" : String(value);
+      if (field.type === "date") {
+        next[field.name] = toIsoDateString(value) ?? "";
+      } else {
+        next[field.name] = value == null ? "" : String(value);
+      }
     });
     setValues(next);
     setError("");
@@ -46,6 +51,19 @@ const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormM
       const raw = values[field.name] ?? "";
       payload[field.name] = field.type === "number" ? Number(raw || 0) : raw;
     });
+    if (resource === "travel") {
+      const nights = nightsBetween(payload.departureDate, payload.returnDate);
+      if (nights == null) {
+        setError("Indiquez une date de départ et de retour.");
+        setSaving(false);
+        return;
+      }
+      if (nights < 0) {
+        setError("La date de retour doit être après le départ.");
+        setSaving(false);
+        return;
+      }
+    }
     try {
       if (record?.id || record?.key) {
         await updateCrmRecord(resource, String(record.id || record.key), payload);
@@ -74,11 +92,12 @@ const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormM
               {error ? <div className="alert alert-danger">{error}</div> : null}
               <div className="row">
                 {fields.map((field) => (
-                  <div className="col-md-6 mb-3" key={field.name}>
+                  <div className={`${field.wide ? "col-12" : "col-md-6"} mb-3`} key={field.name}>
                     <label className="form-label">{t(field.label)}</label>
                     {field.type === "textarea" ? (
                       <textarea
                         className="form-control"
+                        rows={3}
                         required={field.required}
                         value={values[field.name] ?? ""}
                         onChange={(event) => setValues((prev) => ({ ...prev, [field.name]: event.target.value }))}
@@ -99,7 +118,14 @@ const KalaoFormModal = ({ resource, open, onClose, onSaved, record }: KalaoFormM
                     ) : (
                       <input
                         className="form-control"
-                        type={field.type === "number" ? "number" : "text"}
+                        type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
+                        min={
+                          field.name === "returnDate"
+                            ? values.departureDate || undefined
+                            : field.name === "pax"
+                              ? "1"
+                              : undefined
+                        }
                         required={field.required}
                         value={values[field.name] ?? ""}
                         onChange={(event) => setValues((prev) => ({ ...prev, [field.name]: event.target.value }))}

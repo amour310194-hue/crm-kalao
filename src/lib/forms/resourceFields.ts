@@ -1,4 +1,4 @@
-export type FieldType = "text" | "number" | "select" | "textarea";
+export type FieldType = "text" | "number" | "select" | "textarea" | "date";
 
 export type FormField = {
   name: string;
@@ -6,6 +6,7 @@ export type FormField = {
   type?: FieldType;
   options?: string[];
   required?: boolean;
+  wide?: boolean;
 };
 
 const accountType = { name: "accountType", label: "Type client", type: "select" as const, options: ["individual", "company"] };
@@ -83,10 +84,10 @@ export const resourceFields: Record<string, FormField[]> = {
     { name: "accountName", label: "Client", required: true },
     accountType,
     { name: "destination", label: "Destination", required: true },
-    { name: "departureDate", label: "Départ" },
-    { name: "returnDate", label: "Retour" },
+    { name: "departureDate", label: "Départ", type: "date", required: true },
+    { name: "returnDate", label: "Retour", type: "date", required: true },
     { name: "pax", label: "Passagers", type: "number" },
-    { name: "itinerary", label: "Itinéraire", type: "textarea" },
+    { name: "itinerary", label: "Itinéraire", type: "textarea", wide: true },
     { name: "status", label: "Statut", type: "select", options: ["Devis", "Confirmé", "En cours"] },
     { name: "amount", label: "Montant", type: "number" },
   ],

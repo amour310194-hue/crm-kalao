@@ -238,9 +238,9 @@ export function applyKalaoSeed(store: CrmStore): CrmStore {
       { id: "dp-11", code: "DEP-DIR", name: "Direction", headName: "Super Admin Kalao", headImage: "assets/img/profiles/avatar-01.jpg", membersCount: "2 membres", location: "Abidjan", status: "active" },
     ],
     travel: [
-      { id: "tr-001", number: "VOY-2026-014", accountName: "Fatou Bamba", accountType: "individual", destination: "Paris (CDG)", departureDate: "03 Oct 2026", returnDate: "18 Oct 2026", pax: 2, itinerary: "ABJ → CDG, hôtel 14 nuits", status: "Confirmé", amount: 780 },
-      { id: "tr-002", number: "VOY-2026-015", accountName: "Société Ivoirienne de Négoce", accountType: "company", destination: "Dubaï", departureDate: "12 Oct 2026", returnDate: "19 Oct 2026", pax: 3, itinerary: "ABJ → DXB, salon affaires", status: "Devis", amount: 2140 },
-      { id: "tr-003", number: "VOY-2026-016", accountName: "Moussa Coulibaly", accountType: "individual", destination: "Dakar", departureDate: "22 Sep 2026", returnDate: "28 Sep 2026", pax: 1, itinerary: "ABJ → DSS aller-retour", status: "En cours", amount: 320 },
+      { id: "tr-001", number: "VOY-2026-014", accountName: "Fatou Bamba", accountType: "individual", destination: "Paris (CDG)", departureDate: "2026-10-03", returnDate: "2026-10-18", pax: 2, itinerary: "ABJ → CDG, hôtel 14 nuits", status: "Confirmé", amount: 780 },
+      { id: "tr-002", number: "VOY-2026-015", accountName: "Société Ivoirienne de Négoce", accountType: "company", destination: "Dubaï", departureDate: "2026-10-12", returnDate: "2026-10-19", pax: 3, itinerary: "ABJ → DXB, salon affaires", status: "Devis", amount: 2140 },
+      { id: "tr-003", number: "VOY-2026-016", accountName: "Moussa Coulibaly", accountType: "individual", destination: "Dakar", departureDate: "2026-09-22", returnDate: "2026-09-28", pax: 1, itinerary: "ABJ → DSS aller-retour", status: "En cours", amount: 320 },
     ],
     immigration: [
       { id: "im-001", number: "IMM-2026-008", accountName: "Moussa Coulibaly", accountType: "individual", procedure: "Visa Schengen études", country: "France", step: "Pièces", status: "Pièces en cours", dueDate: "30 Sep 2026" },

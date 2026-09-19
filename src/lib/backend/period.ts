@@ -62,6 +62,42 @@ export function parseIsoRange(fromRaw?: string | null, toRaw?: string | null): D
   return { from, to };
 }
 
+function parseIsoLocal(iso: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return parseCrmDate(iso);
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+export function toIsoDateString(value: unknown): string | null {
+  if (value == null || String(value).trim() === "") return null;
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+  const parsed = parseCrmDate(raw);
+  if (!parsed) return null;
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function formatDisplayDate(value: unknown) {
+  const iso = toIsoDateString(value);
+  if (!iso) return value == null || String(value).trim() === "" ? "" : String(value);
+  const date = parseIsoLocal(iso);
+  if (!date) return String(value);
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+export function nightsBetween(start: unknown, end: unknown) {
+  const from = toIsoDateString(start);
+  const to = toIsoDateString(end);
+  if (!from || !to) return null;
+  const startDate = parseIsoLocal(from);
+  const endDate = parseIsoLocal(to);
+  if (!startDate || !endDate) return null;
+  return Math.round((endDate.getTime() - startDate.getTime()) / 86_400_000);
+}
+
 export function formatPeriodLabel(range: DateRange, locale = "fr-FR") {
   const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
   return `${range.from.toLocaleDateString(locale, options)} – ${range.to.toLocaleDateString(locale, options)}`;

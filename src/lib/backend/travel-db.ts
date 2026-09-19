@@ -1,4 +1,4 @@
-import { parseCrmDate } from "./period";
+import { toIsoDateString } from "./period";
 import { getStore } from "./store";
 import type { TravelRecord } from "./types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -17,26 +17,8 @@ type TravelRow = {
   itinerary: string | null;
 };
 
-function formatDateOnly(value: string | null | undefined) {
-  if (!value) return "";
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
-  if (match) {
-    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-    return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-  }
-  return value;
-}
-
 function toDateParam(value: unknown) {
-  if (value == null || String(value).trim() === "") return null;
-  const raw = String(value).trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
-  const parsed = parseCrmDate(raw);
-  if (!parsed) return null;
-  const year = parsed.getFullYear();
-  const month = String(parsed.getMonth() + 1).padStart(2, "0");
-  const day = String(parsed.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return toIsoDateString(value);
 }
 
 function text(payload: Record<string, unknown>, ...keys: string[]) {
@@ -56,8 +38,8 @@ function toTravelRecord(row: TravelRow): TravelRecord {
     accountName: row.account_name,
     accountType: row.account_type,
     destination: row.destination,
-    departureDate: formatDateOnly(row.departure_date),
-    returnDate: formatDateOnly(row.return_date),
+    departureDate: toIsoDateString(row.departure_date) ?? "",
+    returnDate: toIsoDateString(row.return_date) ?? "",
     status: row.status,
     amount: Number(row.amount) || 0,
     pax: row.pax ?? 1,

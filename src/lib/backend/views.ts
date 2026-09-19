@@ -12,6 +12,7 @@ import type {
   QuoteRecord,
 } from "./types";
 import { getStore } from "./store";
+import { formatDisplayDate, nightsBetween } from "./period";
 
 const euro = new Intl.NumberFormat("fr-FR", {
   style: "currency",
@@ -206,7 +207,11 @@ export function listUi(resource: CrmResource) {
         key: row.id,
         Client: row.accountName,
         Type: row.accountType === "individual" ? "Particulier" : "Société",
-        Pax: row.pax ?? "",
+        Pax: row.pax ?? 1,
+        Itinerary: row.itinerary ?? "",
+        Nights: nightsBetween(row.departureDate, row.returnDate) ?? "—",
+        departureDateLabel: formatDisplayDate(row.departureDate),
+        returnDateLabel: formatDisplayDate(row.returnDate),
         Amount: euro.format(row.amount),
       }));
     case "immigration":

@@ -71,6 +71,12 @@ const KalaoListPage = ({
         column.dataIndex === "step" ||
         column.dataIndex === "Step"
           ? (text: string) => <span className={`badge ${badgeSoft(text)}`}>{t(text)}</span>
+          : column.dataIndex === "Itinerary"
+            ? (text: string) => (
+                <span className="d-inline-block text-truncate" style={{ maxWidth: 240 }} title={text || ""}>
+                  {text || "—"}
+                </span>
+              )
           : (text: string, row: Record<string, unknown>) =>
               detailBase && (column.dataIndex === "number" || column.dataIndex === "Name" || column.dataIndex === "name") ? (
                 <Link href={`${detailBase}/${row.id || row.key}`}>{text ?? "—"}</Link>
