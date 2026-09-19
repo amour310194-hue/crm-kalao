@@ -158,7 +158,7 @@ const PageHeader = ({
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb mb-0 p-0">
             <li className="breadcrumb-item">
-              <Link href={all_routes.dealsDashboard}>{t("Home")}</Link>
+              <Link href={all_routes.dashboard}>{t("Home")}</Link>
             </li>
             {showModuleTile && (
             <li className="breadcrumb-item" aria-current="page">

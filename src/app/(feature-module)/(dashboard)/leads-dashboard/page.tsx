@@ -1,11 +1,6 @@
-import LeadsDashboardComponent from "@/components/Pages/dashboard/leads-dashboard/leadsDashboard";
+import { redirect } from "next/navigation";
+import { all_routes } from "@/router/all_routes";
 
-export const metadata = {
-  title: "Leads Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
-};
-
-export default function LeadsDashboard(){
-    return(
-        <><LeadsDashboardComponent/></>
-    )
+export default function LeadsDashboard() {
+  redirect(all_routes.dashboard);
 }

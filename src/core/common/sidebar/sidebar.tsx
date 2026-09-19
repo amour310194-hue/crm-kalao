@@ -90,7 +90,7 @@ const Sidebar = () => {
       dir: "ltr",
     };
 
-    let redirectUrl = "/deals-dashboard"; // default
+    let redirectUrl = "/dashboard"; // default
 
     switch (layout) {
       case "Default":
@@ -178,15 +178,15 @@ const Sidebar = () => {
         <div className="sidebar-logo">
           <div>
             {/* Logo Normal */}
-            <Link href={route.dealsDashboard} className="logo logo-normal">
+            <Link href={route.dashboard} className="logo logo-normal">
               <ImageWithBasePath src="assets/img/logo.svg" alt="Logo" />
             </Link>
             {/* Logo Small */}
-            <Link href={route.dealsDashboard} className="logo-small">
+            <Link href={route.dashboard} className="logo-small">
               <ImageWithBasePath src="assets/img/logo-small.svg" alt="Logo" />
             </Link>
             {/* Logo Dark */}
-            <Link href={route.dealsDashboard} className="dark-logo">
+            <Link href={route.dashboard} className="dark-logo">
               <ImageWithBasePath src="assets/img/logo-white.svg" alt="Logo" />
             </Link>
           </div>

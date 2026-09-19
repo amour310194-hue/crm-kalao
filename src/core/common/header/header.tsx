@@ -76,7 +76,7 @@ const Header = () => {
         <div className="page-container topbar-menu">
           <div className="d-flex align-items-center gap-2">
             {/* Logo */}
-            <Link href={route.dealsDashboard} className="logo">
+            <Link href={route.dashboard} className="logo">
               {/* Logo Normal */}
               <span className="logo-light">
                 <span className="logo-lg">

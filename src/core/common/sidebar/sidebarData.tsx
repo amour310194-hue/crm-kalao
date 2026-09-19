@@ -12,23 +12,14 @@ export const SidebarData = [
     submenuItems: [
       {
         label: "Dashboard",
-        link: route.dealsDashboard,
-        submenu: true,
+        link: route.dashboard,
+        submenu: false,
         showSubRoute: false,
         icon: "dashboard",
         base: "dashboard",
         materialicons: "start",
         dot: true,
-        submenuItems: [
-          { label: "Dashboard", link: route.dashboard },
-          { label: "Sales Overview", link: route.salesDashboard },
-          { label: "Executive Dashboard", link: route.executiveDashboard },
-          { label: "Deals Dashboard", link: route.dealsDashboard },
-          { label: "Leads Dashboard", link: route.leadsDashboard },
-          { label: "Project Dashboard", link: route.projectDashboard },
-          { label: "Revenue Summary", link: route.revenueSummaryDashboard },
-          { label: "Growth Dashboard", link: route.growthDashboard },
-        ],
+        submenuItems: [],
       },
       {
         label: "Applications",

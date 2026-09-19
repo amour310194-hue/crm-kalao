@@ -47,7 +47,7 @@ const Login = () => {
         fullName: TEST_SUPER_ADMIN.fullName,
         role: TEST_SUPER_ADMIN.role,
       });
-      router.push(all_routes.dealsDashboard);
+      router.push(all_routes.dashboard);
       return;
     }
 

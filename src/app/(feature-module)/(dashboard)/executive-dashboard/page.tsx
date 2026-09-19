@@ -1,10 +1,6 @@
-import ExecutiveDashboardComponent from "@/components/Pages/dashboard/executive-dashboard/executiveDashboard";
-export const metadata = {
-  title: "Executive Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
-};
+import { redirect } from "next/navigation";
+import { all_routes } from "@/router/all_routes";
 
-export default function ExcutiveDashboard(){
-    return(
-    <><ExecutiveDashboardComponent/></>
-    )
+export default function ExecutiveDashboard() {
+  redirect(all_routes.dashboard);
 }
