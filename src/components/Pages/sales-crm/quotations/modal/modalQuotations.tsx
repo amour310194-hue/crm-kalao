@@ -41,6 +41,11 @@ export type QuoteEditorRecord = Record<string, unknown> & {
   validTill?: string;
   quoteDateIso?: string;
   validTillIso?: string;
+  number?: string;
+  quoteId?: string;
+  status?: string;
+  invoiceId?: string;
+  invoiceNumber?: string;
   lines?: Array<Record<string, unknown>>;
 };
 
@@ -49,8 +54,10 @@ type ModalQuotationsProps = {
   record: QuoteEditorRecord | null;
   catalog: CatalogOption[];
   companies: CompanyOption[];
+  converting?: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onConvert?: (record: QuoteEditorRecord) => void;
 };
 
 const money = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
@@ -85,7 +92,16 @@ function catalogActive(item: CatalogOption) {
   return item.status === "active" || item.Status === "Active" || !item.status;
 }
 
-const ModalQuotations = ({ open, record, catalog, companies, onClose, onSaved }: ModalQuotationsProps) => {
+const ModalQuotations = ({
+  open,
+  record,
+  catalog,
+  companies,
+  converting = false,
+  onClose,
+  onSaved,
+  onConvert,
+}: ModalQuotationsProps) => {
   const { t } = useI18n();
   const [companyId, setCompanyId] = useState("");
   const [quoteDate, setQuoteDate] = useState("");
@@ -117,6 +133,9 @@ const ModalQuotations = ({ open, record, catalog, companies, onClose, onSaved }:
   );
 
   if (!open) return null;
+
+  const invoiceNumber = String(record?.invoiceNumber || "");
+  const canConvert = Boolean(record?.id || record?.key);
 
   const applyCatalog = (key: string, catalogId: string) => {
     const item = catalog.find((row) => row.id === catalogId);
@@ -189,6 +208,11 @@ const ModalQuotations = ({ open, record, catalog, companies, onClose, onSaved }:
             </div>
             <div className="modal-body">
               {error ? <div className="alert alert-danger">{error}</div> : null}
+              {invoiceNumber ? (
+                <div className="alert alert-success mb-3">
+                  {t("Invoice")} {invoiceNumber}
+                </div>
+              ) : null}
               <div className="row">
                 <div className="col-md-12 mb-3">
                   <label className="form-label">{t("Client")}</label>
@@ -365,6 +389,16 @@ const ModalQuotations = ({ open, record, catalog, companies, onClose, onSaved }:
               <button type="button" className="btn btn-light" onClick={onClose}>
                 {t("Cancel")}
               </button>
+              {canConvert && !invoiceNumber && onConvert && record ? (
+                <button
+                  type="button"
+                  className="btn btn-outline-primary"
+                  disabled={saving || converting}
+                  onClick={() => onConvert(record)}
+                >
+                  {converting ? "..." : t("Convert to Invoice")}
+                </button>
+              ) : null}
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? "..." : t("Save")}
               </button>

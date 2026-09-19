@@ -55,6 +55,23 @@ export async function fetchCrmRecord<T>(resource: string, id: string): Promise<T
   return json.data;
 }
 
+export async function convertQuoteToInvoice(id: string) {
+  const response = await fetch(`/api/v1/quotations/${id}/invoice`, {
+    method: "POST",
+    headers: actorHeaders({ "Content-Type": "application/json" }),
+  });
+  const json = (await response.json().catch(() => ({}))) as {
+    error?: string;
+    created?: boolean;
+    data?: Record<string, unknown>;
+    quote?: Record<string, unknown>;
+  };
+  if (!response.ok) {
+    throw new Error(json.error || "Conversion en facture impossible");
+  }
+  return json;
+}
+
 export async function uploadCrmFile(file: File, parentType = "files", parentId = "root") {
   const body = new FormData();
   body.append("file", file);

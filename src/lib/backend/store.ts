@@ -1,5 +1,5 @@
 import { createSeedStore } from "./seed";
-import { toIsoDateString } from "./period";
+import { formatDisplayDate, toIsoDateString } from "./period";
 import { discountLabelFromLines, quoteTotalsFromLines } from "./quote-totals";
 import type {
   CatalogRecord,
@@ -8,6 +8,7 @@ import type {
   CrmResource,
   CrmStore,
   DealRecord,
+  InvoiceRecord,
   QuoteLineRecord,
   QuoteRecord,
 } from "./types";
@@ -282,10 +283,24 @@ function replaceQuoteLines(quoteId: string, raw: unknown) {
   store.quoteLines.push(...parseQuoteLines(quoteId, raw));
 }
 
+function invoiceForQuote(quote: QuoteRecord) {
+  if (quote.invoiceId) {
+    const linked = getById("invoices", quote.invoiceId) as InvoiceRecord | null;
+    if (linked) return linked;
+  }
+  return getStore().invoices.find((row) => row.quoteId === quote.id) ?? null;
+}
+
 export function getQuoteDetail(id: string) {
   const quote = getById("quotes", id) as QuoteRecord | null;
   if (!quote) return null;
-  return { ...quote, lines: linesForQuote(id) };
+  const invoice = invoiceForQuote(quote);
+  return {
+    ...quote,
+    lines: linesForQuote(id),
+    invoiceId: invoice?.id ?? quote.invoiceId ?? "",
+    invoiceNumber: invoice?.number ?? "",
+  };
 }
 
 export function createQuote(payload: Record<string, unknown>) {
@@ -335,6 +350,91 @@ export function deleteQuote(id: string) {
   const store = getStore();
   store.quoteLines = store.quoteLines.filter((line) => line.quoteId !== id);
   return deleteRecord("quotes", id);
+}
+
+export class QuoteConversionError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "QuoteConversionError";
+    this.status = status;
+  }
+}
+
+function nextInvoiceNumber() {
+  const year = new Date().getFullYear();
+  const prefix = `FAC-${year}-`;
+  const max = getStore().invoices.reduce((current, row) => {
+    const match = String(row.number ?? "").match(/(\d+)$/);
+    return Math.max(current, match ? Number(match[1]) : 0);
+  }, 0);
+  return `${prefix}${String(max + 1).padStart(3, "0")}`;
+}
+
+function addDaysIso(iso: string, days: number) {
+  const [year, month, day] = iso.split("-").map(Number);
+  const date = new Date(year, (month || 1) - 1, (day || 1) + days);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export function convertQuoteToInvoice(id: string) {
+  const quote = getById("quotes", id) as QuoteRecord | null;
+  if (!quote) {
+    throw new QuoteConversionError("Devis introuvable", 404);
+  }
+  if (quote.status === "rejected") {
+    throw new QuoteConversionError("Un devis refusé ne peut pas être converti en facture.", 400);
+  }
+  const lines = linesForQuote(id);
+  if (!lines.length) {
+    throw new QuoteConversionError("Ajoutez au moins une ligne avant de convertir le devis.", 400);
+  }
+
+  const existing = invoiceForQuote(quote);
+  if (existing) {
+    if (!quote.invoiceId) {
+      updateRecord("quotes", id, { invoiceId: existing.id, status: "accepted" });
+    }
+    return {
+      created: false,
+      invoice: existing,
+      quote: getQuoteDetail(id),
+    };
+  }
+
+  const totals = quoteTotalsFromLines(lines);
+  const dueIso =
+    toIsoDateString(quote.validTill) ??
+    addDaysIso(toIsoDateString(quote.quoteDate) ?? new Date().toISOString().slice(0, 10), 30);
+  const invoice = createRecord("invoices", {
+    number: nextInvoiceNumber(),
+    companyId: quote.companyId,
+    project: `Devis ${quote.number}`,
+    projectImage: "project-01.svg",
+    dueDate: formatDisplayDate(dueIso) || dueIso,
+    amount: totals.ttc,
+    paidAmount: 0,
+    status: "Unpaid",
+    quoteId: quote.id,
+  }) as InvoiceRecord;
+
+  updateRecord("quotes", id, {
+    invoiceId: invoice.id,
+    status: "accepted",
+    totalAmount: totals.ht,
+    taxAmount: totals.tva,
+    finalAmount: totals.ttc,
+    discount: discountLabelFromLines(lines),
+  });
+
+  return {
+    created: true,
+    invoice,
+    quote: getQuoteDetail(id),
+  };
 }
 
 export function updateDeal(id: string, payload: Record<string, unknown>) {

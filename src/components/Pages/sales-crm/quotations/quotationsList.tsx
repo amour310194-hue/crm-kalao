@@ -11,7 +11,7 @@ import { QuotationsListData } from "../../../../core/json/quotationsListData";
 import { all_routes } from "@/router/all_routes";
 import ModalQuotations, { type QuoteEditorRecord } from "./modal/modalQuotations";
 import { useCrmCollection } from "@/lib/api/useCrmList";
-import { deleteCrmRecord, fetchCrmRecord } from "@/lib/api/crmClient";
+import { convertQuoteToInvoice, deleteCrmRecord, fetchCrmRecord } from "@/lib/api/crmClient";
 import { useI18n } from "@/i18n/I18nProvider";
 
 const statusTone: Record<string, string> = {
@@ -41,6 +41,8 @@ const QuotationsListComponent = () => {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState<QuoteEditorRecord | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [convertingId, setConvertingId] = useState("");
 
   const catalogOptions = useMemo(
     () =>
@@ -99,9 +101,41 @@ const QuotationsListComponent = () => {
     try {
       await deleteCrmRecord("quotations", id);
       setError("");
+      setSuccess("");
       reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Suppression impossible");
+    }
+  };
+
+  const convertQuote = async (record: QuoteEditorRecord) => {
+    const id = String(record.id || record.key || "");
+    if (!id) return;
+    const number = String(record.quoteId || record.number || id);
+    const existingInvoice = String(record.invoiceNumber || "");
+    if (existingInvoice) {
+      setSuccess(`Ce devis a déjà la facture ${existingInvoice}.`);
+      setError("");
+      return;
+    }
+    if (!window.confirm(`Convertir le devis ${number} en facture ?`)) return;
+    setConvertingId(id);
+    try {
+      const result = await convertQuoteToInvoice(id);
+      const invoiceNumber = String(result.data?.Invoice_ID || result.data?.number || "");
+      setSuccess(
+        result.created
+          ? `Facture ${invoiceNumber} créée depuis ${number}.`
+          : `Ce devis a déjà la facture ${invoiceNumber}.`
+      );
+      setError("");
+      setOpen(false);
+      setCurrent(null);
+      reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Conversion en facture impossible");
+    } finally {
+      setConvertingId("");
     }
   };
 
@@ -188,28 +222,70 @@ const QuotationsListComponent = () => {
         String(a.status ?? "").localeCompare(String(b.status ?? "")),
     },
     {
+      title: t("Invoice"),
+      dataIndex: "invoiceNumber",
+      render: (_: unknown, record: QuoteEditorRecord) => {
+        const invoiceNumber = String(record.invoiceNumber || "");
+        if (invoiceNumber) {
+          return (
+            <Link href={route.InvoiceList} className="title-name">
+              {invoiceNumber}
+            </Link>
+          );
+        }
+        if (record.status === "rejected") {
+          return <span className="text-muted">—</span>;
+        }
+        const id = String(record.id || record.key || "");
+        return (
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-primary"
+            disabled={convertingId === id}
+            onClick={() => void convertQuote(record)}
+          >
+            {convertingId === id ? "..." : t("Facturer")}
+          </button>
+        );
+      },
+      sorter: (a: QuoteEditorRecord, b: QuoteEditorRecord) =>
+        String(a.invoiceNumber ?? "").localeCompare(String(b.invoiceNumber ?? "")),
+    },
+    {
       title: "Action",
       dataIndex: "Action",
-      render: (_: unknown, record: QuoteEditorRecord) => (
-        <div className="dropdown table-action">
-          <Link
-            href="#"
-            className="action-icon btn btn-xs shadow btn-icon btn-outline-light"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i className="ti ti-dots-vertical" />
-          </Link>
-          <div className="dropdown-menu dropdown-menu-right">
-            <button type="button" className="dropdown-item" onClick={() => openEdit(record)}>
-              <i className="ti ti-edit text-blue" /> {t("Edit")}
-            </button>
-            <button type="button" className="dropdown-item" onClick={() => void removeQuote(record)}>
-              <i className="ti ti-trash" /> {t("Delete")}
-            </button>
+      render: (_: unknown, record: QuoteEditorRecord) => {
+        const invoiceNumber = String(record.invoiceNumber || "");
+        return (
+          <div className="dropdown table-action">
+            <Link
+              href="#"
+              className="action-icon btn btn-xs shadow btn-icon btn-outline-light"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i className="ti ti-dots-vertical" />
+            </Link>
+            <div className="dropdown-menu dropdown-menu-right">
+              <button type="button" className="dropdown-item" onClick={() => void openEdit(record)}>
+                <i className="ti ti-edit text-blue" /> {t("Edit")}
+              </button>
+              {invoiceNumber ? (
+                <Link href={route.InvoiceList} className="dropdown-item">
+                  <i className="ti ti-file-invoice text-success" /> {t("View Invoice")} {invoiceNumber}
+                </Link>
+              ) : record.status === "rejected" ? null : (
+                <button type="button" className="dropdown-item" onClick={() => void convertQuote(record)}>
+                  <i className="ti ti-file-invoice text-blue" /> {t("Convert to Invoice")}
+                </button>
+              )}
+              <button type="button" className="dropdown-item" onClick={() => void removeQuote(record)}>
+                <i className="ti ti-trash" /> {t("Delete")}
+              </button>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
   ];
 
@@ -241,6 +317,14 @@ const QuotationsListComponent = () => {
             </div>
             <div className="card-body">
               {error ? <div className="alert alert-danger">{error}</div> : null}
+              {success ? (
+                <div className="alert alert-success d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                  <span>{success}</span>
+                  <Link href={route.InvoiceList} className="btn btn-sm btn-success">
+                    {t("View Invoice")}
+                  </Link>
+                </div>
+              ) : null}
               <div className="custom-table table-nowrap">
                 <Datatable
                   columns={columns}
@@ -260,11 +344,13 @@ const QuotationsListComponent = () => {
         record={current}
         catalog={catalogOptions}
         companies={companyOptions}
+        converting={Boolean(current && convertingId === String(current.id || current.key || ""))}
         onClose={() => {
           setOpen(false);
           setCurrent(null);
         }}
         onSaved={reload}
+        onConvert={(record) => void convertQuote(record)}
       />
     </>
   );

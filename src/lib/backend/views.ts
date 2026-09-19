@@ -164,6 +164,9 @@ export function toQuoteRows(rows: QuoteRecord[]) {
     const totals = lines.length
       ? quoteTotalsFromLines(lines)
       : { ht: row.totalAmount, tva: row.taxAmount ?? 0, ttc: row.finalAmount };
+    const invoice =
+      (row.invoiceId ? store.invoices.find((item) => item.id === row.invoiceId) : undefined) ??
+      store.invoices.find((item) => item.quoteId === row.id);
     return {
       ...row,
       key: row.id,
@@ -181,6 +184,8 @@ export function toQuoteRows(rows: QuoteRecord[]) {
       discount: row.discount,
       lineCount: lines.length,
       lines: quoteLineRows(lines),
+      invoiceId: invoice?.id ?? row.invoiceId ?? "",
+      invoiceNumber: invoice?.number ?? "",
     };
   });
 }
@@ -189,6 +194,7 @@ export function toInvoiceRows(rows: InvoiceRecord[]) {
   return rows.map((row) => ({
     Key: row.id,
     key: row.id,
+    id: row.id,
     Invoice_ID: row.number,
     Client: partyName(row.companyId),
     Client_Image: companyImage(row.companyId).replace("company-icon-", "company-"),
@@ -199,6 +205,7 @@ export function toInvoiceRows(rows: InvoiceRecord[]) {
     Amount: euro.format(row.amount),
     Paid_Amount: euro.format(row.paidAmount),
     Status: row.status,
+    quoteId: row.quoteId ?? "",
   }));
 }
 

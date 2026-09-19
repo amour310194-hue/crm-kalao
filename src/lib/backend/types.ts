@@ -85,6 +85,7 @@ export type QuoteRecord = {
   discount: string;
   finalAmount: number;
   status: "draft" | "sent" | "accepted" | "rejected";
+  invoiceId?: string;
 };
 
 export type QuoteLineRecord = {
@@ -108,6 +109,7 @@ export type InvoiceRecord = {
   amount: number;
   paidAmount: number;
   status: "Paid" | "Partially Paid" | "Unpaid" | "Overdue";
+  quoteId?: string;
 };
 
 export type ActivityRecord = {
