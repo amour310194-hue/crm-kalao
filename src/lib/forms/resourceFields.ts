@@ -47,10 +47,17 @@ export const resourceFields: Record<string, FormField[]> = {
   deals: [
     { name: "title", label: "Intitulé", required: true },
     { name: "companyId", label: "ID société" },
-    { name: "stage", label: "Étape" },
-    { name: "amount", label: "Montant", type: "number" },
+    {
+      name: "stage",
+      label: "Étape",
+      type: "select",
+      options: ["Contact Made", "Qualify To Buy", "Proposal Made", "Negotiation", "Closed Won", "Closed Lost"],
+    },
+    { name: "amount", label: "Montant", type: "number", required: true },
+    { name: "probability", label: "Probabilité %", type: "number" },
     { name: "status", label: "Statut", type: "select", options: ["Open", "Won", "Lost"] },
-    { name: "expectedCloseDate", label: "Clôture prévue" },
+    { name: "expectedCloseDate", label: "Clôture prévue", type: "date" },
+    { name: "tags", label: "Tags" },
   ],
   catalog: [
     { name: "name", label: "Désignation", required: true },

@@ -7,13 +7,18 @@ import { useState } from "react";
 import { DealsListData } from "../../../../core/json/dealsListData";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import Datatable from "@/core/common/dataTable";
-import ModalDeals from "./modal/modalDeals";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { useCrmList } from "@/lib/api/useCrmList";
+import { useCrmCollection } from "@/lib/api/useCrmList";
+import { deleteCrmRecord } from "@/lib/api/crmClient";
+import KalaoFormModal from "@/components/Pages/kalao/KalaoFormModal";
 
 const DealsListComponent = () => {
 const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>({});
+const [open, setOpen] = useState(false);
+const [current, setCurrent] = useState<Record<string, unknown> | null>(null);
+const [error, setError] = useState("");
+const { data, reload } = useCrmCollection<Record<string, unknown>>("deals", DealsListData as unknown as Record<string, unknown>[]);
 
 const handleClick = (key: string) => {
   setFilledStars((prev) => ({
@@ -21,7 +26,33 @@ const handleClick = (key: string) => {
     [key]: !prev[key], // toggle on/off
   }));
 };
-  const data = useCrmList("deals", DealsListData);
+
+const dealId = (record: Record<string, unknown>) => String(record.id || record.key || "");
+
+const openCreate = () => {
+  setCurrent(null);
+  setError("");
+  setOpen(true);
+};
+
+const openEdit = (record: Record<string, unknown>) => {
+  setCurrent(record);
+  setError("");
+  setOpen(true);
+};
+
+const removeDeal = async (record: Record<string, unknown>) => {
+  const id = dealId(record);
+  if (!id) return;
+  if (!window.confirm("Supprimer cette affaire ?")) return;
+  try {
+    await deleteCrmRecord("deals", id);
+    setError("");
+    reload();
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Suppression impossible");
+  }
+};
   const columns = [
   {
     title: "",
@@ -110,7 +141,7 @@ const handleClick = (key: string) => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: unknown, record: Record<string, unknown>) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -124,29 +155,18 @@ const handleClick = (key: string) => {
             <Link className="dropdown-item" href="#">
               <i className="ti ti-bounce-right" /> Add Activity
             </Link>
-            <Link
-              className="dropdown-item"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvas_edit"
-              href="#"
-            >
+            <button type="button" className="dropdown-item" onClick={() => openEdit(record)}>
               <i className="ti ti-edit text-blue" /> Edit
-            </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="modal"
-              data-bs-target="#delete_deal"
-            >
+            </button>
+            <button type="button" className="dropdown-item" onClick={() => void removeDeal(record)}>
               <i className="ti ti-trash" /> Delete
-            </Link>
+            </button>
             <Link className="dropdown-item" href={all_routes.dealsDetails}>
               <i className="ti ti-eye text-blue-light" /> Preview
             </Link>
           </div>
         </div>
       ),
-      sorter: (a: any, b: any) => a.Action.length - b.Action.length,
     },
   ];
 
@@ -169,6 +189,8 @@ const handleClick = (key: string) => {
             badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
+            exportPdfResource="deals"
+            onRefresh={reload}
           />
           {/* End Page Header */}
           {/* card start */}
@@ -180,17 +202,13 @@ const handleClick = (key: string) => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <Link
-                href="#"
-                className="btn btn-primary"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#offcanvas_add"
-              >
+              <button type="button" className="btn btn-primary" onClick={openCreate}>
                 <i className="ti ti-square-rounded-plus-filled me-1" />
                 Add Deal
-              </Link>
+              </button>
             </div>
             <div className="card-body">
+              {error ? <div className="alert alert-danger">{error}</div> : null}
               {/* table header */}
               <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -860,7 +878,16 @@ const handleClick = (key: string) => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalDeals/>
+    <KalaoFormModal
+      resource="deals"
+      open={open}
+      record={current}
+      onClose={() => setOpen(false)}
+      onSaved={() => {
+        setError("");
+        reload();
+      }}
+    />
     </>
   );
 };

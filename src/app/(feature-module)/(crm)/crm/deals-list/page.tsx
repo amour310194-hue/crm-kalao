@@ -1,7 +1,7 @@
 import DealsListComponent from "@/components/Pages/crm-module/deals/dealsList";
 
 export const metadata = {
-  title: "Deals List | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Affaires | Groupe Kalao",
 };
 
 export default function DealsList(){

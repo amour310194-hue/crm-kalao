@@ -6,6 +6,7 @@ import {
   getById,
   resolveResource,
   updateAccount,
+  updateDeal,
   updateRecord,
 } from "@/lib/backend/store";
 import { deleteTravel, getTravel, updateTravel } from "@/lib/backend/travel-db";
@@ -84,6 +85,15 @@ export async function PATCH(request: Request, context: RouteContext) {
     } catch (error) {
       return persistError(error);
     }
+  }
+
+  if (resource === "deals") {
+    const record = updateDeal(id, payload);
+    if (!record) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    await auditMutation(request, "update", resource, record, id);
+    return NextResponse.json({ resource, data: record });
   }
 
   const record = updateRecord(resource, id, payload);

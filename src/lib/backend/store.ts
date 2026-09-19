@@ -1,5 +1,6 @@
 import { createSeedStore } from "./seed";
-import type { CrmResource, CrmStore } from "./types";
+import { toIsoDateString } from "./period";
+import type { CrmResource, CrmStore, DealRecord } from "./types";
 
 type GlobalStore = typeof globalThis & {
   __crmKalaoStore?: CrmStore;
@@ -112,6 +113,67 @@ function text(payload: Record<string, unknown>, ...keys: string[]) {
     }
   }
   return "";
+}
+
+function numberFrom(payload: Record<string, unknown>, ...keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (value == null || value === "") continue;
+    const parsed = Number(String(value).replace(/[^\d.-]/g, ""));
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function dealStatus(payload: Record<string, unknown>): DealRecord["status"] {
+  const raw = text(payload, "status", "Status");
+  if (raw === "Won" || raw === "Lost") return raw;
+  return "Open";
+}
+
+export function createDeal(payload: Record<string, unknown>) {
+  const status = dealStatus(payload);
+  const stage =
+    text(payload, "stage", "Stage") ||
+    (status === "Won" ? "Closed Won" : status === "Lost" ? "Closed Lost" : "Contact Made");
+  return createRecord("deals", {
+    title: text(payload, "title", "DealName", "name") || "Nouvelle affaire",
+    companyId: text(payload, "companyId"),
+    contactId: text(payload, "contactId"),
+    leadId: text(payload, "leadId"),
+    stage,
+    amount: numberFrom(payload, "amount", "DealValue") ?? 0,
+    tags: text(payload, "tags", "Tags"),
+    probability: numberFrom(payload, "probability", "Probability") ?? 0,
+    expectedCloseDate:
+      toIsoDateString(payload.expectedCloseDate ?? payload.ExpectedCloseDate) ??
+      text(payload, "expectedCloseDate", "ExpectedCloseDate"),
+    status,
+  });
+}
+
+export function updateDeal(id: string, payload: Record<string, unknown>) {
+  if (!getById("deals", id)) return null;
+  const next: Record<string, unknown> = {};
+  if (payload.title != null || payload.DealName != null || payload.name != null) {
+    next.title = text(payload, "title", "DealName", "name");
+  }
+  if (payload.companyId != null) next.companyId = text(payload, "companyId");
+  if (payload.contactId != null) next.contactId = text(payload, "contactId");
+  if (payload.leadId != null) next.leadId = text(payload, "leadId");
+  if (payload.stage != null || payload.Stage != null) next.stage = text(payload, "stage", "Stage");
+  const amount = numberFrom(payload, "amount", "DealValue");
+  if (amount != null) next.amount = amount;
+  if (payload.tags != null || payload.Tags != null) next.tags = text(payload, "tags", "Tags");
+  const probability = numberFrom(payload, "probability", "Probability");
+  if (probability != null) next.probability = probability;
+  if (payload.expectedCloseDate != null || payload.ExpectedCloseDate != null) {
+    next.expectedCloseDate =
+      toIsoDateString(payload.expectedCloseDate ?? payload.ExpectedCloseDate) ??
+      text(payload, "expectedCloseDate", "ExpectedCloseDate");
+  }
+  if (payload.status != null || payload.Status != null) next.status = dealStatus(payload);
+  return updateRecord("deals", id, next);
 }
 
 export function createAccount(payload: Record<string, unknown>) {

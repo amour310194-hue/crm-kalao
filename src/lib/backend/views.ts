@@ -103,13 +103,14 @@ export function toLeadRows(rows: LeadRecord[]) {
 
 export function toDealRows(rows: DealRecord[]) {
   return rows.map((row) => ({
+    ...row,
     key: row.id,
     DealName: row.title,
     Stage: row.stage,
-    DealValue: euro.format(row.amount),
+    DealValue: euro.format(Number(row.amount) || 0),
     Tags: row.tags,
-    ExpectedCloseDate: row.expectedCloseDate,
-    Probability: `${row.probability}%`,
+    ExpectedCloseDate: formatDisplayDate(row.expectedCloseDate) || row.expectedCloseDate,
+    Probability: `${row.probability ?? 0}%`,
     Status: row.status,
   }));
 }
