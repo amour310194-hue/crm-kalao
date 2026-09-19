@@ -192,7 +192,7 @@ const ClientFiche = ({ id }: { id: string }) => {
                       </thead>
                       <tbody>
                         {fiche.invoices.map((invoice) => (
-                          <tr key={String(invoice.id ?? invoice.key)}>
+                          <tr key={String(invoice.key)}>
                             <td>{String(invoice.Invoice_ID)}</td>
                             <td>{String(invoice.Project || invoice.project || "—")}</td>
                             <td>{String(invoice.Due_Date || "—")}</td>
