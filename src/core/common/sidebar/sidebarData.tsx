@@ -438,6 +438,7 @@ export const SidebarData = [
   },
   {
     tittle: "AI CRM",
+    hidden: true,
     icon: "sparkles",
     showAsTab: true,
     separateRoute: false,
