@@ -7,9 +7,10 @@ import { useI18n } from "@/i18n/I18nProvider";
 type CrmLiveAddProps = {
   resource: string;
   label: string;
+  onSaved?: () => void;
 };
 
-const CrmLiveAdd = ({ resource, label }: CrmLiveAddProps) => {
+const CrmLiveAdd = ({ resource, label, onSaved }: CrmLiveAddProps) => {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
@@ -23,7 +24,10 @@ const CrmLiveAdd = ({ resource, label }: CrmLiveAddProps) => {
         resource={resource}
         open={open}
         onClose={() => setOpen(false)}
-        onSaved={() => window.location.reload()}
+        onSaved={() => {
+          if (onSaved) onSaved();
+          else window.location.reload();
+        }}
       />
     </>
   );

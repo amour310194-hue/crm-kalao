@@ -192,6 +192,7 @@ export function listUi(resource: CrmResource) {
     case "departments":
       return store.departments.map((row) => ({
         key: row.id,
+        id: row.id,
         DepartmentId: row.code,
         DepartmentName: row.name,
         HeadName: row.headName,
