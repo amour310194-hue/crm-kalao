@@ -534,6 +534,7 @@ export const SidebarData = [
   },
   {
     tittle: "Automation",
+    hidden: true,
     icon: "robot",
     showAsTab: true,
     separateRoute: false,
