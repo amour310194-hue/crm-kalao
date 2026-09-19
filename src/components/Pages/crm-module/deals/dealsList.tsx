@@ -10,14 +10,25 @@ import Datatable from "@/core/common/dataTable";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useCrmCollection } from "@/lib/api/useCrmList";
-import { deleteCrmRecord } from "@/lib/api/crmClient";
+import { deleteCrmRecord, updateCrmRecord } from "@/lib/api/crmClient";
 import KalaoFormModal from "@/components/Pages/kalao/KalaoFormModal";
+import { useI18n } from "@/i18n/I18nProvider";
+
+type DealOutcome = "Open" | "Won" | "Lost";
+
+function dealOutcome(record: Record<string, unknown>): DealOutcome {
+  const status = String(record.Status || record.status || "Open");
+  if (status === "Won" || status === "Lost") return status;
+  return "Open";
+}
 
 const DealsListComponent = () => {
+const { t } = useI18n();
 const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>({});
 const [open, setOpen] = useState(false);
 const [current, setCurrent] = useState<Record<string, unknown> | null>(null);
 const [error, setError] = useState("");
+const [changingId, setChangingId] = useState("");
 const { data, reload } = useCrmCollection<Record<string, unknown>>("deals", DealsListData as unknown as Record<string, unknown>[]);
 
 const handleClick = (key: string) => {
@@ -39,6 +50,21 @@ const openEdit = (record: Record<string, unknown>) => {
   setCurrent(record);
   setError("");
   setOpen(true);
+};
+
+const changeStage = async (record: Record<string, unknown>, status: DealOutcome) => {
+  const id = dealId(record);
+  if (!id || dealOutcome(record) === status) return;
+  setChangingId(id);
+  try {
+    await updateCrmRecord("deals", id, { status });
+    setError("");
+    reload();
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Changement d’étape impossible");
+  } finally {
+    setChangingId("");
+  }
 };
 
 const removeDeal = async (record: Record<string, unknown>) => {
@@ -82,7 +108,8 @@ const removeDeal = async (record: Record<string, unknown>) => {
     {
       title: "Stage",
       dataIndex: "Stage",
-      sorter: (a: any, b: any) => a.Stage.length - b.Stage.length,
+      render: (text: string) => t(text) || text,
+      sorter: (a: any, b: any) => String(a.Stage).localeCompare(String(b.Stage)),
     },
     {
       title: "Deal Value",
@@ -123,20 +150,27 @@ const removeDeal = async (record: Record<string, unknown>) => {
     {
       title: "Status",
       dataIndex: "Status",
-      render: (text: any) => (
-        <span
-          className={`badge badge-pill badge-status ${
-            text === "Won"
-              ? "bg-success"
-              : text === "Open"
-              ? "bg-purple"
-              : "bg-danger"
-          } `}
-        >
-          {text}
-        </span>
-      ),
-      sorter: (a: any, b: any) => a.Status.length - b.Status.length,
+      render: (_: unknown, record: Record<string, unknown>) => {
+        const status = dealOutcome(record);
+        const id = dealId(record);
+        return (
+          <select
+            className="form-select form-select-sm"
+            style={{ minWidth: 132 }}
+            aria-label={t("Change stage")}
+            value={status}
+            disabled={changingId === id}
+            onClick={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+            onChange={(event) => void changeStage(record, event.target.value as DealOutcome)}
+          >
+            <option value="Open">{t("Pipeline")}</option>
+            <option value="Won">{t("Won")}</option>
+            <option value="Lost">{t("Lost")}</option>
+          </select>
+        );
+      },
+      sorter: (a: any, b: any) => String(a.Status).localeCompare(String(b.Status)),
     },
     {
       title: "Action",
@@ -155,6 +189,15 @@ const removeDeal = async (record: Record<string, unknown>) => {
             <Link className="dropdown-item" href="#">
               <i className="ti ti-bounce-right" /> Add Activity
             </Link>
+            <button type="button" className="dropdown-item" onClick={() => void changeStage(record, "Won")}>
+              <i className="ti ti-trophy text-success" /> {t("Mark as Won")}
+            </button>
+            <button type="button" className="dropdown-item" onClick={() => void changeStage(record, "Lost")}>
+              <i className="ti ti-thumb-down text-danger" /> {t("Mark as Lost")}
+            </button>
+            <button type="button" className="dropdown-item" onClick={() => void changeStage(record, "Open")}>
+              <i className="ti ti-git-branch text-purple" /> {t("Back to pipeline")}
+            </button>
             <button type="button" className="dropdown-item" onClick={() => openEdit(record)}>
               <i className="ti ti-edit text-blue" /> Edit
             </button>

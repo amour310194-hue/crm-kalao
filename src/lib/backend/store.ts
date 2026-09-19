@@ -125,35 +125,83 @@ function numberFrom(payload: Record<string, unknown>, ...keys: string[]) {
   return undefined;
 }
 
+const CLOSED_WON_STAGE = "Closed Won";
+const CLOSED_LOST_STAGE = "Closed Lost";
+const PIPELINE_STAGE = "Contact Made";
+
+function isClosedStage(stage: string) {
+  return stage === CLOSED_WON_STAGE || stage === CLOSED_LOST_STAGE;
+}
+
 function dealStatus(payload: Record<string, unknown>): DealRecord["status"] {
   const raw = text(payload, "status", "Status");
   if (raw === "Won" || raw === "Lost") return raw;
   return "Open";
 }
 
+function statusFromStage(stage: string): DealRecord["status"] {
+  if (stage === CLOSED_WON_STAGE) return "Won";
+  if (stage === CLOSED_LOST_STAGE) return "Lost";
+  return "Open";
+}
+
+function stageFromStatus(status: DealRecord["status"], currentStage?: string) {
+  if (status === "Won") return CLOSED_WON_STAGE;
+  if (status === "Lost") return CLOSED_LOST_STAGE;
+  if (currentStage && !isClosedStage(currentStage)) return currentStage;
+  return PIPELINE_STAGE;
+}
+
+function probabilityFromStatus(status: DealRecord["status"], current?: number) {
+  if (status === "Won") return 100;
+  if (status === "Lost") return 0;
+  if (current == null || current === 0 || current === 100) return 50;
+  return current;
+}
+
+function applyDealOutcome(
+  payload: Record<string, unknown>,
+  current?: Pick<DealRecord, "stage" | "status" | "probability">
+) {
+  const hasStatus = payload.status != null || payload.Status != null;
+  const hasStage = payload.stage != null || payload.Stage != null;
+  const stageInput = hasStage ? text(payload, "stage", "Stage") : current?.stage ?? "";
+  const status = hasStatus
+    ? dealStatus(payload)
+    : hasStage
+      ? statusFromStage(stageInput)
+      : current?.status ?? "Open";
+  const stage = hasStage && status === "Open" && !isClosedStage(stageInput)
+    ? stageInput
+    : stageFromStatus(status, current?.stage);
+  return {
+    status,
+    stage,
+    probability: probabilityFromStatus(status, current?.probability),
+  };
+}
+
 export function createDeal(payload: Record<string, unknown>) {
-  const status = dealStatus(payload);
-  const stage =
-    text(payload, "stage", "Stage") ||
-    (status === "Won" ? "Closed Won" : status === "Lost" ? "Closed Lost" : "Contact Made");
+  const outcome = applyDealOutcome(payload);
   return createRecord("deals", {
     title: text(payload, "title", "DealName", "name") || "Nouvelle affaire",
     companyId: text(payload, "companyId"),
     contactId: text(payload, "contactId"),
     leadId: text(payload, "leadId"),
-    stage,
+    stage: outcome.stage,
     amount: numberFrom(payload, "amount", "DealValue") ?? 0,
     tags: text(payload, "tags", "Tags"),
-    probability: numberFrom(payload, "probability", "Probability") ?? 0,
+    probability: numberFrom(payload, "probability", "Probability") ?? outcome.probability,
     expectedCloseDate:
       toIsoDateString(payload.expectedCloseDate ?? payload.ExpectedCloseDate) ??
       text(payload, "expectedCloseDate", "ExpectedCloseDate"),
-    status,
+    status: outcome.status,
   });
 }
 
 export function updateDeal(id: string, payload: Record<string, unknown>) {
-  if (!getById("deals", id)) return null;
+  const existing = getById("deals", id) as DealRecord | null;
+  if (!existing) return null;
   const next: Record<string, unknown> = {};
   if (payload.title != null || payload.DealName != null || payload.name != null) {
     next.title = text(payload, "title", "DealName", "name");
@@ -161,18 +209,23 @@ export function updateDeal(id: string, payload: Record<string, unknown>) {
   if (payload.companyId != null) next.companyId = text(payload, "companyId");
   if (payload.contactId != null) next.contactId = text(payload, "contactId");
   if (payload.leadId != null) next.leadId = text(payload, "leadId");
-  if (payload.stage != null || payload.Stage != null) next.stage = text(payload, "stage", "Stage");
   const amount = numberFrom(payload, "amount", "DealValue");
   if (amount != null) next.amount = amount;
   if (payload.tags != null || payload.Tags != null) next.tags = text(payload, "tags", "Tags");
-  const probability = numberFrom(payload, "probability", "Probability");
-  if (probability != null) next.probability = probability;
   if (payload.expectedCloseDate != null || payload.ExpectedCloseDate != null) {
     next.expectedCloseDate =
       toIsoDateString(payload.expectedCloseDate ?? payload.ExpectedCloseDate) ??
       text(payload, "expectedCloseDate", "ExpectedCloseDate");
   }
-  if (payload.status != null || payload.Status != null) next.status = dealStatus(payload);
+  const hasOutcome = payload.status != null || payload.Status != null || payload.stage != null || payload.Stage != null;
+  if (hasOutcome) {
+    const outcome = applyDealOutcome(payload, existing);
+    next.status = outcome.status;
+    next.stage = outcome.stage;
+    next.probability = outcome.probability;
+  }
+  const probability = numberFrom(payload, "probability", "Probability");
+  if (probability != null) next.probability = probability;
   return updateRecord("deals", id, next);
 }
 

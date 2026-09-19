@@ -55,7 +55,7 @@ export const resourceFields: Record<string, FormField[]> = {
     },
     { name: "amount", label: "Montant", type: "number", required: true },
     { name: "probability", label: "Probabilité %", type: "number" },
-    { name: "status", label: "Statut", type: "select", options: ["Open", "Won", "Lost"] },
+    { name: "status", label: "Étape (pipeline / gagnée / perdue)", type: "select", options: ["Open", "Won", "Lost"] },
     { name: "expectedCloseDate", label: "Clôture prévue", type: "date" },
     { name: "tags", label: "Tags" },
   ],
