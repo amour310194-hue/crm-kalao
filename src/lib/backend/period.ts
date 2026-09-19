@@ -54,9 +54,15 @@ export function last30DaysRange(now = new Date()): DateRange {
   };
 }
 
-export function toIsoRange(range: DateRange) {
-  return {
-    from: range.from.toISOString(),
-    to: range.to.toISOString(),
-  };
+export function parseIsoRange(fromRaw?: string | null, toRaw?: string | null): DateRange | null {
+  if (!fromRaw || !toRaw) return null;
+  const from = new Date(fromRaw);
+  const to = new Date(toRaw);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return null;
+  return { from, to };
+}
+
+export function formatPeriodLabel(range: DateRange, locale = "fr-FR") {
+  const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+  return `${range.from.toLocaleDateString(locale, options)} – ${range.to.toLocaleDateString(locale, options)}`;
 }

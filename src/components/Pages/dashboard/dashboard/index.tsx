@@ -14,11 +14,20 @@ import { all_routes } from "@/router/all_routes";
 import DashboardKpis from "./dashboardKpis";
 import { thisMonthRange } from "@/lib/backend/period";
 import { useI18n } from "@/i18n/I18nProvider";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type MouseEvent } from "react";
 
 function formatPeriod(range: DatePickerRange) {
   const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
   return `${range.from.toLocaleDateString("fr-FR", options)} – ${range.to.toLocaleDateString("fr-FR", options)}`;
+}
+
+function exportHref(format: "pdf" | "csv", range: DatePickerRange) {
+  const params = new URLSearchParams({
+    format,
+    from: range.from.toISOString(),
+    to: range.to.toISOString(),
+  });
+  return `/api/v1/export/dashboard?${params.toString()}`;
 }
 
 const MainDashboardComponent = () => {
@@ -27,6 +36,11 @@ const MainDashboardComponent = () => {
   const onRangeChange = useCallback((next: DatePickerRange) => {
     setRange(next);
   }, []);
+
+  const handleExport = (format: "pdf" | "csv") => (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    window.location.assign(exportHref(format, range));
+  };
 
   return (
     <>
@@ -104,16 +118,38 @@ const MainDashboardComponent = () => {
                 </Link>
               </div>
               <PredefinedDatePicker defaultPreset="thisMonth" onChange={onRangeChange} />
-              <Link
-                href="#"
-                className="btn btn-icon btn-outline-light shadow"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                aria-label="Download"
-                data-bs-original-title="Download"
-              >
-                <i className="ti ti-download" />
-              </Link>
+              <div className="dropdown">
+                <Link
+                  href="#"
+                  className="btn btn-icon btn-outline-light shadow dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  data-bs-placement="top"
+                  aria-label={t("Export")}
+                  data-dashboard-export
+                >
+                  <i className="ti ti-download" />
+                </Link>
+                <div className="dropdown-menu dropdown-menu-end">
+                  <Link
+                    href={exportHref("pdf", range)}
+                    className="dropdown-item"
+                    data-export="pdf"
+                    onClick={handleExport("pdf")}
+                  >
+                    <i className="ti ti-file-type-pdf me-1" />
+                    {t("Export as PDF")}
+                  </Link>
+                  <Link
+                    href={exportHref("csv", range)}
+                    className="dropdown-item"
+                    data-export="excel"
+                    onClick={handleExport("csv")}
+                  >
+                    <i className="ti ti-file-type-xls me-1" />
+                    {t("Export as Excel")}
+                  </Link>
+                </div>
+              </div>
               <CollapseIcons />
             </div>
           </div>

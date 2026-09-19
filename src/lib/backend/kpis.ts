@@ -1,4 +1,4 @@
-import { inRange, overlapsRange, type DateRange } from "./period";
+import { formatPeriodLabel, inRange, overlapsRange, type DateRange } from "./period";
 import { getStore } from "./store";
 
 export type MetierKpiItem = {
@@ -79,4 +79,50 @@ export function getDashboardKpis(range?: DateRange | null): DashboardKpiData {
       items: metierItems,
     },
   };
+}
+
+const money = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+
+export type DashboardExportRow = {
+  indicateur: string;
+  valeur: string;
+};
+
+export function getDashboardExportRows(range?: DateRange | null): DashboardExportRow[] {
+  const kpis = getDashboardKpis(range);
+  const period = range ? formatPeriodLabel(range) : "Toutes périodes";
+  return [
+    { indicateur: "Période", valeur: period },
+    { indicateur: "Affaires ouvertes", valeur: String(kpis.deals.openCount) },
+    { indicateur: "Affaires gagnées", valeur: String(kpis.deals.wonCount) },
+    { indicateur: "Affaires perdues", valeur: String(kpis.deals.lostCount) },
+    { indicateur: "Pipeline", valeur: money.format(kpis.deals.pipelineAmount) },
+    { indicateur: "Montant gagné", valeur: money.format(kpis.deals.wonAmount) },
+    { indicateur: "Factures", valeur: String(kpis.invoices.count) },
+    { indicateur: "Factures impayées", valeur: String(kpis.invoices.unpaidCount) },
+    { indicateur: "Montant facturé", valeur: money.format(kpis.invoices.totalAmount) },
+    { indicateur: "Montant encaissé factures", valeur: money.format(kpis.invoices.paidAmount) },
+    { indicateur: "Reste dû", valeur: money.format(kpis.invoices.outstanding) },
+    { indicateur: "Paiements", valeur: String(kpis.payments.count) },
+    { indicateur: "Encaissé", valeur: money.format(kpis.payments.totalAmount) },
+    { indicateur: "Dossiers métiers", valeur: String(kpis.metiers.total) },
+    ...kpis.metiers.items.map((item) => ({
+      indicateur: `Dossiers ${item.label}`,
+      valeur: String(item.count),
+    })),
+  ];
+}
+
+export function getDashboardExportCsv(range?: DateRange | null) {
+  const rows = getDashboardExportRows(range);
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  return ["Indicateur;Valeur", ...rows.map((row) => `${escape(row.indicateur)};${escape(row.valeur)}`)].join("\n");
+}
+
+export function getDashboardExportLines(range?: DateRange | null) {
+  return getDashboardExportRows(range).map((row) => `${row.indicateur} : ${row.valeur}`);
 }
