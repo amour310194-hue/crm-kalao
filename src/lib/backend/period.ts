@@ -88,6 +88,18 @@ export function formatDisplayDate(value: unknown) {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+export function formatDisplayDateTime(value: unknown) {
+  const date = value instanceof Date ? value : new Date(String(value ?? ""));
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function nightsBetween(start: unknown, end: unknown) {
   const from = toIsoDateString(start);
   const to = toIsoDateString(end);

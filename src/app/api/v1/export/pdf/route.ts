@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { listAuditLogs, toAuditUiRow } from "@/lib/backend/audit";
 import { buildSimplePdf } from "@/lib/backend/pdf";
 import { getById, listResource, resolveResource } from "@/lib/backend/store";
 import { listUi, toAccountRows } from "@/lib/backend/views";
@@ -24,6 +25,20 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": 'attachment; filename="clients.pdf"',
+      },
+    });
+  }
+
+  if (raw === "audit-logs" || raw === "user-activity-logs") {
+    const { records } = await listAuditLogs();
+    const pdf = buildSimplePdf(
+      "Journal d’activité — Groupe Kalao",
+      records.map((row) => flatten(toAuditUiRow(row) as Record<string, unknown>)),
+    );
+    return new NextResponse(new Uint8Array(pdf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="journaux.pdf"',
       },
     });
   }

@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import { NextResponse } from "next/server";
+import { auditMutation } from "@/lib/backend/audit";
 import { createRecord, listResource } from "@/lib/backend/store";
 import type { AttachmentRecord } from "@/lib/backend/types";
 
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
     url: `/uploads/${safeName}`,
     createdAt: new Date().toISOString(),
   });
+  await auditMutation(request, "create", "attachments", record);
 
   return NextResponse.json({ data: record }, { status: 201 });
 }

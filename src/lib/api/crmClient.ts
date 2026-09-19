@@ -1,7 +1,20 @@
+import { getLocalSession } from "@/lib/auth/session";
+
+function actorHeaders(extra?: Record<string, string>): Record<string, string> {
+  const session = getLocalSession();
+  const headers = { ...extra };
+  if (session?.fullName) {
+    headers["x-crm-actor"] = session.fullName;
+  } else if (session?.email) {
+    headers["x-crm-actor"] = session.email;
+  }
+  return headers;
+}
+
 export async function createCrmRecord(resource: string, payload: Record<string, unknown>) {
   const response = await fetch(`/api/v1/${resource}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: actorHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -13,7 +26,7 @@ export async function createCrmRecord(resource: string, payload: Record<string, 
 export async function updateCrmRecord(resource: string, id: string, payload: Record<string, unknown>) {
   const response = await fetch(`/api/v1/${resource}/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: actorHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -23,7 +36,10 @@ export async function updateCrmRecord(resource: string, id: string, payload: Rec
 }
 
 export async function deleteCrmRecord(resource: string, id: string) {
-  const response = await fetch(`/api/v1/${resource}/${id}`, { method: "DELETE" });
+  const response = await fetch(`/api/v1/${resource}/${id}`, {
+    method: "DELETE",
+    headers: actorHeaders(),
+  });
   if (!response.ok) {
     throw new Error(`Suppression ${resource} impossible`);
   }
@@ -44,7 +60,7 @@ export async function uploadCrmFile(file: File, parentType = "files", parentId =
   body.append("file", file);
   body.append("parentType", parentType);
   body.append("parentId", parentId);
-  const response = await fetch("/api/v1/files", { method: "POST", body });
+  const response = await fetch("/api/v1/files", { method: "POST", body, headers: actorHeaders() });
   if (!response.ok) {
     throw new Error("Upload impossible");
   }

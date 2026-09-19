@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auditMutation } from "@/lib/backend/audit";
 import {
   deleteAccount,
   deleteRecord,
@@ -65,6 +66,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!record) {
       return NextResponse.json({ error: "Introuvable" }, { status: 404 });
     }
+    await auditMutation(request, "update", "accounts", record, id);
     return NextResponse.json({ resource: "accounts", data: record });
   }
   const resource = resolveResource(raw);
@@ -76,6 +78,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     try {
       const persisted = await updateTravel(id, payload);
       if (persisted) {
+        await auditMutation(request, "update", resource, persisted, id);
         return NextResponse.json({ resource, source: "supabase", data: persisted });
       }
     } catch (error) {
@@ -87,17 +90,19 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!record) {
     return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   }
-
+  await auditMutation(request, "update", resource, record, id);
   return NextResponse.json({ resource, data: record });
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   const { resource: raw, id } = await context.params;
   if (isAccounts(raw)) {
+    const existing = getById("companies", id) ?? getById("contacts", id);
     const ok = deleteAccount(id);
     if (!ok) {
       return NextResponse.json({ error: "Introuvable" }, { status: 404 });
     }
+    await auditMutation(request, "delete", "accounts", existing ?? { id }, id);
     return NextResponse.json({ ok: true });
   }
   const resource = resolveResource(raw);
@@ -107,8 +112,10 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   if (resource === "travel") {
     try {
+      const existing = await getTravel(id);
       const persisted = await deleteTravel(id);
       if (persisted) {
+        await auditMutation(request, "delete", resource, existing ?? { id }, id);
         return NextResponse.json({ ok: true, source: "supabase" });
       }
       if (persisted === false) {
@@ -119,10 +126,11 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
   }
 
+  const existing = getById(resource, id);
   const ok = deleteRecord(resource, id);
   if (!ok) {
     return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   }
-
+  await auditMutation(request, "delete", resource, existing ?? { id }, id);
   return NextResponse.json({ ok: true });
 }

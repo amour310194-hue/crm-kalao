@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auditMutation } from "@/lib/backend/audit";
 import { listUi, toAccountRows } from "@/lib/backend/views";
 import {
   createAccount,
@@ -64,6 +65,7 @@ export async function POST(request: Request, context: RouteContext) {
   const payload = (await request.json()) as Record<string, unknown>;
   if (isAccounts(raw)) {
     const record = createAccount(payload);
+    await auditMutation(request, "create", "accounts", record);
     return NextResponse.json({ resource: "accounts", data: record }, { status: 201 });
   }
   const resource = resolveResource(raw);
@@ -75,6 +77,7 @@ export async function POST(request: Request, context: RouteContext) {
     try {
       const persisted = await createTravel(payload);
       if (persisted) {
+        await auditMutation(request, "create", resource, persisted);
         return NextResponse.json({ resource, source: "supabase", data: persisted }, { status: 201 });
       }
     } catch (error) {
@@ -83,5 +86,6 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const record = createRecord(resource, payload);
+  await auditMutation(request, "create", resource, record);
   return NextResponse.json({ resource, data: record }, { status: 201 });
 }
