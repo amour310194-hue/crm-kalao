@@ -1,6 +1,6 @@
 import { createSeedStore } from "./seed";
 import { toIsoDateString } from "./period";
-import type { CrmResource, CrmStore, DealRecord } from "./types";
+import type { ContactRecord, CrmResource, CrmStore, DealRecord } from "./types";
 
 type GlobalStore = typeof globalThis & {
   __crmKalaoStore?: CrmStore;
@@ -227,6 +227,65 @@ export function updateDeal(id: string, payload: Record<string, unknown>) {
   const probability = numberFrom(payload, "probability", "Probability");
   if (probability != null) next.probability = probability;
   return updateRecord("deals", id, next);
+}
+
+function contactStatus(payload: Record<string, unknown>, current?: ContactRecord["status"]): ContactRecord["status"] {
+  const raw = text(payload, "status", "Status").toLowerCase();
+  if (raw === "inactive") return "inactive";
+  if (raw === "active") return "active";
+  return current ?? "active";
+}
+
+function splitName(payload: Record<string, unknown>) {
+  const firstName = text(payload, "firstName");
+  const lastName = text(payload, "lastName");
+  if (firstName || lastName) {
+    return { firstName, lastName };
+  }
+  const name = text(payload, "Name", "name");
+  const [first, ...rest] = name.split(/\s+/);
+  return { firstName: first, lastName: rest.join(" ") };
+}
+
+export function createContact(payload: Record<string, unknown>) {
+  const { firstName, lastName } = splitName(payload);
+  return createRecord("contacts", {
+    id: `ct-${Date.now()}`,
+    companyId: text(payload, "companyId"),
+    firstName: firstName || "Contact",
+    lastName,
+    email: text(payload, "email", "Email"),
+    phone: text(payload, "phone", "Phone"),
+    jobTitle: text(payload, "jobTitle", "Role", "role"),
+    location: text(payload, "location", "Location"),
+    tags: text(payload, "tags", "Tags") || "Collab",
+    rating: text(payload, "rating", "Rating") || "4.0",
+    image: text(payload, "image", "Image") || "avatar-01.jpg",
+    flags: text(payload, "flags", "Flags") || "fr.svg",
+    status: contactStatus(payload),
+  });
+}
+
+export function updateContact(id: string, payload: Record<string, unknown>) {
+  const existing = getById("contacts", id) as ContactRecord | null;
+  if (!existing) return null;
+  const next: Record<string, unknown> = {};
+  if (payload.firstName != null || payload.lastName != null || payload.Name != null || payload.name != null) {
+    const { firstName, lastName } = splitName(payload);
+    if (payload.firstName != null || firstName) next.firstName = firstName || existing.firstName;
+    if (payload.lastName != null || payload.Name != null || payload.name != null) next.lastName = lastName;
+  }
+  if (payload.email != null || payload.Email != null) next.email = text(payload, "email", "Email");
+  if (payload.phone != null || payload.Phone != null) next.phone = text(payload, "phone", "Phone");
+  if (payload.jobTitle != null || payload.Role != null || payload.role != null) {
+    next.jobTitle = text(payload, "jobTitle", "Role", "role");
+  }
+  if (payload.location != null || payload.Location != null) next.location = text(payload, "location", "Location");
+  if (payload.companyId != null) next.companyId = text(payload, "companyId");
+  if (payload.tags != null || payload.Tags != null) next.tags = text(payload, "tags", "Tags");
+  if (payload.rating != null || payload.Rating != null) next.rating = text(payload, "rating", "Rating");
+  if (payload.status != null || payload.Status != null) next.status = contactStatus(payload, existing.status);
+  return updateRecord("contacts", id, next);
 }
 
 export function createAccount(payload: Record<string, unknown>) {

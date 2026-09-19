@@ -7,6 +7,7 @@ import {
   getById,
   resolveResource,
   updateAccount,
+  updateContact,
   updateDeal,
   updateRecord,
 } from "@/lib/backend/store";
@@ -90,6 +91,15 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (resource === "deals") {
     const record = updateDeal(id, payload);
+    if (!record) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+    await auditMutation(request, "update", resource, record, id);
+    return NextResponse.json({ resource, data: record });
+  }
+
+  if (resource === "contacts") {
+    const record = updateContact(id, payload);
     if (!record) {
       return NextResponse.json({ error: "Introuvable" }, { status: 404 });
     }

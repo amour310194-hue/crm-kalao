@@ -68,8 +68,9 @@ export function toCompanyRows(rows: CompanyRecord[]) {
 
 export function toContactRows(rows: ContactRecord[]) {
   return rows.map((row) => ({
+    ...row,
     key: row.id,
-    Name: `${row.firstName} ${row.lastName}`,
+    Name: `${row.firstName} ${row.lastName}`.trim(),
     Role: row.jobTitle,
     role: row.jobTitle,
     Phone: row.phone,
