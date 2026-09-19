@@ -8,11 +8,10 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/c
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [ready, setReady] = useState(!isSupabaseConfigured());
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
-      setReady(true);
       return;
     }
 
@@ -33,6 +32,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
+        setReady(false);
         router.replace(all_routes.login);
       }
     });
@@ -41,6 +41,20 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, [pathname, router]);
+
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="vh-100 d-flex align-items-center justify-content-center">
+        <div className="text-center px-3">
+          <h4 className="mb-2">Connexion requise</h4>
+          <p className="text-muted mb-0">
+            Configurez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY
+            pour ouvrir le CRM Kalao.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!ready) {
     return (

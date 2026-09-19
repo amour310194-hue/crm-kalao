@@ -9,6 +9,10 @@ import { all_routes } from "@/router/all_routes";
 import { setMobileSidebar } from "@/core/redux/sidebarSlice";
 import { updateTheme } from "@/core/redux/themeSlice";
 import Link from "next/link";
+import {
+  getSupabaseBrowserClient,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
 
 
 const Header = () => {
@@ -546,7 +550,7 @@ const Header = () => {
                   />
                 </div>
                 {/* Item*/}
-                <Link href="#" className="dropdown-item">
+                <Link href={route.faq} className="dropdown-item">
                   <i className="ti ti-help-circle me-1 align-middle" />
                   <span className="align-middle">Help &amp; Support</span>
                 </Link>
@@ -557,7 +561,17 @@ const Header = () => {
                 </Link>
                 {/* Item*/}
                 <div className="pt-2 mt-2 border-top">
-                  <Link href={route.login} className="dropdown-item text-danger">
+                  <Link
+                    href={route.login}
+                    className="dropdown-item text-danger"
+                    onClick={async (event) => {
+                      event.preventDefault();
+                      if (isSupabaseConfigured()) {
+                        await getSupabaseBrowserClient().auth.signOut();
+                      }
+                      window.location.assign(route.login);
+                    }}
+                  >
                     <i className="ti ti-logout me-1 fs-17 align-middle" />
                     <span className="align-middle">Sign Out</span>
                   </Link>

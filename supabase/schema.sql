@@ -233,3 +233,46 @@ values
   ('product', 'Produit exemple', 'PRD-001', 'Catalogue', 199.00, 20, 'active', 'pièce', null),
   ('service', 'Prestation exemple', 'SRV-001', 'Prestations', 450.00, 20, 'active', 'forfait', 'one_time')
 on conflict (sku) do nothing;
+
+-- RH centrale (V0) : voir aussi supabase/migrations/20260920_v0_rh_centrale.sql
+create table if not exists public.departments (
+  id uuid primary key default gen_random_uuid(),
+  code text unique not null,
+  name text not null,
+  head_name text,
+  head_image text,
+  members_count text,
+  location text default 'Abidjan',
+  status text not null default 'active',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.departments (code, name, status)
+values
+  ('DEP-COM', 'Commerce', 'active'),
+  ('DEP-BTP', 'BTP', 'active'),
+  ('DEP-AGR', 'Agriculture', 'active'),
+  ('DEP-EVE', 'Événementiel', 'active'),
+  ('DEP-VOY', 'Voyages', 'active')
+on conflict (code) do nothing;
+
+create table if not exists public.employees (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid unique references public.profiles(id) on delete set null,
+  full_name text not null,
+  email text,
+  phone text,
+  job_title text,
+  status text not null default 'active' check (status in ('active', 'inactive')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.employee_assignments (
+  employee_id uuid not null references public.employees(id) on delete cascade,
+  department_id uuid not null references public.departments(id) on delete cascade,
+  is_primary boolean not null default false,
+  created_at timestamptz not null default now(),
+  primary key (employee_id, department_id)
+);

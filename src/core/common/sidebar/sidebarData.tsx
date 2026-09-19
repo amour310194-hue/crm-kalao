@@ -3,7 +3,7 @@
 import { all_routes } from "@/router/all_routes";
 
 const route = all_routes;
-export const SidebarData = [
+const SidebarDataAll = [
   {
     tittle: "Main Menu",
     icon: "airplay",
@@ -1668,3 +1668,32 @@ export const SidebarData = [
     ],
   },
 ];
+
+const HIDDEN_SECTIONS = new Set([
+  "AI CRM",
+  "Automation",
+  "Reports",
+  "Membership",
+  "UI Interface",
+  "Help",
+]);
+const HIDDEN_MAIN_ITEMS = new Set(["Super Admin"]);
+const HIDDEN_APP_ITEMS = new Set(["Calls", "Kanban", "Invoices"]);
+
+export const SidebarData = SidebarDataAll.filter(
+  (section) => !HIDDEN_SECTIONS.has(section.tittle)
+).map((section) => ({
+  ...section,
+  submenuItems: section.submenuItems
+    .filter((item) => !HIDDEN_MAIN_ITEMS.has(item.label))
+    .map((item) =>
+      item.label === "Applications"
+        ? {
+            ...item,
+            submenuItems: (item.submenuItems ?? []).filter(
+              (sub) => !HIDDEN_APP_ITEMS.has(sub.label)
+            ),
+          }
+        : item
+    ),
+}));

@@ -34,7 +34,9 @@ const Login = () => {
     setError(null);
 
     if (!supabaseEnabled) {
-      router.push(all_routes.dashboard);
+      setError(
+        "Supabase n'est pas configuré. Renseignez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      );
       return;
     }
 
@@ -81,8 +83,8 @@ const Login = () => {
                     <h3 className="mb-2">Sign In</h3>
                     <p className="mb-0">
                       {supabaseEnabled
-                        ? "Connectez-vous avec votre compte Supabase."
-                        : "Mode démo : le bouton Sign In ouvre le CRM sans compte. Ajoutez .env.local pour activer Supabase."}
+                        ? "Connectez-vous avec votre compte Kalao."
+                        : "Supabase n'est pas configuré. Ajoutez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY."}
                     </p>
                   </div>
                   {error ? (
@@ -98,7 +100,7 @@ const Login = () => {
                         className="form-control"
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
-                        required={supabaseEnabled}
+                        required
                         autoComplete="email"
                       />
                       <span className="input-group-text">
@@ -115,7 +117,7 @@ const Login = () => {
                         placeholder="****************"
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
-                        required={supabaseEnabled}
+                        required
                         autoComplete="current-password"
                       />
                       <span
@@ -171,49 +173,6 @@ const Login = () => {
                         Create an account
                       </Link>
                     </p>
-                  </div>
-                  <div className="or-login text-center position-relative mb-3">
-                    <h6 className="fs-14 mb-0 position-relative text-body">
-                      OR
-                    </h6>
-                  </div>
-                  <div className="d-flex align-items-center justify-content-center flex-wrap gap-2 mb-3">
-                    <div className="text-center flex-fill">
-                      <Link
-                        href="#"
-                        className="p-2 btn btn-info d-flex align-items-center justify-content-center"
-                      >
-                        <ImageWithBasePath
-                          className="img-fluid m-1"
-                          src="assets/img/icons/facebook-logo.svg"
-                          alt="Facebook"
-                        />
-                      </Link>
-                    </div>
-                    <div className="text-center flex-fill">
-                      <Link
-                        href="#"
-                        className="p-2 btn btn-outline-light d-flex align-items-center justify-content-center"
-                      >
-                        <ImageWithBasePath
-                          className="img-fluid  m-1"
-                          src="assets/img/icons/google-logo.svg"
-                          alt="Facebook"
-                        />
-                      </Link>
-                    </div>
-                    <div className="text-center flex-fill">
-                      <Link
-                        href="#"
-                        className="p-2 btn btn-dark d-flex align-items-center justify-content-center"
-                      >
-                        <ImageWithBasePath
-                          className="img-fluid  m-1"
-                          src="assets/img/icons/apple-logo.svg"
-                          alt="Apple"
-                        />
-                      </Link>
-                    </div>
                   </div>
                 </div>
                 <div className="text-center pb-4">
