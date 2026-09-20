@@ -15,7 +15,7 @@ const ROLES = [
   "UI Designer",
   "Support Lead",
 ];
-const COUNTRIES = ["USA", "Canada", "Germany", "France"];
+const COUNTRIES = ["Cameroun", "Côte d'Ivoire", "Sénégal", "France"];
 const STATES = ["California", "New York", "Texas", "Florida"];
 const CITIES = ["Los Angeles", "San Diego", "Fresno", "San Francisco"];
 

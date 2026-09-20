@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import ModalCompaniesDetails from "./modal/modalCompaniesDetails";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -12,8 +13,23 @@ import CommonSelect from "@/core/common/common-select/commonSelect";
 import Footer from "@/core/common/footer/footer";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import { fetchCompanies } from "@/lib/crm";
 
 const CompaniesDetailsComponent = () => {
+  const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      const id =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("id")
+          : null;
+      const row = (id ? rows?.find((c) => c.id === id) : null) ?? rows?.[0];
+      if (!row) return;
+      const place = [row.city, row.country].filter(Boolean).join(", ");
+      if (place) setLocationLabel(place);
+    });
+  }, []);
   return (
     <>
       {/* ========================
@@ -53,7 +69,7 @@ const CompaniesDetailsComponent = () => {
                         <h5 className="mb-1">NovaWave LLC</h5>
                         <p className="mb-2">
                           <i className="ti ti-map-pin-pin me-1" />
-                          22, Ave Street, Newyork, USA
+                          {locationLabel}
                         </p>
                         <div className="d-flex align-items-center">
                           <p className="d-inline-flex align-items-center mb-0">
@@ -151,7 +167,7 @@ const CompaniesDetailsComponent = () => {
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
                         <i className="ti ti-map-pin-pin fs-14" />
                       </span>
-                      <p className="mb-0">22, Ave Street, Newyork, USA</p>
+                      <p className="mb-0">{locationLabel}</p>
                     </div>
                     <div className="d-flex align-items-center">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
@@ -169,7 +185,7 @@ const CompaniesDetailsComponent = () => {
                     <li className="row mb-2">
                       <span className="col-6">Currency</span>
                       <span className="col-6 text-dark">
-                        United States dollar
+                        Franc CFA (FCFA)
                       </span>
                     </li>
                     <li className="row mb-2">

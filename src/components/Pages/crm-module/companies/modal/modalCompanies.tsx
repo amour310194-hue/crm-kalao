@@ -48,6 +48,15 @@ const ModalCompanies = ({ selectedId, onSaved, onDelete }: ModalCompaniesProps) 
       phone: phone || vals.phone || null,
       website: vals.website || null,
       industry: tags[0] || null,
+      country:
+        vals.country && !["Select", "select"].includes(vals.country)
+          ? vals.country
+          : "Cameroun",
+      city:
+        vals.city && !["Select", "select"].includes(vals.city)
+          ? vals.city
+          : "Douala",
+      address: vals.address || null,
     };
     if (id) await updateCompany(id, payload);
     else await createCompany(payload);
@@ -855,13 +864,14 @@ const ModalCompanies = ({ selectedId, onSaved, onDelete }: ModalCompaniesProps) 
                       <div className="col-md-12">
                         <div className="mb-3">
                           <label className="form-label">Street Address </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="address" />
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Country</label>
                           <CommonSelect
+                            name="country"
                             options={Country}
                             className="select"
                             defaultValue={Country[0]}
@@ -884,6 +894,7 @@ const ModalCompanies = ({ selectedId, onSaved, onDelete }: ModalCompaniesProps) 
                         <div className="mb-3 mb-md-0">
                           <label className="form-label">City </label>
                           <CommonSelect
+                            name="city"
                             options={City}
                             className="select"
                             defaultValue={City[0]}
@@ -1337,13 +1348,14 @@ const ModalCompanies = ({ selectedId, onSaved, onDelete }: ModalCompaniesProps) 
                       <div className="col-md-12">
                         <div className="mb-3">
                           <label className="form-label">Street Address </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="address" />
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Country</label>
                           <CommonSelect
+                            name="country"
                             options={Country}
                             className="select"
                             defaultValue={Country[0]}
@@ -1366,6 +1378,7 @@ const ModalCompanies = ({ selectedId, onSaved, onDelete }: ModalCompaniesProps) 
                         <div className="mb-3 mb-md-0">
                           <label className="form-label">City </label>
                           <CommonSelect
+                            name="city"
                             options={City}
                             className="select"
                             defaultValue={City[0]}

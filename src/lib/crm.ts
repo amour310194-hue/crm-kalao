@@ -12,9 +12,11 @@ export type EntityType =
 
 const FILE_MANAGER_ENTITY = "00000000-0000-0000-0000-000000000001";
 
-const euro = new Intl.NumberFormat("fr-FR", {
+const fcfa = new Intl.NumberFormat("fr-CM", {
   style: "currency",
-  currency: "EUR",
+  currency: "XAF",
+  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
 });
 
 const dateFmt = new Intl.DateTimeFormat("fr-FR", {
@@ -24,7 +26,7 @@ const dateFmt = new Intl.DateTimeFormat("fr-FR", {
 });
 
 export function formatMoney(value: number | null | undefined): string {
-  return euro.format(Number(value ?? 0));
+  return fcfa.format(Number(value ?? 0));
 }
 
 export function formatDate(value: string | null | undefined): string {
@@ -113,7 +115,7 @@ export interface ContactRow {
   phone: string | null;
   job_title: string | null;
   notes: string | null;
-  companies?: { name: string | null; city: string | null } | null;
+  companies?: { name: string | null; city: string | null; country: string | null } | null;
 }
 
 export interface LeadRow {
@@ -126,7 +128,7 @@ export interface LeadRow {
   estimated_value: number | null;
   notes: string | null;
   created_at: string;
-  companies?: { name: string | null; city: string | null } | null;
+  companies?: { name: string | null; city: string | null; country: string | null } | null;
   contacts?: { first_name: string; last_name: string; phone: string | null } | null;
   lead_affiliations?: { department_id: string; departments?: { name: string; code: string } | null }[];
 }
@@ -331,7 +333,7 @@ export function toCompaniesListRow(row: CompanyRow, index: number) {
     Owner_Img: "avatar-01.jpg",
     Status: "Active",
     Phone: row.phone ?? "—",
-    Location: row.city || row.country || "Abidjan",
+    Location: row.city || row.country || "Douala",
   };
 }
 
@@ -340,7 +342,7 @@ export async function fetchContacts(): Promise<ContactRow[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("contacts")
-    .select("*, companies(name, city)")
+    .select("*, companies(name, city, country)")
     .order("created_at", { ascending: false });
   throwIf(error);
   return (data ?? []) as ContactRow[];
@@ -391,10 +393,10 @@ export function toContactsListRow(row: ContactRow, index: number) {
     role: row.job_title ?? row.companies?.name ?? "Contact",
     Phone: row.phone ?? "—",
     Tags: "Collab",
-    Location: row.companies?.city || "Abidjan",
+    Location: row.companies?.city || row.companies?.country || "Douala",
     Rating: "4.5",
     Image: avatars[index % avatars.length],
-    Flags: "fr.svg",
+    Flags: "cm.svg",
     Status: "Active",
     Email: row.email ?? "—",
   };
@@ -406,7 +408,7 @@ export async function fetchLeads(): Promise<LeadRow[] | null> {
   const { data, error } = await supabase
     .from("leads")
     .select(
-      "*, companies(name, city), contacts(first_name, last_name, phone), lead_affiliations(department_id, departments(name, code))"
+      "*, companies(name, city, country), contacts(first_name, last_name, phone), lead_affiliations(department_id, departments(name, code))"
     )
     .order("created_at", { ascending: false });
   throwIf(error);
@@ -935,8 +937,8 @@ export function toDepartmentsListRow(row: DepartmentRow) {
     HeadName: row.head_name || "Kalao",
     HeadImage: row.head_image || "assets/img/profiles/avatar-14.jpg",
     MembersCount: row.members_count || "0 Members",
-    LocationFlag: "assets/img/flags/fr.svg",
-    Location: row.location || "Abidjan",
+    LocationFlag: "assets/img/flags/cm.svg",
+    Location: row.location || "Douala",
     Status: row.status === "active" ? "Active" : row.status,
   };
 }
@@ -1006,8 +1008,8 @@ export function toStaffListRow(row: EmployeeRow, index: number) {
     DepartmentTone: DEPT_TONE[primary?.code ?? ""] || "info",
     Email: row.email ?? "—",
     Phone: row.phone ?? "—",
-    LocationFlag: "assets/img/flags/fr.svg",
-    LocationName: "Abidjan",
+    LocationFlag: "assets/img/flags/cm.svg",
+    LocationName: "Douala",
     Status: row.status === "active" ? "Active" : "Inactive",
   };
 }

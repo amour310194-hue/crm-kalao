@@ -11,10 +11,15 @@ const Account360Component = () => {
   const [companyName, setCompanyName] = useState("Halcyon Partners");
   const [contactLabel, setContactLabel] = useState("Ellis Vandermeer");
   const [invoiceLabel, setInvoiceLabel] = useState("");
+  const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
 
   useEffect(() => {
     void fetchCompanies().then((rows) => {
-      if (rows?.[0]) setCompanyName(rows[0].name);
+      if (rows?.[0]) {
+        setCompanyName(rows[0].name);
+        const place = [rows[0].city, rows[0].country].filter(Boolean).join(", ");
+        if (place) setLocationLabel(place);
+      }
     });
     void fetchContacts().then((rows) => {
       if (rows?.[0]) {
@@ -347,7 +352,7 @@ const Account360Component = () => {
                       Location
                     </span>
                     <span className="fs-13 fw-medium text-dark">
-                      Chicago, USA
+                      {locationLabel}
                     </span>
                   </li>
                   <li>

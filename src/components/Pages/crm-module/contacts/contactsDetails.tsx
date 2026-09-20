@@ -27,12 +27,17 @@ const ContactsDetailsComponent = () => {
       : null;
   const [contactName, setContactName] = useState("Contact");
   const [files, setFiles] = useState<AttachmentRow[]>([]);
+  const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
 
   useEffect(() => {
     void fetchContacts().then((rows) => {
       if (!rows?.length) return;
       const row = rows.find((c) => c.id === contactId) ?? rows[0];
       setContactName(`${row.first_name} ${row.last_name}`.trim());
+      const place = [row.companies?.city, row.companies?.country]
+        .filter(Boolean)
+        .join(", ");
+      if (place) setLocationLabel(place);
     });
   }, [contactId]);
 
@@ -251,7 +256,7 @@ const ContactsDetailsComponent = () => {
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
                         <i className="ti ti-map-pin fs-14" />
                       </span>
-                      <p className="mb-0">22, Ave Street, Newyork, USA</p>
+                      <p className="mb-0">{locationLabel}</p>
                     </div>
                     <div className="d-flex align-items-center">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
@@ -269,7 +274,7 @@ const ContactsDetailsComponent = () => {
                     <li className="row mb-2">
                       <span className="col-6">Currency</span>
                       <span className="col-6 text-dark">
-                        United States dollar
+                        Franc CFA (FCFA)
                       </span>
                     </li>
                     <li className="row mb-2">

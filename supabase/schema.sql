@@ -50,7 +50,7 @@ create table if not exists public.companies (
   email text,
   address text,
   city text,
-  country text default 'France',
+  country text default 'Cameroun',
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -242,7 +242,7 @@ create table if not exists public.departments (
   head_name text,
   head_image text,
   members_count text,
-  location text default 'Abidjan',
+  location text default 'Douala',
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

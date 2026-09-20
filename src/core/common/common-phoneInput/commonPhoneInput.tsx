@@ -20,7 +20,7 @@ const CommonPhoneInput: React.FC<CommonPhoneInputProps> = ({
   return (
     <div className={containerClassName}>
       <PhoneInput
-        defaultCountry="US"
+        defaultCountry="CM"
         value={value}
         onChange={onChange ? (val) => onChange(val as string | undefined) : () => {}}
         placeholder={placeholder}

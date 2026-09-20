@@ -20,13 +20,15 @@ export interface CatalogItem {
   billing_type: "one_time" | "hourly" | "daily" | "monthly" | "yearly" | null;
 }
 
-const euro = new Intl.NumberFormat("fr-FR", {
+const fcfa = new Intl.NumberFormat("fr-CM", {
   style: "currency",
-  currency: "EUR",
+  currency: "XAF",
+  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
 });
 
 export function formatCatalogPrice(value: number): string {
-  return euro.format(value);
+  return fcfa.format(value);
 }
 
 export function catalogKindLabel(kind: CatalogKind): string {

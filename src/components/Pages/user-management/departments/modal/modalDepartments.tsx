@@ -17,7 +17,7 @@ const TEAMS = [
   "Product Management Team",
 ];
 
-const LOCATIONS = ["USA", "Canada", "Spain", "India", "Brazil"];
+const LOCATIONS = ["Douala", "Yaoundé", "Bafoussam", "Garoua", "Kribi"];
 
 /*
   The reference renders `select2` widgets here; this app has no bare `.select2`

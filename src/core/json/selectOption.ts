@@ -131,11 +131,9 @@ export const Source = [
     { value: 'Insurance', label: 'Insurance' },
   ];
   export const Currency= [
-  { value: 'Choose', label: 'Choose' },
+  { value: 'FCFA', label: 'FCFA' },
   { value: 'Dollar', label: 'Dollar' },
-  { value: 'INR', label: 'INR' },
   { value: 'Euro', label: 'Euro' },
-  { value: 'Rupee', label: 'Rupee' },
 ];
  export const Language = [
   { value: 'Choose', label: 'Choose' },
@@ -145,25 +143,22 @@ export const Source = [
     { value: 'Hindi', label: 'Hindi' },
 ];
  export const Country = [
-  { value: 'Select', label: 'Select' },
-    { value: 'USA', label: 'USA' },
-    { value: 'Canada', label: 'Canada' },
-    { value: 'Germany', label: 'Germany' },
+  { value: 'Cameroun', label: 'Cameroun' },
+    { value: 'Côte d\'Ivoire', label: 'Côte d\'Ivoire' },
+    { value: 'Sénégal', label: 'Sénégal' },
     { value: 'France', label: 'France' },
 ];
  export const State = [
-  { value: 'Select', label: 'Select' },
-    { value: 'California', label: 'California' },
-    { value: 'New York', label: 'New York' },
-    { value: 'Texas', label: 'Texas' },
-    { value: 'Florida', label: 'Florida' },
+  { value: 'Littoral', label: 'Littoral' },
+    { value: 'Centre', label: 'Centre' },
+    { value: 'Ouest', label: 'Ouest' },
+    { value: 'Sud', label: 'Sud' },
 ];
  export const City = [
-  { value: 'Select', label: 'Select' },
-    { value: 'Los Angeles', label: 'Los Angeles' },
-    { value: 'San Diego', label: 'San Diego' },
-    { value: 'Fresno', label: 'Fresno' },
-    { value: 'San Francisco', label: 'San Francisco' },
+  { value: 'Douala', label: 'Douala' },
+    { value: 'Yaoundé', label: 'Yaoundé' },
+    { value: 'Bafoussam', label: 'Bafoussam' },
+    { value: 'Garoua', label: 'Garoua' },
 ];
  export const Pipeine = [
   { value: 'Select', label: 'Select' },
@@ -326,12 +321,11 @@ export const BeforeDue = [
   { value: 'Hours', label: 'Hours' },
 ]
 export const Location = [
-  { value: 'Select', label: 'Select' },
-  { value: 'Germany', label: 'Germany' },
-  { value: 'USA', label: 'USA' },
-  { value: 'Canada', label: 'Canada' },
-  { value: 'India', label: 'India' },
-  { value: 'China', label: 'China' },
+  { value: 'Douala', label: 'Douala' },
+  { value: 'Yaoundé', label: 'Yaoundé' },
+  { value: 'Bafoussam', label: 'Bafoussam' },
+  { value: 'Garoua', label: 'Garoua' },
+  { value: 'Kribi', label: 'Kribi' },
 ]
 export const Plan_Type = [
   { value: 'Select', label: 'Select' },
@@ -415,9 +409,9 @@ export const    Countries_Restriction = [
   { value: 'Deny All Countries', label: 'Deny All Countries' },
 ]
 export const Currency_Symbol = [
-  { value: 'select', label: 'select' },
-  { value: '$', label: '$' },
+  { value: 'FCFA', label: 'FCFA' },
   { value: '€', label: '€' },
+  { value: '$', label: '$' },
 ]
 export const Sidebar_Size = [
   { value: 'select', label: 'select' },
@@ -480,7 +474,7 @@ export const  Plan_Position = [
   { value: '2', label: '2' },
 ]
 export const  Plan_Currency = [
-  { value: 'Choose', label: 'Choose' },
+  { value: 'FCFA', label: 'FCFA' },
   { value: 'USD', label: 'USD' },
   { value: 'EURO', label: 'EURO' },
 ]
