@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import ProjectsListComponent from "@/components/Pages/crm-module/projects/projectsList";
 
 export const metadata = {
@@ -6,6 +7,6 @@ export const metadata = {
 
 export default function ProjectList(){
     return(
-        <><ProjectsListComponent/></>
+        <Suspense fallback={null}><ProjectsListComponent/></Suspense>
     )
 }

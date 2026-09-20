@@ -1,13 +1,22 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useCallback } from "react";
 import Footer from "@/core/common/footer/footer"
 import PageHeader from "@/core/common/page-header/pageHeader"
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import ModalContracts from "./modal/modalContracts"
 import Link from "next/link"
 import { all_routes } from "@/router/all_routes"
+import { useLiveRows } from "@/lib/useLiveRows"
+import { ContractListData } from "../../../../core/json/contractsListData"
+import { fetchDossiers, toContractsListRow } from "@/lib/crm"
 
 const ContractsComponent = () => {
+  const loadContracts = useCallback(async () => {
+    const rows = await fetchDossiers("bien");
+    return rows ? rows.map(toContractsListRow) : null;
+  }, []);
+  const { rows, live, reload } = useLiveRows(ContractListData, loadContracts);
   return (
    <>
   {/* ========================
@@ -403,7 +412,46 @@ const ContractsComponent = () => {
       </div>
       {/* table header */}
       {/* Contact Grid */}
-      <div className="row">
+      {live ? (
+        <div className="row">
+          {rows.map((contract: any) => (
+            <div className="col-xxl-3 col-xl-4 col-md-6" key={contract.key}>
+              <div className="card">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                      <span className="badge badge-soft-info">{contract.ContractID}</span>
+                    </div>
+                  </div>
+                  <div className="d-block">
+                    <div className="mb-3">
+                      <h6 className="fs-14 mb-1 fw-semibold">{contract.Subject}</h6>
+                      <p>Category : {contract.ContractType}</p>
+                    </div>
+                    <div className="mb-3">
+                      <p className="d-flex align-items-center mb-2">
+                        <span className="text-dark me-1">
+                          <i className="ti ti-calendar-event fs-16" />
+                        </span>
+                        Date : <span className="text-dark ms-1">{contract.StartDate}</span>
+                      </p>
+                      <p className="d-flex align-items-center">
+                        <span className="text-dark me-1">
+                          <i className="ti ti-calendar-stats fs-16" />
+                        </span>
+                        Open till :{" "}
+                        <span className="text-dark ms-1">{contract.EndDate}</span>
+                      </p>
+                    </div>
+                    <p className="mb-0">{contract.Customer}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className={`row${live ? " d-none" : ""}`}>
         <div className="col-xxl-3 col-xl-4 col-md-6">
           <div className="card">
             <div className="card-body">
@@ -1796,7 +1844,7 @@ const ContractsComponent = () => {
   {/* ========================
 			End Page Content
 		========================= */}
-        <ModalContracts/>
+        <ModalContracts onSaved={reload} />
 </>
 
   )

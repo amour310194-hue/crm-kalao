@@ -1,11 +1,58 @@
+"use client";
 
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import { Client, Contract_Type } from "../../../../../core/json/selectOption";
 import CommonSelect from "@/core/common/common-select/commonSelect";
+import type { Option } from "@/core/common/common-select/commonSelect";
 import TextEditor from "@/core/common/texteditor/texteditor";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  closeBootstrapChrome,
+  createDossier,
+  emptyUuid,
+  fetchCompanies,
+  readForm,
+} from "@/lib/crm";
 
-const ModalContracts = () => {
+type ModalContractsProps = { onSaved?: () => void };
+
+const ModalContracts = ({ onSaved }: ModalContractsProps) => {
+  const [companyOptions, setCompanyOptions] = useState<Option[]>(Client);
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (!rows) return;
+      setCompanyOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+  }, []);
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const vals = readForm(e.currentTarget);
+      if (!vals.title?.trim()) {
+        alert("Objet requis");
+        return;
+      }
+      await createDossier({
+        title: vals.title.trim(),
+        kind: "bien",
+        company_id: emptyUuid(vals.company_id),
+        notes: vals.contract_type || "Bail",
+        start_at: vals.start_at || null,
+        end_at: vals.end_at || null,
+      });
+      onSaved?.();
+      closeBootstrapChrome(e.currentTarget);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   return (
     <>
       {/* Add New Contracts */}
@@ -24,7 +71,7 @@ const ModalContracts = () => {
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form onSubmit={onCreate}>
             <div>
               <div className="row mb-3">
                 <div className="col-md-12">
@@ -32,7 +79,7 @@ const ModalContracts = () => {
                     <label className="form-label">
                       Subject <span className="text-danger">*</span>
                     </label>
-                    <input type="text" className="form-control" />
+                    <input type="text" className="form-control" name="title" required />
                   </div>
                 </div>
                 <div className="col-md-6">
@@ -41,7 +88,7 @@ const ModalContracts = () => {
                       Start Date <span className="text-danger"> *</span>
                     </label>
                     <div className="input-group w-auto input-group-flat">
-                      <CommonDatePicker placeholder="dd/mm/yyyy" />
+                      <input type="date" name="start_at" className="form-control" />
                     </div>
                   </div>
                 </div>
@@ -51,7 +98,7 @@ const ModalContracts = () => {
                       End Date <span className="text-danger"> *</span>
                     </label>
                     <div className="input-group w-auto input-group-flat">
-                      <CommonDatePicker placeholder="dd/mm/yyyy" />
+                      <input type="date" name="end_at" className="form-control" />
                     </div>
                   </div>
                 </div>
@@ -61,9 +108,10 @@ const ModalContracts = () => {
                       Client <span className="text-danger">*</span>
                     </label>
                     <CommonSelect
-                      options={Client}
+                      name="company_id"
+                      options={companyOptions}
                       className="select"
-                      defaultValue={Client[0]}
+                      defaultValue={companyOptions[0]}
                     />
                   </div>
                 </div>
@@ -73,6 +121,7 @@ const ModalContracts = () => {
                       Contract Type<span className="text-danger">*</span>
                     </label>
                     <CommonSelect
+                      name="contract_type"
                       options={Contract_Type}
                       className="select"
                       defaultValue={Contract_Type[0]}
@@ -130,7 +179,7 @@ const ModalContracts = () => {
               >
                 Cancel
               </button>
-              <button type="button" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary">
                 Create
               </button>
             </div>

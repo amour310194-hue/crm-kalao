@@ -70,9 +70,10 @@ export const Discount = [
   { value: "4%", label: "4%" },
 ];
 export const Project_Type = [
-  { value: "Choose", label: "Choose" },
-  { value: "Mobile App", label: "Mobile App" },
-  { value: "Meeting", label: "Meeting" },
+  { value: "chantier", label: "Chantier" },
+  { value: "plantation", label: "Plantation" },
+  { value: "voyage", label: "Voyage" },
+  { value: "visa", label: "Visa" },
 ];
 export const Client = [
   { value: "Select", label: "Select" },
@@ -216,10 +217,9 @@ export const Phone = [
   { value: 'Home', label: 'Home' },
 ]
 export const Campaign_Type = [
-  { value: 'Select', label: 'Select' },
-  { value: 'Public Relations', label: 'Public Relations' },
-  { value: 'Brand', label: 'Brand' },
-  { value: 'Media', label: 'Media' },
+  { value: 'evenement', label: 'Événement' },
+  { value: 'photo', label: 'Photo / vidéo' },
+  { value: 'location', label: 'Location' },
 ]
 export const Project_Type_1 = [
   { value: 'Select', label: 'Select' },
@@ -249,11 +249,9 @@ export const Status_Accepted = [
   { value: 'Sent', label: 'Sent' },
 ]
 export const Contract_Type = [
-  { value: 'Select', label: 'Select' },
-  { value: 'Contracts under Seal', label: 'Contracts under Seal' },
-  { value: 'Implied Contracts', label: 'Implied Contracts' },
-  { value: 'Executory Contracts', label: 'Executory Contracts' },
-  { value: 'Voidable Contracts', label: 'Voidable Contracts' },
+  { value: 'Bail', label: 'Bail' },
+  { value: 'Bail commercial', label: 'Bail commercial' },
+  { value: 'Promesse de vente', label: 'Promesse de vente' },
 ]
 export const Estimate_By = [
   { value: 'Select', label: 'Select' },

@@ -1,5 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -7,8 +9,22 @@ import ModalProject from "./modal/modalProject";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { ProjectListData } from "../../../../core/json/projectsListData";
+import {
+  fetchDossiers,
+  projectKindsFromQuery,
+  toProjectsListRow,
+} from "@/lib/crm";
 
 const ProjectsGridComponent = () => {
+  const searchParams = useSearchParams();
+  const kindParam = searchParams.get("kind");
+  const loadDossiers = useCallback(async () => {
+    const rows = await fetchDossiers(projectKindsFromQuery(kindParam));
+    return rows ? rows.map(toProjectsListRow) : null;
+  }, [kindParam]);
+  const { rows, live, reload } = useLiveRows(ProjectListData, loadDossiers);
   return (
     <>
       {/* ========================
@@ -696,7 +712,72 @@ const ProjectsGridComponent = () => {
           </div>
           {/* table header */}
           {/* Projects List */}
-          <div className="row">
+          {live ? (
+            <div className="row">
+              {rows.map((project: any) => (
+                <div className="col-xxl-3 col-xl-4 col-md-6" key={project.key}>
+                  <div className="card border">
+                    <div className="card-body">
+                      <div className="d-flex align-items-center justify-content-between mb-3">
+                        <div className="d-flex align-items-center">
+                          <span className="badge badge-tag badge-soft-danger text-danger me-2 border-0">
+                            <i className="ti ti-square-rounded-filled text-danger fs-8 me-1" />
+                            {project.Priority}
+                          </span>
+                          <span className="badge bg-success">{project.Status}</span>
+                        </div>
+                        <span className="avatar avatar-xs fs-16">
+                          <i className="ti ti-star-filled text-warning" />
+                        </span>
+                      </div>
+                      <div className="d-flex align-items-center justify-content-between bg-light rounded p-2 mb-3">
+                        <div className="d-flex align-items-center">
+                          <Link
+                            href={`${all_routes.projectDetails}?id=${project.key}`}
+                            className="avatar border rounded-circle bg-white flex-shrink-0 me-2"
+                          >
+                            <ImageWithBasePath
+                              src={`assets/img/projects/${project.Image}`}
+                              className="w-auto h-auto"
+                              alt="img"
+                            />
+                          </Link>
+                          <div>
+                            <h5 className="fw-medium fs-14">
+                              <Link href={`${all_routes.projectDetails}?id=${project.key}`}>
+                                {project.Name}
+                              </Link>
+                            </h5>
+                            <p className="fs-13 mb-0">{project.Kind || project.PipelineStage}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-block">
+                        <p className="mb-3">{project.Client}</p>
+                        <div className="mb-3">
+                          <p className="d-flex align-items-center mb-2">
+                            <i className="ti ti-forbid-2 me-2" />
+                            Project ID : #{String(project.key).slice(0, 8)}
+                          </p>
+                          <p className="d-flex align-items-center mb-2">
+                            <i className="ti ti-calendar-exclamation me-2" />
+                            Due Date : {project.EndDate}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span className="badge badge-sm bg-soft-info text-info">
+                          <i className="ti ti-clock-stop me-2" />
+                          {project.PipelineStage}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className={`row${live ? " d-none" : ""}`}>
             <div className="col-xxl-3 col-xl-4 col-md-6">
               <div className="card border">
                 <div className="card-body">
@@ -2516,7 +2597,7 @@ const ProjectsGridComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalProject/>
+    <ModalProject onSaved={reload} defaultKind={kindParam} />
     </>
   );
 };

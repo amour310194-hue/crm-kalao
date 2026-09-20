@@ -3,7 +3,8 @@
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import { ProjectListData } from "../../../../core/json/projectsListData";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -12,9 +13,17 @@ import ModalProject from "./modal/modalProject";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import {
+  fetchDossiers,
+  projectKindsFromQuery,
+  toProjectsListRow,
+} from "@/lib/crm";
 
 const ProjectsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
+  const searchParams = useSearchParams();
+  const kindParam = searchParams.get("kind");
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -29,7 +38,11 @@ const ProjectsListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = ProjectListData;
+  const loadDossiers = useCallback(async () => {
+    const rows = await fetchDossiers(projectKindsFromQuery(kindParam));
+    return rows ? rows.map(toProjectsListRow) : null;
+  }, [kindParam]);
+  const { rows: data, reload } = useLiveRows(ProjectListData, loadDossiers);
   const columns = [
     {
       title: "",
@@ -52,7 +65,7 @@ const ProjectsListComponent = () => {
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium">
           <Link
-            href={all_routes.projectDetails}
+            href={`${all_routes.projectDetails}?id=${render.key}`}
             className="avatar border rounded-circle me-2"
           >
             <ImageWithBasePath
@@ -61,7 +74,7 @@ const ProjectsListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.projectDetails}>{text}</Link>
+          <Link href={`${all_routes.projectDetails}?id=${render.key}`}>{text}</Link>
         </h6>
       ),
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
@@ -1075,7 +1088,7 @@ const ProjectsListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-        <ModalProject/>
+        <ModalProject onSaved={reload} defaultKind={kindParam} />
     </>
   );
 };

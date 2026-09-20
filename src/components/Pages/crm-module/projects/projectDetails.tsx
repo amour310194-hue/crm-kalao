@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -12,8 +13,45 @@ import CommonSelect from "@/core/common/common-select/commonSelect";
 import ModalProjectDetails from "./modal/modalProjectDetails";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import {
+  fetchAttachments,
+  fetchDossiers,
+  uploadAttachment,
+  type AttachmentRow,
+} from "@/lib/crm";
 
 const ProjectDetailsComponent = () => {
+  const dossierId =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("id")
+      : null;
+  const [dossierTitle, setDossierTitle] = useState("Trulysell");
+  const [dossierCode, setDossierCode] = useState("154454887");
+  const [files, setFiles] = useState<AttachmentRow[]>([]);
+
+  useEffect(() => {
+    void fetchDossiers().then((rows) => {
+      if (!rows?.length) return;
+      const row = (dossierId ? rows.find((d) => d.id === dossierId) : null) ?? rows[0];
+      setDossierTitle(row.title);
+      setDossierCode(row.id.slice(0, 8).toUpperCase());
+    });
+  }, [dossierId]);
+
+  useEffect(() => {
+    if (!dossierId) return;
+    void fetchAttachments("dossier", dossierId).then((rows) => {
+      if (rows) setFiles(rows);
+    });
+  }, [dossierId]);
+
+  const uploadToFiche = async (file: File) => {
+    if (!dossierId) return;
+    await uploadAttachment({ file, entity_type: "dossier", entity_id: dossierId });
+    const rows = await fetchAttachments("dossier", dossierId);
+    if (rows) setFiles(rows);
+  };
+
   return (
     <>
       {/* ========================
@@ -50,10 +88,10 @@ const ProjectDetailsComponent = () => {
                         />
                       </div>
                       <div>
-                        <h5 className="mb-1">Trulysell</h5>
+                        <h5 className="mb-1">{dossierTitle}</h5>
                         <p className="mb-1">
                           Project Id :{" "}
-                          <span className="text-dark fw-medium">154454887</span>
+                          <span className="text-dark fw-medium">{dossierCode}</span>
                         </p>
                         <div className="d-flex align-items-center">
                           <span className="badge badge-sm badge-soft-danger fw-medium me-2 border-0">
@@ -1233,19 +1271,50 @@ const ProjectDetailsComponent = () => {
                             </div>
                             <div className="col-md-4 text-md-end">
                               <div className="mb-3">
-                                <Link
-                                  href="#"
-                                  className="btn btn-primary"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#new_file"
-                                >
+                                <label className="btn btn-primary mb-0">
                                   Create Document
-                                </Link>
+                                  <input
+                                    type="file"
+                                    className="d-none"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      try {
+                                        await uploadToFiche(file);
+                                      } catch (err) {
+                                        alert(
+                                          err instanceof Error
+                                            ? err.message
+                                            : "Erreur"
+                                        );
+                                      }
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                </label>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
+                      {files.map((file) => (
+                        <div className="card border shadow-none mb-3" key={file.id}>
+                          <div className="card-body pb-0">
+                            <div className="row align-items-center">
+                              <div className="col-md-8">
+                                <div className="mb-3">
+                                  <h6 className="fw-semibold fs-14 mb-1">
+                                    <a href={file.url} target="_blank" rel="noreferrer">
+                                      {file.file_name}
+                                    </a>
+                                  </h6>
+                                  <p>Pièce jointe liée au dossier.</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                       <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">

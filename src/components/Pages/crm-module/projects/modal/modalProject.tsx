@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Category,
   Client,
@@ -11,17 +11,82 @@ import {
   StatusActive,
 } from "../../../../../core/json/selectOption";
 import CommonSelect from "@/core/common/common-select/commonSelect";
+import type { Option } from "@/core/common/common-select/commonSelect";
 import MultipleSelect from "@/core/common/multiple-Select/multipleSelect";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { fetchCatalogItems } from "@/lib/catalog";
+import {
+  closeBootstrapChrome,
+  createDossier,
+  emptyUuid,
+  fetchCompanies,
+  fetchEmployees,
+  readForm,
+} from "@/lib/crm";
 
+type ModalProjectProps = { onSaved?: () => void; defaultKind?: string | null };
 
-const ModalProject = () => {
+const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
+  const [companyOptions, setCompanyOptions] = useState<Option[]>(Client);
+  const [employeeOptions, setEmployeeOptions] = useState<Option[]>([{ value: "", label: "Select" }]);
+  const [catalogOptions, setCatalogOptions] = useState<Option[]>([{ value: "", label: "Select" }]);
+  const typeDefault =
+    Project_Type.find((o) => o.value === defaultKind) ?? Project_Type[0];
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const handleChange = (value: string[]) => {
     setSelectedItems(value);
+  };
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (!rows) return;
+      setCompanyOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+    void fetchEmployees().then((rows) => {
+      if (!rows) return;
+      setEmployeeOptions([
+        { value: "", label: "Select" },
+        ...rows.map((e) => ({ value: e.id, label: e.full_name })),
+      ]);
+    });
+    void fetchCatalogItems().then((rows) => {
+      if (!rows) return;
+      setCatalogOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+  }, []);
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const vals = readForm(e.currentTarget);
+      if (!vals.title?.trim()) {
+        alert("Nom requis");
+        return;
+      }
+      await createDossier({
+        title: vals.title.trim(),
+        kind: vals.kind || defaultKind || "chantier",
+        company_id: emptyUuid(vals.company_id),
+        employee_id: emptyUuid(vals.employee_id),
+        catalog_item_id: emptyUuid(vals.catalog_item_id),
+        notes: vals.notes || null,
+        start_at: vals.start_at || null,
+        end_at: vals.end_at || null,
+      });
+      onSaved?.();
+      closeBootstrapChrome(e.currentTarget);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
   };
    const options = [
     {
@@ -281,14 +346,14 @@ const ModalProject = () => {
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form onSubmit={onCreate}>
             <div className="row">
               <div className="col-md-12">
                 <div className="mb-3">
                   <label className="form-label">
                     Name <span className="text-danger">*</span>
                   </label>
-                  <input type="text" className="form-control" />
+                  <input type="text" className="form-control" name="title" required />
                 </div>
               </div>
               <div className="col-md-6">
@@ -305,9 +370,10 @@ const ModalProject = () => {
                     Project Type <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
+                    name="kind"
                     options={Project_Type}
                     className="select"
-                    defaultValue={Project_Type[0]}
+                    defaultValue={typeDefault}
                   />
                 </div>
               </div>
@@ -317,9 +383,10 @@ const ModalProject = () => {
                     Client <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
-                    options={Client}
+                    name="company_id"
+                    options={companyOptions}
                     className="select"
-                    defaultValue={Client[0]}
+                    defaultValue={companyOptions[0]}
                   />
                 </div>
               </div>
@@ -329,9 +396,10 @@ const ModalProject = () => {
                     Category <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
-                    options={Category}
+                    name="employee_id"
+                    options={employeeOptions}
                     className="select"
-                    defaultValue={Category[0]}
+                    defaultValue={employeeOptions[0]}
                   />
                 </div>
               </div>
@@ -341,9 +409,10 @@ const ModalProject = () => {
                     Project Timing <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
-                    options={Project_Timing}
+                    name="catalog_item_id"
+                    options={catalogOptions}
                     className="select"
-                    defaultValue={Project_Timing[0]}
+                    defaultValue={catalogOptions[0]}
                   />
                 </div>
               </div>
@@ -387,7 +456,7 @@ const ModalProject = () => {
                     Start Date <span className="text-danger">*</span>
                   </label>
                   <div className="input-group w-auto input-group-flat">
-                    <CommonDatePicker placeholder="dd/mm/yyyy" />
+                    <input type="date" name="start_at" className="form-control" />
                   </div>
                 </div>
               </div>
@@ -397,7 +466,7 @@ const ModalProject = () => {
                     Due Date <span className="text-danger">*</span>
                   </label>
                   <div className="input-group w-auto input-group-flat">
-                    <CommonDatePicker placeholder="dd/mm/yyyy" />
+                    <input type="date" name="end_at" className="form-control" />
                   </div>
                 </div>
               </div>
@@ -430,6 +499,7 @@ const ModalProject = () => {
                     className="form-control"
                     rows={3}
                     placeholder="Description"
+                    name="notes"
                     defaultValue={""}
                   />
                 </div>
@@ -443,12 +513,7 @@ const ModalProject = () => {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#create_success"
-              >
+              <button type="submit" className="btn btn-primary">
                 Create New
               </button>
             </div>

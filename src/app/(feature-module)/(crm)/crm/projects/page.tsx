@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import ProjectsGridComponent from "@/components/Pages/crm-module/projects/projectsGrid";
 
 export const metadata = {
@@ -6,6 +7,6 @@ export const metadata = {
 
 export default function Projects(){
     return(
-        <><ProjectsGridComponent/></>
+        <Suspense fallback={null}><ProjectsGridComponent/></Suspense>
     )
 }

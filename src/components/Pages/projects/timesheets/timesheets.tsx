@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -10,9 +10,15 @@ import { all_routes } from "@/router/all_routes";
 import { TimesheetsListData } from "../../../../core/json/timesheetsListData";
 import ModalTimesheets from "./modal/modalTimesheets";
 import TableToolbar from "@/core/common/table-toolbar/tableToolbar";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchPayRuns, markPayRunPaid, toTimesheetRow } from "@/lib/crm";
 
 const TimesheetsComponent = () => {
-  const data = TimesheetsListData;
+  const loadPay = useCallback(async () => {
+    const rows = await fetchPayRuns();
+    return rows ? rows.map(toTimesheetRow) : null;
+  }, []);
+  const { rows: data, live, reload } = useLiveRows(TimesheetsListData, loadPay);
 
   const columns = [
     {
@@ -100,7 +106,7 @@ const TimesheetsComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -111,6 +117,23 @@ const TimesheetsComponent = () => {
             <i className="ti ti-dots-vertical" />
           </Link>
           <div className="dropdown-menu dropdown-menu-right">
+            {live && record.Status === "Pending" ? (
+              <Link
+                className="dropdown-item"
+                href="#"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  try {
+                    await markPayRunPaid(record.key);
+                    await reload();
+                  } catch (err) {
+                    alert(err instanceof Error ? err.message : "Erreur");
+                  }
+                }}
+              >
+                <i className="ti ti-checks" /> Mark as Paid
+              </Link>
+            ) : null}
             <Link
               className="dropdown-item"
               href="#"
@@ -255,7 +278,7 @@ const TimesheetsComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalTimesheets />
+      <ModalTimesheets onSaved={reload} />
     </>
   );
 };

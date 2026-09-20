@@ -3,7 +3,7 @@
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Datatable from "@/core/common/dataTable";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import { campaignListData } from "../../../../core/json/campaignListData";
@@ -12,6 +12,8 @@ import ModalCampaign from "./modal/modalCampaign";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchDossiers, toCampaignListRow } from "@/lib/crm";
 
 const CampaignComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -30,7 +32,11 @@ const CampaignComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = campaignListData;
+  const loadCampaigns = useCallback(async () => {
+    const rows = await fetchDossiers("evenement");
+    return rows ? rows.map(toCampaignListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(campaignListData, loadCampaigns);
   const columns = [
     {
       title: "",
@@ -864,7 +870,7 @@ const CampaignComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalCampaign/>
+    <ModalCampaign onSaved={reload} />
     </>
   );
 };

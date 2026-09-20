@@ -8,7 +8,8 @@ export type EntityType =
   | "invoice"
   | "employee"
   | "lead"
-  | "misc";
+  | "misc"
+  | "dossier";
 
 const FILE_MANAGER_ENTITY = "00000000-0000-0000-0000-000000000001";
 
@@ -871,6 +872,7 @@ export async function createActivity(input: {
   contact_id?: string | null;
   deal_id?: string | null;
   notes?: string | null;
+  due_at?: string | null;
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -892,7 +894,7 @@ export async function createActivity(input: {
       contact_id: input.contact_id || null,
       deal_id: input.deal_id || null,
       notes: input.notes || null,
-      due_at: new Date().toISOString(),
+      due_at: input.due_at || new Date().toISOString(),
     })
     .select("*")
     .single();
@@ -1156,5 +1158,314 @@ export function emptyUuid(value?: string | null) {
   if (!value || value === "Select" || value === "Choose") return null;
   return value;
 }
+
+export type DossierKind =
+  | "chantier"
+  | "plantation"
+  | "evenement"
+  | "voyage"
+  | "visa"
+  | "bien";
+
+export interface DossierRow {
+  id: string;
+  kind: DossierKind;
+  company_id: string | null;
+  contact_id: string | null;
+  title: string;
+  status: string;
+  start_at: string | null;
+  end_at: string | null;
+  notes: string | null;
+  quote_id: string | null;
+  companies?: { name: string | null } | null;
+  dossier_members?: { employee_id: string; employees?: { full_name: string } | null }[];
+}
+
+export interface PayRunRow {
+  id: string;
+  employee_id: string;
+  period: string;
+  amount: number;
+  bonus: number;
+  status: string;
+  paid_at: string | null;
+  notes: string | null;
+  employees?: { full_name: string | null; job_title: string | null } | null;
+}
+
+const PROJECT_KINDS: DossierKind[] = ["chantier", "plantation", "voyage", "visa"];
+
+const KIND_PRIORITY: Record<string, string> = {
+  chantier: "High",
+  plantation: "Medium",
+  voyage: "Low",
+  visa: "High",
+  evenement: "Medium",
+  bien: "Low",
+};
+
+const KIND_STAGE: Record<string, string> = {
+  plan: "Plan",
+  design: "Design",
+  develop: "Develop",
+  done: "Completed",
+};
+
+const PROJECT_IMAGES = [
+  "project-01.svg",
+  "project-02.svg",
+  "project-03.svg",
+  "project-04.svg",
+  "project-05.svg",
+];
+
+function parseKind(raw?: string | null): DossierKind {
+  const v = (raw || "").toLowerCase().trim();
+  if (["chantier", "plantation", "evenement", "voyage", "visa", "bien"].includes(v)) {
+    return v as DossierKind;
+  }
+  if (v.includes("plant")) return "plantation";
+  if (v.includes("voyag") || v.includes("circuit")) return "voyage";
+  if (v.includes("visa") || v.includes("immig")) return "visa";
+  if (
+    v.includes("even") ||
+    v.includes("mariage") ||
+    v.includes("campaign") ||
+    v.includes("photo") ||
+    v.includes("location")
+  ) {
+    return "evenement";
+  }
+  if (v.includes("bien") || v.includes("bail") || v.includes("immo")) return "bien";
+  return "chantier";
+}
+
+export async function fetchDossiers(kind?: DossierKind | DossierKind[]): Promise<DossierRow[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  let q = supabase
+    .from("dossiers")
+    .select("*, companies(name), dossier_members(employee_id, employees(full_name))")
+    .order("created_at", { ascending: false });
+  if (kind) {
+    const kinds = Array.isArray(kind) ? kind : [kind];
+    q = q.in("kind", kinds);
+  }
+  const { data, error } = await q;
+  if (error) {
+    const retry = await supabase.from("dossiers").select("*, companies(name)").order("created_at", { ascending: false });
+    throwIf(retry.error);
+    let rows = (retry.data ?? []) as DossierRow[];
+    if (kind) {
+      const kinds = Array.isArray(kind) ? kind : [kind];
+      rows = rows.filter((r) => kinds.includes(r.kind));
+    }
+    return rows;
+  }
+  return (data ?? []) as DossierRow[];
+}
+
+export async function createDossier(input: {
+  title: string;
+  kind?: string | null;
+  company_id?: string | null;
+  notes?: string | null;
+  employee_id?: string | null;
+  catalog_item_id?: string | null;
+  quote_id?: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
+}) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const kind = parseKind(input.kind);
+  const companyId = emptyUuid(input.company_id);
+  let quoteId = emptyUuid(input.quote_id);
+  const catalogId = emptyUuid(input.catalog_item_id);
+  if (!quoteId && catalogId) {
+    const catalog = (await fetchCatalogItems()) ?? [];
+    const item = catalog.find((c) => c.id === catalogId);
+    if (item) {
+      const quote = await createQuote({
+        company_id: companyId,
+        notes: `Dossier ${input.title}`,
+        lines: [
+          {
+            catalog_item_id: item.id,
+            kind: item.kind,
+            label: item.name,
+            quantity: 1,
+            unit_price: item.unit_price,
+            tax_rate: item.tax_rate,
+          },
+        ],
+      });
+      quoteId = quote.id;
+      if (item.track_stock) {
+        await moveStock({
+          catalog_item_id: item.id,
+          qty: -1,
+          reason: `Dossier ${input.title}`,
+        });
+      }
+    }
+  }
+  const { data, error } = await supabase
+    .from("dossiers")
+    .insert({
+      title: input.title,
+      kind,
+      company_id: companyId,
+      notes: input.notes || null,
+      quote_id: quoteId,
+      status: "plan",
+      start_at: input.start_at || null,
+      end_at: input.end_at || null,
+    })
+    .select("*")
+    .single();
+  throwIf(error);
+  const created = data as DossierRow;
+  const employeeId = emptyUuid(input.employee_id);
+  if (employeeId) {
+    await supabase.from("dossier_members").insert({
+      dossier_id: created.id,
+      employee_id: employeeId,
+    });
+  }
+  if (catalogId) {
+    await supabase.from("dossier_assets").insert({
+      dossier_id: created.id,
+      catalog_item_id: catalogId,
+      qty: 1,
+    });
+  }
+  if (kind === "visa") {
+    await createActivity({
+      type: "task",
+      subject: `Echeance ${input.title}`,
+      company_id: companyId,
+      notes: "Dossier visa V2",
+      due_at: input.end_at || undefined,
+    });
+  }
+  return created;
+}
+
+export function projectKindsFromQuery(raw?: string | null): DossierKind | DossierKind[] {
+  if (raw && PROJECT_KINDS.includes(raw as DossierKind)) return raw as DossierKind;
+  return PROJECT_KINDS;
+}
+
+export function toProjectsListRow(row: DossierRow, index: number) {
+  return {
+    key: row.id,
+    Name: row.title,
+    Image: PROJECT_IMAGES[index % PROJECT_IMAGES.length],
+    Client: row.companies?.name ?? "Kalao",
+    ClientImage: "company-01.svg",
+    Priority: KIND_PRIORITY[row.kind] ?? "Medium",
+    StartDate: formatDate(row.start_at),
+    EndDate: formatDate(row.end_at),
+    PipelineStage: KIND_STAGE[row.status] ?? row.status,
+    Status: row.status === "done" ? "Inactive" : "Active",
+    Kind: row.kind,
+  };
+}
+
+export function toCampaignListRow(row: DossierRow) {
+  const members = row.dossier_members?.length ?? 0;
+  return {
+    key: row.id,
+    Name: row.title,
+    Type: row.notes || "Événement",
+    Progress1: "40.5% ",
+    Progress2: "20.5%",
+    Progress3: "30.5%",
+    Progress4: "70.5%",
+    Progress5: "35.0%",
+    Members: members ? `${members}` : "1+",
+    Status: row.status === "done" ? "Success" : "Running",
+  };
+}
+
+export function toContractsListRow(row: DossierRow) {
+  return {
+    key: row.id,
+    ContractID: `#${row.id.slice(0, 8).toUpperCase()}`,
+    Subject: row.title,
+    Customer: row.companies?.name ?? "Kalao",
+    Image: "company-icon-01.svg",
+    ContractType: row.notes || "Bail",
+    StartDate: formatDate(row.start_at),
+    EndDate: formatDate(row.end_at),
+  };
+}
+
+export async function fetchPayRuns(): Promise<PayRunRow[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("pay_runs")
+    .select("*, employees(full_name, job_title)")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return (data ?? []) as PayRunRow[];
+}
+
+export async function createPayRun(input: {
+  employee_id: string;
+  period?: string;
+  amount: number;
+  bonus?: number;
+  notes?: string | null;
+}) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error } = await supabase
+    .from("pay_runs")
+    .insert({
+      employee_id: input.employee_id,
+      period: input.period || new Date().toISOString().slice(0, 7),
+      amount: input.amount,
+      bonus: input.bonus ?? 0,
+      status: "due",
+      notes: input.notes || null,
+    })
+    .select("*")
+    .single();
+  throwIf(error);
+  return data as PayRunRow;
+}
+
+export async function markPayRunPaid(id: string) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase
+    .from("pay_runs")
+    .update({ status: "paid", paid_at: new Date().toISOString().slice(0, 10) })
+    .eq("id", id);
+  throwIf(error);
+}
+
+export function toTimesheetRow(row: PayRunRow, index: number) {
+  const avatars = ["avatar-14.jpg", "avatar-15.jpg", "avatar-05.jpg"];
+  return {
+    key: row.id,
+    TimesheetID: `#PAY${row.id.slice(0, 4).toUpperCase()}`,
+    EmployeeName: row.employees?.full_name ?? "Collaborateur",
+    Role: row.employees?.job_title ?? "Kalao",
+    EmployeeImage: avatars[index % avatars.length],
+    ProjectName: row.period,
+    ProjectImage: "time-icon-1.svg",
+    Task: row.notes || (row.bonus ? `Prime ${formatMoney(row.bonus)}` : "Salaire"),
+    CreatedDate: formatDate(row.paid_at || row.period),
+    HoursWorked: formatMoney(Number(row.amount) + Number(row.bonus || 0)),
+    Status: row.status === "paid" ? "Approved" : "Pending",
+  };
+}
+
+export const PROJECT_KIND_FILTERS = PROJECT_KINDS;
 
 export { parseAmount, FILE_MANAGER_ENTITY };

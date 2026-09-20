@@ -1,17 +1,74 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CommonSelect from "@/core/common/common-select/commonSelect"
-import { Campaign_Type, Currency, Period } from "../../../../../core/json/selectOption"
+import type { Option } from "@/core/common/common-select/commonSelect"
+import { Campaign_Type, Client, Currency, Period } from "../../../../../core/json/selectOption"
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import Link from "next/link";
+import { fetchCatalogItems } from "@/lib/catalog";
+import {
+  closeBootstrapChrome,
+  createDossier,
+  emptyUuid,
+  fetchCompanies,
+  readForm,
+} from "@/lib/crm";
 
+type ModalCampaignProps = { onSaved?: () => void };
 
-const ModalCampaign = () => {
+const ModalCampaign = ({ onSaved }: ModalCampaignProps) => {
   const [tags, setTags] = useState<string[]>(["Small Business", "Corporate Companies"," Urban Apartment"]);
+  const [companyOptions, setCompanyOptions] = useState<Option[]>(Client);
+  const [catalogOptions, setCatalogOptions] = useState<Option[]>([{ value: "", label: "Select" }]);
  const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
+  };
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (!rows) return;
+      setCompanyOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+    void fetchCatalogItems().then((rows) => {
+      if (!rows) return;
+      setCatalogOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+  }, []);
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const vals = readForm(e.currentTarget);
+      if (!vals.title?.trim()) {
+        alert("Nom requis");
+        return;
+      }
+      const created = await createDossier({
+        title: vals.title.trim(),
+        kind: vals.kind || "evenement",
+        company_id: emptyUuid(vals.company_id),
+        catalog_item_id: emptyUuid(vals.catalog_item_id),
+        notes: vals.notes || null,
+      });
+      const fileInput = e.currentTarget.querySelector("input[type=file]") as HTMLInputElement | null;
+      const file = fileInput?.files?.[0];
+      if (file) {
+        const { uploadAttachment } = await import("@/lib/crm");
+        await uploadAttachment({ file, entity_type: "dossier", entity_id: created.id });
+      }
+      onSaved?.();
+      closeBootstrapChrome(e.currentTarget);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
   };
 
   return (
@@ -32,7 +89,7 @@ const ModalCampaign = () => {
       ></button>
     </div>
     <div className="offcanvas-body">
-      <form>
+      <form onSubmit={onCreate}>
         <div>
           <div className="row">
             <div className="col-md-12">
@@ -40,13 +97,14 @@ const ModalCampaign = () => {
                 <label className="form-label">
                   Name <span className="text-danger">*</span>
                 </label>
-                <input type="text" className="form-control" />
+                <input type="text" className="form-control" name="title" required />
               </div>
               <div className="mb-3">
                 <label className="form-label">
                   Campaign Type <span className="text-danger">*</span>
                 </label>
                  <CommonSelect
+                            name="kind"
                             options={Campaign_Type}
                             className="select"
                             defaultValue={Campaign_Type[0]}
@@ -79,9 +137,10 @@ const ModalCampaign = () => {
                   Period <span className="text-danger">*</span>
                 </label>
                   <CommonSelect
-                            options={Period}
+                            name="company_id"
+                            options={companyOptions}
                             className="select"
-                            defaultValue={Period[0]}
+                            defaultValue={companyOptions[0]}
                           />
               </div>
             </div>
@@ -90,7 +149,12 @@ const ModalCampaign = () => {
                 <label className="form-label">
                   Period Value <span className="text-danger">*</span>
                 </label>
-                <input type="text" className="form-control" />
+                <CommonSelect
+                            name="catalog_item_id"
+                            options={catalogOptions}
+                            className="select"
+                            defaultValue={catalogOptions[0]}
+                          />
               </div>
             </div>
             <div className="col-md-12">
@@ -113,6 +177,7 @@ const ModalCampaign = () => {
                   rows={3}
                   className="form-control"
                   placeholder="Description"
+                  name="notes"
                   defaultValue={""}
                 />
               </div>
@@ -198,7 +263,7 @@ const ModalCampaign = () => {
           >
             Cancel
           </button>
-          <button type="button" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary">
             Create
           </button>
         </div>
@@ -315,6 +380,7 @@ const ModalCampaign = () => {
                   rows={3}
                   className="form-control"
                   placeholder="Description"
+                  name="notes"
                   defaultValue={""}
                 />
               </div>

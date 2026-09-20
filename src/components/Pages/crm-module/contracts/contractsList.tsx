@@ -4,13 +4,15 @@ import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Datatable from "@/core/common/dataTable";
 import { ContractListData } from "../../../../core/json/contractsListData";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import ModalContracts from "./modal/modalContracts";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchDossiers, toContractsListRow } from "@/lib/crm";
 
 const ContractsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -18,7 +20,11 @@ const ContractsListComponent = () => {
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
-  const data = ContractListData;
+  const loadContracts = useCallback(async () => {
+    const rows = await fetchDossiers("bien");
+    return rows ? rows.map(toContractsListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(ContractListData, loadContracts);
   const columns = [
     {
       title: "Contract ID",
@@ -843,7 +849,7 @@ const ContractsListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-        <ModalContracts/>
+        <ModalContracts onSaved={reload} />
     </>
   );
 };

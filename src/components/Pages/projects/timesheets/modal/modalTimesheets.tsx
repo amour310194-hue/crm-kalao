@@ -1,9 +1,50 @@
 "use client";
 import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import CommonTimePicker from "@/core/common/common-timePickers/CommonTimePicker";
+import {
+  closeBootstrapChrome,
+  createPayRun,
+  emptyUuid,
+  fetchEmployees,
+  parseAmount,
+  readForm,
+} from "@/lib/crm";
 
-const ModalTimesheets = () => {
+type ModalTimesheetsProps = { onSaved?: () => void };
+
+const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
+  const [employees, setEmployees] = useState<{ id: string; full_name: string }[]>([]);
+
+  useEffect(() => {
+    void fetchEmployees().then((rows) => {
+      if (rows) setEmployees(rows);
+    });
+  }, []);
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const vals = readForm(e.currentTarget);
+      const employeeId = emptyUuid(vals.employee_id);
+      if (!employeeId) {
+        alert("Collaborateur requis");
+        return;
+      }
+      await createPayRun({
+        employee_id: employeeId,
+        period: vals.period || new Date().toISOString().slice(0, 7),
+        amount: parseAmount(vals.amount),
+        notes: vals.notes || null,
+      });
+      onSaved?.();
+      closeBootstrapChrome(e.currentTarget);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   return (
     <>
       {/* Add TimeSheet */}
@@ -19,7 +60,7 @@ const ModalTimesheets = () => {
                 aria-label="Close"
               />
             </div>
-            <form>
+            <form onSubmit={onCreate}>
               <div className="modal-body">
                 {/* Start row */}
                 <div className="row row-gap-3">
@@ -28,13 +69,23 @@ const ModalTimesheets = () => {
                       <label className="form-label">
                         Employee Name <span className="text-danger">*</span>
                       </label>
-                      <select className="form-select">
-                        <option>Select</option>
-                        <option>Albert Morgan</option>
-                        <option>Katherine Brooks</option>
-                        <option>Samantha Reed</option>
-                        <option>William Anderson</option>
-                        <option>Jonathan Mitchell</option>
+                      <select className="form-select" name="employee_id" required>
+                        <option value="">Select</option>
+                        {employees.length
+                          ? employees.map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.full_name}
+                              </option>
+                            ))
+                          : (
+                            <>
+                              <option>Albert Morgan</option>
+                              <option>Katherine Brooks</option>
+                              <option>Samantha Reed</option>
+                              <option>William Anderson</option>
+                              <option>Jonathan Mitchell</option>
+                            </>
+                          )}
                       </select>
                     </div>
                   </div>
@@ -43,14 +94,12 @@ const ModalTimesheets = () => {
                       <label className="form-label">
                         Project Name <span className="text-danger">*</span>
                       </label>
-                      <select className="form-select">
-                        <option>Select</option>
-                        <option>Trip Flow</option>
-                        <option>Connect Hub</option>
-                        <option>Gig Market</option>
-                        <option>Book Ease</option>
-                        <option>Retail POS</option>
-                      </select>
+                      <input
+                        className="form-control"
+                        name="period"
+                        defaultValue={new Date().toISOString().slice(0, 7)}
+                        placeholder="2026-09"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-12">
@@ -58,14 +107,11 @@ const ModalTimesheets = () => {
                       <label className="form-label">
                         Task Name <span className="text-danger">*</span>
                       </label>
-                      <select className="form-select">
-                        <option>Select</option>
-                        <option>Configure travel booking</option>
-                        <option>Build real time chat module</option>
-                        <option>Develop freelancer module</option>
-                        <option>Implement service scheduling</option>
-                        <option>Develop inventory modules</option>
-                      </select>
+                      <input
+                        className="form-control"
+                        name="amount"
+                        placeholder="Montant FCFA"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-12">
@@ -115,7 +161,7 @@ const ModalTimesheets = () => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">Notes</label>
-                      <textarea className="form-control" rows={4} />
+                      <textarea className="form-control" rows={4} name="notes" />
                     </div>
                   </div>
                 </div>
@@ -130,7 +176,7 @@ const ModalTimesheets = () => {
                   >
                     Cancel
                   </button>
-                  <button type="button" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary">
                     Create New
                   </button>
                 </div>
