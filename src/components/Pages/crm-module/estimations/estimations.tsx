@@ -26,7 +26,7 @@ const initialColumns = [
         type: "Mobile App",
         icon: "assets/img/priority/truellysell.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -42,7 +42,7 @@ const initialColumns = [
         type: "Meeting",
         icon: "assets/img/priority/project-01.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -69,7 +69,7 @@ const initialColumns = [
         type: "Web App",
         icon: "assets/img/priority/truellysel.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -85,7 +85,7 @@ const initialColumns = [
         type: "Meeting",
         icon: "assets/img/priority/project-02.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -112,7 +112,7 @@ const initialColumns = [
         type: "Meeting",
         icon: "assets/img/priority/dreamchat.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -128,7 +128,7 @@ const initialColumns = [
         type: "Meeting",
         icon: "assets/img/priority/servbook.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -155,7 +155,7 @@ const initialColumns = [
         type: "Web App",
         icon: "assets/img/priority/dream-pos.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {
@@ -171,7 +171,7 @@ const initialColumns = [
         type: "Meeting",
         icon: "assets/img/priority/dream-pos.svg",
         estimateId: "#EST00020",
-        amount: "$01,23,000",
+        amount: "FCFA 01,23,000",
         date: "15 Oct 2023",
         expiry: "05 Nov 2026",
         user: {

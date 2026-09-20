@@ -19,7 +19,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-01.jpg",
     RequestedDiscount: "10%",
     ApprovedDiscount: "08%",
-    FinalDealValue: "$3,000",
+    FinalDealValue: "FCFA 3,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -30,7 +30,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-40.jpg",
     RequestedDiscount: "20%",
     ApprovedDiscount: "16%",
-    FinalDealValue: "$10,000",
+    FinalDealValue: "FCFA 10,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -41,7 +41,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-02.jpg",
     RequestedDiscount: "12%",
     ApprovedDiscount: "12%",
-    FinalDealValue: "$5,000",
+    FinalDealValue: "FCFA 5,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -52,7 +52,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-01.jpg",
     RequestedDiscount: "15%",
     ApprovedDiscount: "0%",
-    FinalDealValue: "$25,000",
+    FinalDealValue: "FCFA 25,000",
     ApprovalStatus: "Rejected",
   },
   {
@@ -63,7 +63,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-04.jpg",
     RequestedDiscount: "05%",
     ApprovedDiscount: "5%",
-    FinalDealValue: "$1,000",
+    FinalDealValue: "FCFA 1,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -74,7 +74,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-05.jpg",
     RequestedDiscount: "08%",
     ApprovedDiscount: "8%",
-    FinalDealValue: "$15,000",
+    FinalDealValue: "FCFA 15,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -85,7 +85,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-06.jpg",
     RequestedDiscount: "10%",
     ApprovedDiscount: "10%",
-    FinalDealValue: "$5000",
+    FinalDealValue: "FCFA 5000",
     ApprovalStatus: "Rejected",
   },
   {
@@ -96,7 +96,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-07.jpg",
     RequestedDiscount: "15%",
     ApprovedDiscount: "0%",
-    FinalDealValue: "$50,000",
+    FinalDealValue: "FCFA 50,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -107,7 +107,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-08.jpg",
     RequestedDiscount: "10%",
     ApprovedDiscount: "08%",
-    FinalDealValue: "$18,000",
+    FinalDealValue: "FCFA 18,000",
     ApprovalStatus: "Approved",
   },
   {
@@ -118,7 +118,7 @@ export const AppliedDiscountLogListData: AppliedDiscountLogData[] = [
     Avatar: "assets/img/users/user-09.jpg",
     RequestedDiscount: "12%",
     ApprovedDiscount: "12%",
-    FinalDealValue: "$10,000",
+    FinalDealValue: "FCFA 10,000",
     ApprovalStatus: "Approved",
   },
 ];

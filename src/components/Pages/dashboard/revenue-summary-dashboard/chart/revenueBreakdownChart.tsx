@@ -44,7 +44,7 @@ const RevenueBreakdownChart: React.FC = () => {
           fontSize: '12px',
         },
         formatter: (val: string) => {
-          return `£${Number(val).toFixed(1)}M`;
+          return `${Number(val).toFixed(1)}M FCFA`;
         },
       },
     },

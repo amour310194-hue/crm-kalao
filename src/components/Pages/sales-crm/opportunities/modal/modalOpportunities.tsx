@@ -161,7 +161,7 @@ const ModalOpportunities = () => {
                   <label className="form-label">
                     Expected Value<span className="text-danger ms-1">*</span>
                   </label>
-                  <input className="form-control" defaultValue="$250,000" />
+                  <input className="form-control" defaultValue="FCFA 250,000" />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">

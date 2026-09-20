@@ -97,7 +97,7 @@ const CurrenciesComponent = () => {
                       <tbody>
                         <tr>
                           <td>
-                            Dollar
+                            Franc CFA
                             <Link
                               href="#"
                               className="badge badge-tag badge-soft-info ms-2"
@@ -107,8 +107,8 @@ const CurrenciesComponent = () => {
                               Default
                             </Link>
                           </td>
-                          <td>USD</td>
-                          <td>$</td>
+                          <td>FCFA</td>
+                          <td>FCFA</td>
                           <td>01</td>
                           <td>
                             <span className="badge bg-success">Active</span>

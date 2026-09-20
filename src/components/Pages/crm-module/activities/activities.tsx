@@ -19,7 +19,7 @@ const AI_ACTIVITY_GUIDANCE = [
   {
     Label: "Next best action",
     Value: "Call Meridian Health today",
-    Note: "Deal stalled 8 days · $74.5K at risk",
+    Note: "Deal stalled 8 days · FCFA 74.5K at risk",
     Icon: "ti-player-track-next",
     Tone: "primary",
   },

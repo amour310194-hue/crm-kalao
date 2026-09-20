@@ -56,7 +56,7 @@ export const WorkflowTemplatesData: WorkflowTemplateData[] = [
     Id: "high-value-deal",
     Icon: "ti-coin",
     Title: "High-Value Deal Notification",
-    Description: "Alert sales leadership the moment a deal above $100K is created.",
+    Description: "Alert sales leadership the moment a deal above FCFA 100K is created.",
     Module: "Deals",
     StepCount: 4,
     Steps: [

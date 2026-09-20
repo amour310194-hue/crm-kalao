@@ -331,7 +331,7 @@ const Analytics = () => {
                             <Link to={all_routes.dealsDetails}> Collins</Link>
                           </td>
                           <td>Conversation</td>
-                          <td>$04,51,000</td>
+                          <td>FCFA 04,51,000</td>
                           <td>85%</td>
                           <td>
                             <span className="badge badge-pill badge-status bg-info">
@@ -345,7 +345,7 @@ const Analytics = () => {
                             <Link to={all_routes.dealsDetails}> Konopelski</Link>
                           </td>
                           <td>Pipeline</td>
-                          <td>$04,14,800</td>
+                          <td>FCFA 04,14,800</td>
                           <td>15%</td>
                           <td>
                             <span className="badge badge-pill badge-status bg-danger">
@@ -359,7 +359,7 @@ const Analytics = () => {
                             <Link to={all_routes.dealsDetails}> Adams</Link>
                           </td>
                           <td>Won</td>
-                          <td>$04,14,800</td>
+                          <td>FCFA 04,14,800</td>
                           <td>95%</td>
                           <td>
                             <span className="badge badge-pill badge-status bg-success">
@@ -373,7 +373,7 @@ const Analytics = () => {
                             <Link to={all_routes.dealsDetails}> Schumm</Link>
                           </td>
                           <td>Lost</td>
-                          <td>$9,14,400</td>
+                          <td>FCFA 9,14,400</td>
                           <td>47%</td>
                           <td>
                             <span className="badge badge-pill badge-status bg-success">
@@ -387,7 +387,7 @@ const Analytics = () => {
                             <Link to={all_routes.dealsDetails}> Wisozk</Link>
                           </td>
                           <td>Follow Up</td>
-                          <td>$11,14,400</td>
+                          <td>FCFA 11,14,400</td>
                           <td>98%</td>
                           <td>
                             <span className="badge badge-pill badge-status bg-success">

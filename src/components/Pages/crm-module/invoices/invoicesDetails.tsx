@@ -144,30 +144,30 @@ const InvoicesDetailsComponent2 = () => {
                         <tr>
                           <td>Design System</td>
                           <td>1</td>
-                          <td>$5000</td>
-                          <td>$100</td>
-                          <td>$5000</td>
+                          <td>FCFA 5000</td>
+                          <td>FCFA 100</td>
+                          <td>FCFA 5000</td>
                         </tr>
                         <tr>
                           <td>UX Strategy</td>
                           <td>1</td>
-                          <td>$500</td>
-                          <td>$100</td>
-                          <td>$500</td>
+                          <td>FCFA 500</td>
+                          <td>FCFA 100</td>
+                          <td>FCFA 500</td>
                         </tr>
                         <tr>
                           <td>Brand Guidellines</td>
                           <td>1</td>
-                          <td>$5000</td>
-                          <td>$100</td>
-                          <td>$5000</td>
+                          <td>FCFA 5000</td>
+                          <td>FCFA 100</td>
+                          <td>FCFA 5000</td>
                         </tr>
                         <tr>
                           <td>Social Media Template</td>
                           <td>1</td>
-                          <td>$5000</td>
-                          <td>$100</td>
-                          <td>$5000</td>
+                          <td>FCFA 5000</td>
+                          <td>FCFA 100</td>
+                          <td>FCFA 5000</td>
                         </tr>
                       </tbody>
                     </table>
@@ -206,22 +206,22 @@ const InvoicesDetailsComponent2 = () => {
                     <div className="">
                       <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
                         <h6 className="fs-14 fw-medium mb-0">Sub Total</h6>
-                        <h6 className="fs-14 fw-medium mb-0">$5500</h6>
+                        <h6 className="fs-14 fw-medium mb-0">FCFA 5500</h6>
                       </div>
                       <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
                         <h6 className="fs-14 fw-medium mb-0">Discount(0%)</h6>
-                        <h6 className="fs-14 fw-medium mb-0">$400</h6>
+                        <h6 className="fs-14 fw-medium mb-0">FCFA 400</h6>
                       </div>
                       <div className="d-flex align-items-center justify-content-between mb-3">
                         <h6 className="fs-14 fw-medium mb-0">VAT(5%)</h6>
-                        <h6 className="fs-14 fw-medium mb-0">$54</h6>
+                        <h6 className="fs-14 fw-medium mb-0">FCFA 54</h6>
                       </div>
                       <div className="d-flex align-items-center justify-content-between mb-1">
                         <h6 className="mb-0">TotalAMount</h6>
-                        <h6 className="mb-0">$5775</h6>
+                        <h6 className="mb-0">FCFA 5775</h6>
                       </div>
                       <p>
-                        Amount in Words : Dollar Five thousand Seven Seventy
+                        Amount in Words : Soixante-dix-huit mille francs CFA
                         Five
                       </p>
                     </div>

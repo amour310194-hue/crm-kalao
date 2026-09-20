@@ -135,7 +135,7 @@ const SalesDashboardComponent = () => {
                         </div>
                         <div className="bg-light rounded-4 w-100 p-3">
                           <p className="text-dark mb-2">Total MTD Revenue</p>
-                          <h3 className="mb-4">$18,50,800.00</h3>
+                          <h3 className="mb-4">FCFA 18,50,800.00</h3>
                           <div className="d-flex align-items-center justify-content-between gap-1 flex-wrap">
                             <div className="d-flex align-items-center gap-1 flex-wrap">
                               <span className="badge badge-pill rounded-pill border badge-soft-success border-0">
@@ -158,7 +158,7 @@ const SalesDashboardComponent = () => {
                         </div>
                         <div className="bg-light rounded-4 w-100 p-3">
                           <p className="text-dark mb-2">Total YTD Revenue</p>
-                          <h3 className="mb-4">$85,25,800.00</h3>
+                          <h3 className="mb-4">FCFA 85,25,800.00</h3>
                           <div className="d-flex align-items-center justify-content-between gap-1 flex-wrap">
                             <div className="d-flex align-items-center gap-1 flex-wrap">
                               <span className="badge badge-pill rounded-pill border badge-soft-danger border-0">
@@ -276,7 +276,7 @@ const SalesDashboardComponent = () => {
                     <h2 className="sub-title mb-0">Sales Pipeline Overview</h2>
                   </div>
                   <div className="d-flex align-items-center gap-1 flex-wrap mb-3">
-                    <h3 className="custom-title mb-0">$2,56,054.50</h3>
+                    <h3 className="custom-title mb-0">FCFA 2,56,054.50</h3>
                     <p className="fs-12 mb-0">
                       <span className="text-success">+2.5%</span> Last Week
                     </p>
@@ -292,7 +292,7 @@ const SalesDashboardComponent = () => {
                       className="progress-bar bg-purple-subtle text-dark fw-medium text-start ps-4"
                       style={{ width: "60%" }}
                     >
-                      Probability - $50,000
+                      Probability - FCFA 50,000
                     </div>
                   </div>
                   <div
@@ -306,7 +306,7 @@ const SalesDashboardComponent = () => {
                       className="progress-bar bg-success-subtle text-dark fw-medium text-start ps-4"
                       style={{ width: "75%" }}
                     >
-                      Proposal Sent - $56,054
+                      Proposal Sent - FCFA 56,054
                     </div>
                   </div>
                   <div
@@ -320,7 +320,7 @@ const SalesDashboardComponent = () => {
                       className="progress-bar bg-warning-subtle text-dark fw-medium text-start ps-4"
                       style={{ width: "40%" }}
                     >
-                      Opportunity - $1,00,000
+                      Opportunity - FCFA 1,00,000
                     </div>
                   </div>
                   <div
@@ -334,7 +334,7 @@ const SalesDashboardComponent = () => {
                       className="progress-bar bg-danger-subtle text-dark fw-medium text-start ps-4"
                       style={{ width: "60%" }}
                     >
-                      Total Deals - $1,00,000
+                      Total Deals - FCFA 1,00,000
                     </div>
                   </div>
                 </div>{" "}
@@ -397,7 +397,7 @@ const SalesDashboardComponent = () => {
                           <p className="mb-0">Appointment</p>
                         </td>
                         <td>
-                          <p className="text-dark mb-0">$78,11,800</p>
+                          <p className="text-dark mb-0">FCFA 78,11,800</p>
                         </td>
                         <td>
                           <span className="badge badge-pill bg-soft-success text-success">
@@ -416,7 +416,7 @@ const SalesDashboardComponent = () => {
                           <p className="mb-0">Appointment</p>
                         </td>
                         <td>
-                          <p className="text-dark mb-0">$72,11,289</p>
+                          <p className="text-dark mb-0">FCFA 72,11,289</p>
                         </td>
                         <td>
                           <span className="badge badge-pill bg-soft-danger text-danger">
@@ -435,7 +435,7 @@ const SalesDashboardComponent = () => {
                           <p className="mb-0">Appointment</p>
                         </td>
                         <td>
-                          <p className="text-dark mb-0">$16,11,457</p>
+                          <p className="text-dark mb-0">FCFA 16,11,457</p>
                         </td>
                         <td>
                           <span className="badge badge-pill bg-soft-success text-success">
@@ -454,7 +454,7 @@ const SalesDashboardComponent = () => {
                           <p className="mb-0">Appointment</p>
                         </td>
                         <td>
-                          <p className="text-dark mb-0">$85,11,789</p>
+                          <p className="text-dark mb-0">FCFA 85,11,789</p>
                         </td>
                         <td>
                           <span className="badge badge-pill bg-soft-success text-success">
@@ -471,7 +471,7 @@ const SalesDashboardComponent = () => {
                           <p className="mb-0">Appointment</p>
                         </td>
                         <td>
-                          <p className="text-dark mb-0">$65,12,589</p>
+                          <p className="text-dark mb-0">FCFA 65,12,589</p>
                         </td>
                         <td>
                           <span className="badge badge-pill bg-soft-success text-success">
@@ -494,7 +494,7 @@ const SalesDashboardComponent = () => {
                     <h2 className="sub-title mb-0">Avg Deal Size</h2>
                   </div>
                   <div className="d-flex align-items-center gap-1 flex-wrap mb-3">
-                    <h3 className="custom-title mb-0">$1,56,054.50</h3>
+                    <h3 className="custom-title mb-0">FCFA 1,56,054.50</h3>
                     <p className="fs-12 mb-0">
                       <span className="text-success">+2.5%</span> Last Week
                     </p>

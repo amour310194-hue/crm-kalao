@@ -13,10 +13,10 @@ import { all_routes } from "@/router/all_routes";
 
 export const WinLossKpis = {
   totalDeals: { label: "Total Deals", value: "163", note: "Closed in the period" },
-  wonDeals: { label: "Won Deals", value: "98", note: "$4.52M won" },
-  lostDeals: { label: "Lost Deals", value: "65", note: "$2.14M lost" },
+  wonDeals: { label: "Won Deals", value: "98", note: "FCFA 4.52M won" },
+  lostDeals: { label: "Lost Deals", value: "65", note: "FCFA 2.14M lost" },
   winRate: { label: "Win Rate", value: "60.1%", wonPct: 60.1, lostPct: 39.9 },
-  avgDealValue: { label: "Avg. Deal Value", value: "$46,122", deltaLabel: "6.4% vs prior", deltaDirection: "up" as const },
+  avgDealValue: { label: "Avg. Deal Value", value: "FCFA 46,122", deltaLabel: "6.4% vs prior", deltaDirection: "up" as const },
   avgSalesCycle: { label: "Avg. Sales Cycle", value: "46 days", deltaLabel: "6 days faster", deltaDirection: "down" as const },
 };
 
@@ -51,7 +51,7 @@ export const WinLossCompetitorChart = {
 
 // #wl_cycle_chart - Sales Cycle Comparison (days to close, won vs lost, by deal size)
 export const WinLossCycleChart = {
-  categories: ["< $25K", "$25-50K", "$50-100K", "> $100K"],
+  categories: ["< FCFA 25K", "FCFA 25-50K", "FCFA 50-100K", "> FCFA 100K"],
   series: [
     { name: "Won", data: [34, 41, 38, 46] },
     { name: "Lost", data: [58, 64, 71, 62] },
@@ -87,42 +87,42 @@ export const WinLossDimensionColumns: Record<WinLossDimensionKey, { dimensionLab
 };
 
 export const WinLossByRepData: WinLossDimensionRow[] = [
-  { key: "1", Dimension: "Ellis Vandermeer", Deals: 34, Won: 24, Lost: 10, WinRate: 71, Metric: "$46,200", Link: all_routes.manageusers },
-  { key: "2", Dimension: "Adrian Herrera", Deals: 41, Won: 27, Lost: 14, WinRate: 66, Metric: "$52,800", Link: all_routes.manageusers },
-  { key: "3", Dimension: "Priya Raghunathan", Deals: 29, Won: 17, Lost: 12, WinRate: 59, Metric: "$38,400", Link: all_routes.manageusers },
-  { key: "4", Dimension: "Tomas Lindqvist", Deals: 33, Won: 18, Lost: 15, WinRate: 55, Metric: "$61,500", Link: all_routes.manageusers },
-  { key: "5", Dimension: "Nadia Okonkwo", Deals: 26, Won: 12, Lost: 14, WinRate: 46, Metric: "$29,700", Link: all_routes.manageusers },
+  { key: "1", Dimension: "Ellis Vandermeer", Deals: 34, Won: 24, Lost: 10, WinRate: 71, Metric: "FCFA 46,200", Link: all_routes.manageusers },
+  { key: "2", Dimension: "Adrian Herrera", Deals: 41, Won: 27, Lost: 14, WinRate: 66, Metric: "FCFA 52,800", Link: all_routes.manageusers },
+  { key: "3", Dimension: "Priya Raghunathan", Deals: 29, Won: 17, Lost: 12, WinRate: 59, Metric: "FCFA 38,400", Link: all_routes.manageusers },
+  { key: "4", Dimension: "Tomas Lindqvist", Deals: 33, Won: 18, Lost: 15, WinRate: 55, Metric: "FCFA 61,500", Link: all_routes.manageusers },
+  { key: "5", Dimension: "Nadia Okonkwo", Deals: 26, Won: 12, Lost: 14, WinRate: 46, Metric: "FCFA 29,700", Link: all_routes.manageusers },
 ];
 
 export const WinLossByIndustryData: WinLossDimensionRow[] = [
-  { key: "1", Dimension: "Financial Services", Deals: 38, Won: 26, Lost: 12, WinRate: 68, Metric: "$58,900", Link: all_routes.companiesGrid },
-  { key: "2", Dimension: "Healthcare", Deals: 31, Won: 20, Lost: 11, WinRate: 65, Metric: "$47,300", Link: all_routes.companiesGrid },
-  { key: "3", Dimension: "Technology", Deals: 34, Won: 20, Lost: 14, WinRate: 59, Metric: "$41,600", Link: all_routes.companiesGrid },
-  { key: "4", Dimension: "Logistics", Deals: 28, Won: 15, Lost: 13, WinRate: 54, Metric: "$36,200", Link: all_routes.companiesGrid },
-  { key: "5", Dimension: "Manufacturing", Deals: 22, Won: 9, Lost: 13, WinRate: 41, Metric: "$33,800", Link: all_routes.companiesGrid },
-  { key: "6", Dimension: "Media", Deals: 10, Won: 8, Lost: 2, WinRate: 80, Metric: "$24,100", Link: all_routes.companiesGrid },
+  { key: "1", Dimension: "Financial Services", Deals: 38, Won: 26, Lost: 12, WinRate: 68, Metric: "FCFA 58,900", Link: all_routes.companiesGrid },
+  { key: "2", Dimension: "Healthcare", Deals: 31, Won: 20, Lost: 11, WinRate: 65, Metric: "FCFA 47,300", Link: all_routes.companiesGrid },
+  { key: "3", Dimension: "Technology", Deals: 34, Won: 20, Lost: 14, WinRate: 59, Metric: "FCFA 41,600", Link: all_routes.companiesGrid },
+  { key: "4", Dimension: "Logistics", Deals: 28, Won: 15, Lost: 13, WinRate: 54, Metric: "FCFA 36,200", Link: all_routes.companiesGrid },
+  { key: "5", Dimension: "Manufacturing", Deals: 22, Won: 9, Lost: 13, WinRate: 41, Metric: "FCFA 33,800", Link: all_routes.companiesGrid },
+  { key: "6", Dimension: "Media", Deals: 10, Won: 8, Lost: 2, WinRate: 80, Metric: "FCFA 24,100", Link: all_routes.companiesGrid },
 ];
 
 export const WinLossBySourceData: WinLossDimensionRow[] = [
-  { key: "1", Dimension: "Referral", Deals: 24, Won: 19, Lost: 5, WinRate: 79, Metric: "$54,700", Link: all_routes.leads },
-  { key: "2", Dimension: "Webinar", Deals: 29, Won: 18, Lost: 11, WinRate: 62, Metric: "$38,900", Link: all_routes.leads },
-  { key: "3", Dimension: "Outbound", Deals: 42, Won: 24, Lost: 18, WinRate: 57, Metric: "$49,200", Link: all_routes.leads },
-  { key: "4", Dimension: "Trade Show", Deals: 31, Won: 16, Lost: 15, WinRate: 52, Metric: "$42,600", Link: all_routes.leads },
-  { key: "5", Dimension: "Paid Search", Deals: 37, Won: 11, Lost: 26, WinRate: 30, Metric: "$27,400", Link: all_routes.leads },
+  { key: "1", Dimension: "Referral", Deals: 24, Won: 19, Lost: 5, WinRate: 79, Metric: "FCFA 54,700", Link: all_routes.leads },
+  { key: "2", Dimension: "Webinar", Deals: 29, Won: 18, Lost: 11, WinRate: 62, Metric: "FCFA 38,900", Link: all_routes.leads },
+  { key: "3", Dimension: "Outbound", Deals: 42, Won: 24, Lost: 18, WinRate: 57, Metric: "FCFA 49,200", Link: all_routes.leads },
+  { key: "4", Dimension: "Trade Show", Deals: 31, Won: 16, Lost: 15, WinRate: 52, Metric: "FCFA 42,600", Link: all_routes.leads },
+  { key: "5", Dimension: "Paid Search", Deals: 37, Won: 11, Lost: 26, WinRate: 30, Metric: "FCFA 27,400", Link: all_routes.leads },
 ];
 
 export const WinLossByDealSizeData: WinLossDimensionRow[] = [
-  { key: "1", Dimension: "Under $25K", Deals: 52, Won: 36, Lost: 16, WinRate: 69, Metric: "34 days", Link: all_routes.dealsGrid },
-  { key: "2", Dimension: "$25K - $50K", Deals: 48, Won: 29, Lost: 19, WinRate: 60, Metric: "41 days", Link: all_routes.dealsGrid },
-  { key: "3", Dimension: "$50K - $100K", Deals: 41, Won: 21, Lost: 20, WinRate: 51, Metric: "52 days", Link: all_routes.dealsGrid },
-  { key: "4", Dimension: "Over $100K", Deals: 22, Won: 12, Lost: 10, WinRate: 55, Metric: "61 days", Link: all_routes.dealsGrid },
+  { key: "1", Dimension: "Under FCFA 25K", Deals: 52, Won: 36, Lost: 16, WinRate: 69, Metric: "34 days", Link: all_routes.dealsGrid },
+  { key: "2", Dimension: "FCFA 25K - FCFA 50K", Deals: 48, Won: 29, Lost: 19, WinRate: 60, Metric: "41 days", Link: all_routes.dealsGrid },
+  { key: "3", Dimension: "FCFA 50K - FCFA 100K", Deals: 41, Won: 21, Lost: 20, WinRate: 51, Metric: "52 days", Link: all_routes.dealsGrid },
+  { key: "4", Dimension: "Over FCFA 100K", Deals: 22, Won: 12, Lost: 10, WinRate: 55, Metric: "61 days", Link: all_routes.dealsGrid },
 ];
 
 export const WinLossByProductData: WinLossDimensionRow[] = [
-  { key: "1", Dimension: "CRM Platform", Deals: 61, Won: 40, Lost: 21, WinRate: 66, Metric: "$52,400", Link: all_routes.products },
-  { key: "2", Dimension: "Analytics Add-on", Deals: 38, Won: 24, Lost: 14, WinRate: 63, Metric: "$28,900", Link: all_routes.products },
-  { key: "3", Dimension: "Support Plus", Deals: 33, Won: 19, Lost: 14, WinRate: 58, Metric: "$18,600", Link: all_routes.products },
-  { key: "4", Dimension: "Migration Service", Deals: 31, Won: 15, Lost: 16, WinRate: 48, Metric: "$34,100", Link: all_routes.products },
+  { key: "1", Dimension: "CRM Platform", Deals: 61, Won: 40, Lost: 21, WinRate: 66, Metric: "FCFA 52,400", Link: all_routes.products },
+  { key: "2", Dimension: "Analytics Add-on", Deals: 38, Won: 24, Lost: 14, WinRate: 63, Metric: "FCFA 28,900", Link: all_routes.products },
+  { key: "3", Dimension: "Support Plus", Deals: 33, Won: 19, Lost: 14, WinRate: 58, Metric: "FCFA 18,600", Link: all_routes.products },
+  { key: "4", Dimension: "Migration Service", Deals: 31, Won: 15, Lost: 16, WinRate: 48, Metric: "FCFA 34,100", Link: all_routes.products },
 ];
 
 // Convenience lookup keyed by the data-wl-tab button value, e.g.

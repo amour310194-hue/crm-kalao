@@ -84,7 +84,7 @@ const GrowthDashboardComponent = () => {
                       <p className="mb-2 fs-13 fw-medium text-dark">
                         Total Revenue Growth
                       </p>
-                      <div className="fs-28 text-dark fw-bold mb-3">$400k</div>
+                      <div className="fs-28 text-dark fw-bold mb-3">FCFA 400k</div>
                       <div className="fs-13 fw-medium">
                         <span className="text-success">
                           <i className="ti ti-clock" /> +12%
@@ -377,7 +377,7 @@ const GrowthDashboardComponent = () => {
                               8.5%
                             </span>
                           </td>
-                          <td>$45,000</td>
+                          <td>FCFA 45,000</td>
                           <td>
                             <span className="priority badge badge-tag badge-soft-info">
                               85%
@@ -413,7 +413,7 @@ const GrowthDashboardComponent = () => {
                               3.0%
                             </span>
                           </td>
-                          <td>$780,000</td>
+                          <td>FCFA 780,000</td>
                           <td>
                             <span className="priority badge badge-tag badge-soft-danger">
                               30%
@@ -449,7 +449,7 @@ const GrowthDashboardComponent = () => {
                               10.0%
                             </span>
                           </td>
-                          <td>$80,000</td>
+                          <td>FCFA 80,000</td>
                           <td>
                             <span className="priority badge badge-tag badge-soft-success">
                               100%
@@ -485,7 +485,7 @@ const GrowthDashboardComponent = () => {
                               8.5%
                             </span>
                           </td>
-                          <td>$40,000</td>
+                          <td>FCFA 40,000</td>
                           <td>
                             <span className="priority badge badge-tag badge-soft-info">
                               85%
@@ -521,7 +521,7 @@ const GrowthDashboardComponent = () => {
                               12.4%
                             </span>
                           </td>
-                          <td>$250,000</td>
+                          <td>FCFA 250,000</td>
                           <td>
                             <span className="priority badge badge-tag badge-soft-success">
                               100%
@@ -557,7 +557,7 @@ const GrowthDashboardComponent = () => {
                               18.4%
                             </span>
                           </td>
-                          <td>$50,000</td>
+                          <td>FCFA 50,000</td>
                           <td>
                             <span className="priority badge badge-tag badge-soft-success">
                               100%

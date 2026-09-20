@@ -218,7 +218,7 @@ const Account360Component = () => {
                   <i className="ti ti-coin text-primary" />
                   Total Revenue
                 </div>
-                <div className="fs-20 fw-bold text-dark">$486,400</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 486,400</div>
                 <div className="fs-12 text-success">Lifetime value</div>
               </div>
             </div>
@@ -230,7 +230,7 @@ const Account360Component = () => {
                   <i className="ti ti-briefcase text-warning" />
                   Open Deal Value
                 </div>
-                <div className="fs-20 fw-bold text-dark">$162,000</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 162,000</div>
                 <div className="fs-12 text-muted">2 active deals</div>
               </div>
             </div>
@@ -242,7 +242,7 @@ const Account360Component = () => {
                   <i className="ti ti-trophy text-success" />
                   Won Revenue
                 </div>
-                <div className="fs-20 fw-bold text-dark">$324,400</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 324,400</div>
                 <div className="fs-12 text-success">6 closed-won deals</div>
               </div>
             </div>
@@ -266,7 +266,7 @@ const Account360Component = () => {
                   <i className="ti ti-receipt text-danger" />
                   Outstanding
                 </div>
-                <div className="fs-20 fw-bold text-dark">$18,600</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 18,600</div>
                 <div className="fs-12 text-danger">1 invoice overdue</div>
               </div>
             </div>
@@ -575,7 +575,7 @@ const Account360Component = () => {
                         Growth opportunity
                       </span>
                       <span className="fs-12 text-muted">
-                        88% seat utilisation - $64K expansion is the median for
+                        88% seat utilisation - FCFA 64K expansion is the median for
                         this cohort.
                       </span>
                     </div>
@@ -616,7 +616,7 @@ const Account360Component = () => {
                         Renewal opportunity
                       </span>
                       <span className="fs-12 text-muted">
-                        $96K renews in 74 days. Multi-year terms already
+                        FCFA 96K renews in 74 days. Multi-year terms already
                         requested.
                       </span>
                     </div>
@@ -949,7 +949,7 @@ const Account360Component = () => {
             <div>
               <h6 className="mb-0">Deals &amp; Pipeline</h6>
               <p className="text-muted fs-12 mb-0">
-                $162,000 open across 2 deals
+                FCFA 162,000 open across 2 deals
               </p>
             </div>
             <Link href={route.dealsGrid} className="link-primary fs-13">
@@ -982,7 +982,7 @@ const Account360Component = () => {
                         Halcyon Partners - Pilot
                       </Link>
                     </td>
-                    <td>$128,000</td>
+                    <td>FCFA 128,000</td>
                     <td>
                       <span className="badge bg-soft-warning text-warning">
                         Negotiation
@@ -1013,7 +1013,7 @@ const Account360Component = () => {
                         Halcyon - Support Renewal
                       </Link>
                     </td>
-                    <td>$34,000</td>
+                    <td>FCFA 34,000</td>
                     <td>
                       <span className="badge bg-soft-info text-info">
                         Contract Review
@@ -1138,7 +1138,7 @@ const Account360Component = () => {
                       <Link href={route.dealsDetails} className="link-primary">
                         Halcyon Partners - Pilot
                       </Link>{" "}
-                      moved to Negotiation at $128,000.
+                      moved to Negotiation at FCFA 128,000.
                     </p>
                   </li>
                   <li className="is-primary" data-activity-type="email">
@@ -1175,7 +1175,7 @@ const Account360Component = () => {
                       <Link href={route.invoice_details} className="link-primary">
                         {invoiceLabel ? `#${invoiceLabel}` : "INV-2048"}
                       </Link>{" "}
-                      for $18,600 is 6 days past due.
+                      for FCFA 18,600 is 6 days past due.
                     </p>
                   </li>
                   <li className="is-primary" data-activity-type="meeting">
@@ -1241,7 +1241,7 @@ const Account360Component = () => {
                       Payment received
                     </h6>
                     <p className="ai-timeline-text">
-                      $42,000 received against INV-2039.
+                      FCFA 42,000 received against INV-2039.
                     </p>
                   </li>
                 </ul>
@@ -1374,7 +1374,7 @@ const Account360Component = () => {
                                 PRP-0342
                               </Link>
                             </td>
-                            <td>$128,000</td>
+                            <td>FCFA 128,000</td>
                             <td>16 Aug 2026</td>
                             <td>
                               <span className="badge bg-soft-warning text-warning">
@@ -1391,7 +1391,7 @@ const Account360Component = () => {
                                 PRP-0298
                               </Link>
                             </td>
-                            <td>$96,000</td>
+                            <td>FCFA 96,000</td>
                             <td>04 Mar 2026</td>
                             <td>
                               <span className="badge bg-soft-success text-success">
@@ -1428,7 +1428,7 @@ const Account360Component = () => {
                                 QT-1188
                               </Link>
                             </td>
-                            <td>$128,000</td>
+                            <td>FCFA 128,000</td>
                             <td>30 Sep 2026</td>
                             <td>
                               <span className="badge bg-soft-info text-info">
@@ -1445,7 +1445,7 @@ const Account360Component = () => {
                                 QT-1042
                               </Link>
                             </td>
-                            <td>$34,000</td>
+                            <td>FCFA 34,000</td>
                             <td>15 Oct 2026</td>
                             <td>
                               <span className="badge bg-soft-success text-success">
@@ -1483,7 +1483,7 @@ const Account360Component = () => {
                                 CNT-0091
                               </Link>
                             </td>
-                            <td>$96,000</td>
+                            <td>FCFA 96,000</td>
                             <td>12 months</td>
                             <td>07 Nov 2026</td>
                             <td>
@@ -1501,7 +1501,7 @@ const Account360Component = () => {
                                 CNT-0064
                               </Link>
                             </td>
-                            <td>$142,000</td>
+                            <td>FCFA 142,000</td>
                             <td>24 months</td>
                             <td>12 Mar 2027</td>
                             <td>
@@ -1519,7 +1519,7 @@ const Account360Component = () => {
                                 CNT-0031
                               </Link>
                             </td>
-                            <td>$88,400</td>
+                            <td>FCFA 88,400</td>
                             <td>12 months</td>
                             <td>01 Feb 2027</td>
                             <td>
@@ -1558,7 +1558,7 @@ const Account360Component = () => {
                                 INV-2048
                               </Link>
                             </td>
-                            <td>$18,600</td>
+                            <td>FCFA 18,600</td>
                             <td>04 Aug 2026</td>
                             <td>19 Aug 2026</td>
                             <td>
@@ -1576,7 +1576,7 @@ const Account360Component = () => {
                                 INV-2039
                               </Link>
                             </td>
-                            <td>$42,000</td>
+                            <td>FCFA 42,000</td>
                             <td>18 Jul 2026</td>
                             <td>02 Aug 2026</td>
                             <td>
@@ -1594,7 +1594,7 @@ const Account360Component = () => {
                                 INV-2016
                               </Link>
                             </td>
-                            <td>$36,800</td>
+                            <td>FCFA 36,800</td>
                             <td>02 Jun 2026</td>
                             <td>17 Jun 2026</td>
                             <td>
@@ -1633,7 +1633,7 @@ const Account360Component = () => {
                                 PAY-5521
                               </Link>
                             </td>
-                            <td>$42,000</td>
+                            <td>FCFA 42,000</td>
                             <td>Bank Transfer</td>
                             <td>02 Aug 2026</td>
                             <td>
@@ -1651,7 +1651,7 @@ const Account360Component = () => {
                                 PAY-5410
                               </Link>
                             </td>
-                            <td>$36,800</td>
+                            <td>FCFA 36,800</td>
                             <td>Bank Transfer</td>
                             <td>16 Jun 2026</td>
                             <td>

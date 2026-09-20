@@ -590,7 +590,7 @@ const options2 = [
               <input
                 className="form-control"
                 type="text"
-                defaultValue="$04,51,000"
+                defaultValue="FCFA 04,51,000"
               />
             </div>
           </div>

@@ -98,7 +98,7 @@ const ModalPayments = () => {
                 </li>
                 <li>
                   <p className="fs-13 fw-medium mb-1">Total Amount</p>
-                  <h6 className="fs-14 fw-normal">$96</h6>
+                  <h6 className="fs-14 fw-normal">FCFA 96</h6>
                 </li>
               </ul>
             </div>
@@ -106,7 +106,7 @@ const ModalPayments = () => {
               <div className="d-flex align-items-center justify-content-between">
                 <h6 className="mb-3">Invoice Details</h6>
                 <h6 className="d-flex fs-14 fw-normal">
-                  <span className="text-danger"> Amount Due : </span> $100
+                  <span className="text-danger"> Amount Due : </span> FCFA 100
                 </h6>
               </div>
               <ul className="m-0 border-0 d-flex align-items-centers justify-content-between gap-2 flex-wrap">
@@ -124,11 +124,11 @@ const ModalPayments = () => {
                 </li>
                 <li>
                   <p className="fs-13 fw-medium mb-1">Invoice Amount</p>
-                  <h6 className="fs-14 fw-normal">$196</h6>
+                  <h6 className="fs-14 fw-normal">FCFA 196</h6>
                 </li>
                 <li>
                   <p className="fs-13 fw-medium mb-1">Payment Amount</p>
-                  <h6 className="fs-14 fw-normal">$96</h6>
+                  <h6 className="fs-14 fw-normal">FCFA 96</h6>
                 </li>
               </ul>
             </div>

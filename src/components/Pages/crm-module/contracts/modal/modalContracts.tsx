@@ -262,7 +262,7 @@ const ModalContracts = () => {
                     <div className="col-lg-6">
                       <div>
                         <h6 className="fw-medium fs-14 mb-2">
-                          Contract Value : $25,25,000
+                          Contract Value : FCFA 25,25,000
                         </h6>
                         <p className="mb-1">
                           Type : <span>Contracts under Seal</span>
@@ -324,7 +324,7 @@ const ModalContracts = () => {
                 <div className="card-body d-flex align-items-center justify-content-between">
                   <div>
                     <h6 className="fw-medium fs-14 mb-2">
-                      Contract Value : $25,25,000
+                      Contract Value : FCFA 25,25,000
                     </h6>
                     <div className="d-flex align-items-center gap-3">
                       <p className="mb-0">
@@ -351,7 +351,7 @@ const ModalContracts = () => {
                 <div className="card-body d-flex align-items-center justify-content-between">
                   <div>
                     <h6 className="fw-medium fs-14 mb-2">
-                      Contract Value : $25,25,000
+                      Contract Value : FCFA 25,25,000
                     </h6>
                     <div className="d-flex align-items-center gap-3">
                       <p className="mb-0">
@@ -537,7 +537,7 @@ const ModalContracts = () => {
                     <input
                       type="text"
                       className="form-control"
-                      defaultValue="$2,15,000"
+                      defaultValue="FCFA 2,15,000"
                     />
                   </div>
                 </div>

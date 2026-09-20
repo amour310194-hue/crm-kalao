@@ -255,7 +255,7 @@ const ModalCampaign = () => {
                 <input
                   type="text"
                   className="form-control"
-                  defaultValue="$04,51,000"
+                  defaultValue="FCFA 04,51,000"
                 />
               </div>
             </div>

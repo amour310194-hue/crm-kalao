@@ -76,10 +76,10 @@ const RevenueSummaryDashboardComponent = () => {
                           <div className="col-md-4 d-flex pe-md-0">
                             <div className="p-3 card-hover text-center mb-0 flex-fill border-end">
                               <div className="avatar avatar-md bg-primary-gradient-100 fs-16 mb-2">
-                                <i className="ti ti-currency-dollar fs-22" />
+                                <i className="ti ti-coin fs-22" />
                               </div>
                               <p className="mb-1">Total Revenue</p>
-                              <h5 className="mb-3">$2.45M</h5>
+                              <h5 className="mb-3">FCFA 2.45M</h5>
                               <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
                                 <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
                                   +2.5%
@@ -111,7 +111,7 @@ const RevenueSummaryDashboardComponent = () => {
                                 <i className="ti ti-box fs-22" />
                               </div>
                               <p className="mb-1">Annual Recurring</p>
-                              <h5 className="mb-3">$28.4M</h5>
+                              <h5 className="mb-3">FCFA 28.4M</h5>
                               <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
                                 <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
                                   +2.5%
@@ -149,14 +149,14 @@ const RevenueSummaryDashboardComponent = () => {
                                   <i className="ti ti-square-filled fs-8 text-purple-gradient me-1" />
                                   Avg Deal Value
                                 </p>
-                                <h5 className="main-title mb-0">$43.2K</h5>
+                                <h5 className="main-title mb-0">FCFA 43.2K</h5>
                               </div>
                               <div className="mb-0">
                                 <p className="d-flex align-items-center mb-1">
                                   <i className="ti ti-square-filled fs-8 text-danger-gradient me-1" />
                                   Previous
                                 </p>
-                                <h5 className="main-title mb-0">$39.8K</h5>
+                                <h5 className="main-title mb-0">FCFA 39.8K</h5>
                               </div>
                             </div>
                             <div id="deal-value-chart">
@@ -183,7 +183,7 @@ const RevenueSummaryDashboardComponent = () => {
                               </div>
                               <div>
                                 <p className="mb-1">Forecasted Revenue</p>
-                                <h4 className="mb-0">$8.45M</h4>
+                                <h4 className="mb-0">FCFA 8.45M</h4>
                               </div>
                             </div>
                             <span className="d-inline-flex align-items-center badge badge-soft-success border border-success">
@@ -370,7 +370,7 @@ const RevenueSummaryDashboardComponent = () => {
                       <span className="me-2 rounded-3 bg-danger p-1 pb-0 pe-0" />
                       Avg. Monthly Revenue
                       <span className="fs-16 fw-semibold text-dark ms-2">
-                        $608K
+                        FCFA 608K
                       </span>
                     </p>
                     <p className="mb-0 d-flex">

@@ -75,7 +75,7 @@ const RevenuePerformanceChart: React.FC = () => {
     yaxis: {
       labels: {
         formatter: (val: number) => {
-          return `$${val}K`;
+          return `${val}k FCFA`;
         },
         style: {
           fontSize: '12px',
@@ -96,7 +96,7 @@ const RevenuePerformanceChart: React.FC = () => {
       intersect: false,
       y: {
         formatter: (val: number) => {
-          return `$${val}K`;
+          return `${val}k FCFA`;
         },
       },
     },

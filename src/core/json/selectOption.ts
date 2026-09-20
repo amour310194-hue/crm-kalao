@@ -132,8 +132,6 @@ export const Source = [
   ];
   export const Currency= [
   { value: 'FCFA', label: 'FCFA' },
-  { value: 'Dollar', label: 'Dollar' },
-  { value: 'Euro', label: 'Euro' },
 ];
  export const Language = [
   { value: 'Choose', label: 'Choose' },
@@ -336,9 +334,9 @@ export const Plan_Type = [
 ]
 export const Plan_Price = [
   { value: 'Select', label: 'Select' },
-  { value: '$50', label: '$50' },
-  { value: '$200', label: '$200' },
-  { value: '$400', label: '$400' },
+  { value: 'FCFA 50', label: 'FCFA 50' },
+  { value: 'FCFA 200', label: 'FCFA 200' },
+  { value: 'FCFA 400', label: 'FCFA 400' },
 
 ]
 export const Ratings = [
@@ -394,9 +392,9 @@ export const   Starting_Month = [
 ]
 export const    Currency_Position = [
   { value: 'select', label: 'select' },
-  { value: '$100', label: '$100' },
+  { value: 'FCFA 100', label: 'FCFA 100' },
   { value: '100$', label: '100$' },
-  { value: '$ 100', label: '$ 100' },
+  { value: 'FCFA  100', label: 'FCFA  100' },
 ]
 export const    Decimal_Seperator = [
   { value: 'select', label: 'select' },
@@ -410,8 +408,6 @@ export const    Countries_Restriction = [
 ]
 export const Currency_Symbol = [
   { value: 'FCFA', label: 'FCFA' },
-  { value: '€', label: '€' },
-  { value: '$', label: '$' },
 ]
 export const Sidebar_Size = [
   { value: 'select', label: 'select' },
@@ -475,8 +471,6 @@ export const  Plan_Position = [
 ]
 export const  Plan_Currency = [
   { value: 'FCFA', label: 'FCFA' },
-  { value: 'USD', label: 'USD' },
-  { value: 'EURO', label: 'EURO' },
 ]
 export const  Plan_Fixed = [
   { value: 'Choose', label: 'Choose' },

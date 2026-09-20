@@ -96,7 +96,7 @@ const ExecutiveDashboardComponent = () => {
                           </div>
                           <div className="border rounded p-3 d-flex align-items-sm-center gap-2 justify-content-between flex-sm-row flex-column">
                             <div>
-                              <h2 className="mb-2 text-success">$400k</h2>
+                              <h2 className="mb-2 text-success">FCFA 400k</h2>
                               <p className="fs-13 fw-medium mb-0">
                                 <span className="text-success">+12%</span> vs
                                 Last Year
@@ -632,7 +632,7 @@ const ExecutiveDashboardComponent = () => {
                             <p className="fw-medium mb-0 text-success">98</p>
                           </td>
 
-                          <td>$7500</td>
+                          <td>FCFA 7500</td>
 
                           <td>
                             <span className="badge badge-pill badge-soft-success">
@@ -668,7 +668,7 @@ const ExecutiveDashboardComponent = () => {
                             <p className="fw-medium mb-0 text-success">87</p>
                           </td>
 
-                          <td>$2000</td>
+                          <td>FCFA 2000</td>
 
                           <td>
                             <span className="badge badge-pill badge-soft-success">
@@ -704,7 +704,7 @@ const ExecutiveDashboardComponent = () => {
                             <p className="fw-medium mb-0 text-info">56</p>
                           </td>
 
-                          <td>$1600</td>
+                          <td>FCFA 1600</td>
 
                           <td>
                             <span className="badge badge-pill badge-soft-info">
@@ -740,7 +740,7 @@ const ExecutiveDashboardComponent = () => {
                             <p className="fw-medium mb-0 text-danger">10</p>
                           </td>
 
-                          <td>$600</td>
+                          <td>FCFA 600</td>
 
                           <td>
                             <span className="badge badge-pill badge-soft-primary">
@@ -776,7 +776,7 @@ const ExecutiveDashboardComponent = () => {
                             <p className="fw-medium mb-0 text-success">87</p>
                           </td>
 
-                          <td>$2800</td>
+                          <td>FCFA 2800</td>
 
                           <td>
                             <span className="badge badge-pill badge-soft-success">
@@ -812,7 +812,7 @@ const ExecutiveDashboardComponent = () => {
                             <p className="fw-medium mb-0 text-info">87</p>
                           </td>
 
-                          <td>$6955</td>
+                          <td>FCFA 6955</td>
 
                           <td>
                             <span className="badge badge-pill badge-soft-info">

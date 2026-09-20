@@ -203,7 +203,7 @@ const ModalAppliedDiscountLog = () => {
                       <input
                         type="text"
                         className="form-control"
-                        defaultValue="$1000"
+                        defaultValue="FCFA 1000"
                       />
                     </div>
                   </div>

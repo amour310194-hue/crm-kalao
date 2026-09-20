@@ -504,7 +504,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value : $2,04,214
+                    Value : FCFA 2,04,214
                   </span>
                 </div>
                 <Link
@@ -618,7 +618,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $1,45,000
+                    Value: FCFA 1,45,000
                   </span>
                 </div>
                 <Link
@@ -734,7 +734,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $2,15,000
+                    Value: FCFA 2,15,000
                   </span>
                 </div>
                 <Link
@@ -848,7 +848,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $4,80,380
+                    Value: FCFA 4,80,380
                   </span>
                 </div>
                 <Link
@@ -964,7 +964,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $4,80,380
+                    Value: FCFA 4,80,380
                   </span>
                 </div>
                 <Link
@@ -1078,7 +1078,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $3,50,000
+                    Value: FCFA 3,50,000
                   </span>
                 </div>
                 <Link
@@ -1194,7 +1194,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $1,23,000
+                    Value: FCFA 1,23,000
                   </span>
                 </div>
                 <Link
@@ -1308,7 +1308,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $3,12,500
+                    Value: FCFA 3,12,500
                   </span>
                 </div>
                 <Link
@@ -1422,7 +1422,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $4,18,000
+                    Value: FCFA 4,18,000
                   </span>
                 </div>
                 <Link
@@ -1536,7 +1536,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $1,45,000
+                    Value: FCFA 1,45,000
                   </span>
                 </div>
                 <Link
@@ -1650,7 +1650,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $4,18,000
+                    Value: FCFA 4,18,000
                   </span>
                 </div>
                 <Link
@@ -1766,7 +1766,7 @@ const ContractsComponent = () => {
                   <span className="badge badge-soft-info border-0">
                     {" "}
                     <i className="ti ti-moneybag me-1" />
-                    Value: $4,80,380
+                    Value: FCFA 4,80,380
                   </span>
                 </div>
                 <Link

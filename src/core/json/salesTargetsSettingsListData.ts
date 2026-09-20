@@ -19,7 +19,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Dec 2026",
     StartDate: "25 Sep 2025",
     EndDate: "31 Jul 2026",
-    TargetRevenue: "$250,000",
+    TargetRevenue: "FCFA 250,000",
     Status: "Completed",
   },
   {
@@ -30,7 +30,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Nov 2026",
     StartDate: "29 Sep 2025",
     EndDate: "30 Apr 2025",
-    TargetRevenue: "$50,000",
+    TargetRevenue: "FCFA 50,000",
     Status: "Failed",
   },
   {
@@ -41,7 +41,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Oct 2026",
     StartDate: "05 Oct 2025",
     EndDate: "30 Jun 2026",
-    TargetRevenue: "$45,000",
+    TargetRevenue: "FCFA 45,000",
     Status: "Inprogress",
   },
   {
@@ -52,7 +52,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Sep 2026",
     StartDate: "14 Oct 2025",
     EndDate: "31 May 2026",
-    TargetRevenue: "$780,000",
+    TargetRevenue: "FCFA 780,000",
     Status: "Inprogress",
   },
   {
@@ -63,7 +63,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Aug 2026",
     StartDate: "15 Nov 2025",
     EndDate: "30 Apr 2026",
-    TargetRevenue: "$80,000",
+    TargetRevenue: "FCFA 80,000",
     Status: "Completed",
   },
   {
@@ -74,7 +74,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Jul 2026",
     StartDate: "25 Nov 2025",
     EndDate: "31 Mar 2026",
-    TargetRevenue: "$40,000",
+    TargetRevenue: "FCFA 40,000",
     Status: "Failed",
   },
   {
@@ -85,7 +85,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Jun 2026",
     StartDate: "08 Dec 2025",
     EndDate: "31 Mar 2026",
-    TargetRevenue: "$7,000",
+    TargetRevenue: "FCFA 7,000",
     Status: "Completed",
   },
   {
@@ -96,7 +96,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Apr 2026",
     StartDate: "21 Dec 2025",
     EndDate: "28 Feb 2026",
-    TargetRevenue: "$01,23,000",
+    TargetRevenue: "FCFA 01,23,000",
     Status: "Failed",
   },
   {
@@ -107,7 +107,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Apr 2026",
     StartDate: "01 Jan 2024",
     EndDate: "31 Mar 2026",
-    TargetRevenue: "$780,000",
+    TargetRevenue: "FCFA 780,000",
     Status: "Completed",
   },
   {
@@ -118,7 +118,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Jan 2026",
     StartDate: "12 Jan 2024",
     EndDate: "31 Jan 2026",
-    TargetRevenue: "$04,10,000",
+    TargetRevenue: "FCFA 04,10,000",
     Status: "Completed",
   },
   {
@@ -129,7 +129,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Apr 2026",
     StartDate: "16 Jan 2024",
     EndDate: "31 Jan 2026",
-    TargetRevenue: "$02,19,000",
+    TargetRevenue: "FCFA 02,19,000",
     Status: "Completed",
   },
   {
@@ -140,7 +140,7 @@ export const SalesTargetsSettingsListData: SalesTargetsSettingsListDataType[] = 
     Period: "Oct 2026",
     StartDate: "12 Jan 2024",
     EndDate: "31 Jan 2026",
-    TargetRevenue: "$60,000",
+    TargetRevenue: "FCFA 60,000",
     Status: "Completed",
   },
 ];

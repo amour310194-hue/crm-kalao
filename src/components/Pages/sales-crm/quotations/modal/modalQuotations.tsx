@@ -283,13 +283,13 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
                 <div className="card">
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between mb-3 fw-semibold">
-                      Subtotal<span>$0</span>
+                      Subtotal<span>FCFA 0</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-3 fw-semibold">
-                      Tax<span>$0</span>
+                      Tax<span>FCFA 0</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between fw-semibold">
-                      Total<span>$0</span>
+                      Total<span>FCFA 0</span>
                     </div>
                   </div>
                 </div>
@@ -440,7 +440,7 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
                           <input className="form-control" defaultValue="5" />
                         </td>
                         <td>
-                          <input className="form-control" defaultValue="$200" />
+                          <input className="form-control" defaultValue="FCFA 200" />
                         </td>
                         <td>
                           <select className="select" defaultValue="10 %">
@@ -450,7 +450,7 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
                           </select>
                         </td>
                         <td>
-                          <input className="form-control" defaultValue="$900" />
+                          <input className="form-control" defaultValue="FCFA 900" />
                         </td>
                         <td />
                       </tr>
@@ -506,16 +506,16 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
                 <div className="card">
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between mb-3 fw-semibold">
-                      Subtotal<span>$1,470</span>
+                      Subtotal<span>FCFA 1,470</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-3 fw-semibold">
-                      Discount 2%<span>$29.40</span>
+                      Discount 2%<span>FCFA 29.40</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-3 fw-semibold">
-                      Tax<span>$115.22</span>
+                      Tax<span>FCFA 115.22</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between fw-semibold">
-                      Total<span>$1,555.82</span>
+                      Total<span>FCFA 1,555.82</span>
                     </div>
                   </div>
                 </div>

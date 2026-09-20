@@ -473,9 +473,9 @@ export const ReportGenericSampleBase = {
 // step (kpiHtml()).
 export const ReportPreviewKpiTiles = [
   { label: "Total Records", value: "53" },
-  { label: "Total Amount", value: "$1.84M" },
-  { label: "Average Amount", value: "$34,717" },
-  { label: "Weighted Amount", value: "$845K" },
+  { label: "Total Amount", value: "FCFA 1.84M" },
+  { label: "Average Amount", value: "FCFA 34,717" },
+  { label: "Weighted Amount", value: "FCFA 845K" },
 ];
 
 // Shared categories/values used to draw the demo bar / line / area / donut /

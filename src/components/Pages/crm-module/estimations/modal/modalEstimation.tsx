@@ -664,38 +664,38 @@ const ModalEstimation = () => {
                 <tr>
                   <td>UX Strategy</td>
                   <td>1</td>
-                  <td>$500</td>
-                  <td>$100</td>
-                  <td>$500</td>
+                  <td>FCFA 500</td>
+                  <td>FCFA 100</td>
+                  <td>FCFA 500</td>
                 </tr>
                 <tr>
                   <td>Design System</td>
                   <td>1</td>
-                  <td>$5000</td>
-                  <td>$100</td>
-                  <td>$5000</td>
+                  <td>FCFA 5000</td>
+                  <td>FCFA 100</td>
+                  <td>FCFA 5000</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div className="bg-light p-3 rounded mb-4">
             <h6 className="fs-14 fw-medium border-bottom pb-2 mb-2">
-              Sub Total <span className="float-end">$5500.00</span>
+              Sub Total <span className="float-end">FCFA 5500.00</span>
             </h6>
             <h6 className="fs-14 fw-medium border-bottom pb-2 mb-2">
-              Discount(0%) <span className="float-end">$400.00</span>
+              Discount(0%) <span className="float-end">FCFA 400.00</span>
             </h6>
             <h6 className="fs-14 fw-medium border-bottom pb-2 mb-2">
-              Extra Discount(0%) <span className="float-end">$0.00</span>
+              Extra Discount(0%) <span className="float-end">FCFA 0.00</span>
             </h6>
             <h6 className="fs-14 fw-medium pb-2 mb-2">
-              Tax <span className="float-end">$54.00</span>
+              Tax <span className="float-end">FCFA 54.00</span>
             </h6>
             <h6 className="mb-2">
-              Total Amount <span className="float-end">$5775.00</span>
+              Total Amount <span className="float-end">FCFA 5775.00</span>
             </h6>
             <p className="mb-0">
-              Amount in Words : Dollar Five thousand Seven Seventy Five
+              Amount in Words : Soixante-dix-huit mille francs CFA
             </p>
           </div>
           <hr className="mb-4" />

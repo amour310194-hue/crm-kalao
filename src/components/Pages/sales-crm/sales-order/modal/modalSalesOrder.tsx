@@ -133,13 +133,13 @@ const ModalSalesOrder = () => {
                   <label className="form-label">
                     Order Value<span className="text-danger ms-1">*</span>
                   </label>
-                  <input className="form-control" defaultValue="$450,000" />
+                  <input className="form-control" defaultValue="FCFA 450,000" />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">
                     Net Amount<span className="text-danger ms-1">*</span>
                   </label>
-                  <input className="form-control" defaultValue="$500,000" />
+                  <input className="form-control" defaultValue="FCFA 500,000" />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">

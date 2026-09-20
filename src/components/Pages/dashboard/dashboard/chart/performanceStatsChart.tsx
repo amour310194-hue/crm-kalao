@@ -149,7 +149,7 @@ const PerformanceStatsChart: React.FC = () => {
       labels: {
         offsetX: -10,
         formatter: (value: number) => {
-          return `$${value}k`;
+          return `${value}k FCFA`;
         },
       },
     },

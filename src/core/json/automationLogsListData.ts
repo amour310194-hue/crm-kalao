@@ -105,14 +105,14 @@ export const AutomationLogsListData: AutomationLogData[] = [
     Error: "",
     Path: [
       pathStep("1", "Trigger", "Deal stage changed to Negotiation", "success"),
-      pathStep("2", "Condition", "Deal value > $100,000 - matched", "success"),
+      pathStep("2", "Condition", "Deal value > FCFA 100,000 - matched", "success"),
       pathStep("3", "Action", "Send notification to Sales Leadership", "success"),
       pathStep("4", "Action", "Create task \"Review high-value deal\"", "success"),
       pathStep("5", "Completed", "Workflow finished in 1.2s", "success"),
     ],
     Timeline: [
       timelineItem("1", "0.0s", "Trigger", "Deal stage changed to Negotiation"),
-      timelineItem("2", "0.1s", "Condition", "Deal value > $100,000 - matched"),
+      timelineItem("2", "0.1s", "Condition", "Deal value > FCFA 100,000 - matched"),
       timelineItem("3", "0.4s", "Action", "Send notification to Sales Leadership"),
       timelineItem("4", "0.8s", "Action", "Create task \"Review high-value deal\""),
       timelineItem("5", "1.2s", "Completed", "Workflow finished in 1.2s"),
@@ -161,14 +161,14 @@ export const AutomationLogsListData: AutomationLogData[] = [
     Error: "Webhook endpoint https://ledger.internal/v1/invoices returned 502 Bad Gateway after 3 retries.",
     Path: [
       pathStep("1", "Trigger", "Invoice INV-2048 passed its due date", "success"),
-      pathStep("2", "Condition", "Amount > $5,000 - matched", "success"),
+      pathStep("2", "Condition", "Amount > FCFA 5,000 - matched", "success"),
       pathStep("3", "Action", "Notification sent to Finance", "success"),
       pathStep("4", "Failed action", "Webhook \"Invoice created - accounting\" returned 502", "failed"),
       pathStep("5", "Error", "Execution halted after 3 retries", "failed"),
     ],
     Timeline: [
       timelineItem("1", "0.0s", "Trigger", "Invoice INV-2048 passed its due date"),
-      timelineItem("2", "0.1s", "Condition", "Amount > $5,000 - matched"),
+      timelineItem("2", "0.1s", "Condition", "Amount > FCFA 5,000 - matched"),
       timelineItem("3", "0.3s", "Action", "Notification sent to Finance"),
       timelineItem("4", "0.8s", "Failed action", "Webhook \"Invoice created - accounting\" returned 502"),
       timelineItem("5", "5.0s", "Error", "Execution halted after 3 retries"),

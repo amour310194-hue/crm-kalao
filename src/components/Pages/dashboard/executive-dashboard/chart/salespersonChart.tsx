@@ -197,7 +197,7 @@ const SalespersonChart: React.FC = () => {
         offsetX: -10,
 
         formatter: (value: number) => {
-          return `$${value}M`;
+          return `${value}M FCFA`;
         },
       },
     },
@@ -220,7 +220,7 @@ const SalespersonChart: React.FC = () => {
           <div class="apex-tooltip p-2">
             <span>${name}</span>
             <br />
-            <strong>$${value}M</strong>
+            <strong>{value}M FCFA</strong>
           </div>
         `;
       },

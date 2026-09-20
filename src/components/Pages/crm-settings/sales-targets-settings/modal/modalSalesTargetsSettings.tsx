@@ -229,7 +229,7 @@ const ModalSalesTargetsSettings = () => {
                   <input
                     type="text"
                     className="form-control"
-                    defaultValue="$65,000"
+                    defaultValue="FCFA 65,000"
                   />
                 </div>
                 <div>

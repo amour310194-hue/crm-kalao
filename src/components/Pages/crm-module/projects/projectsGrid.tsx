@@ -782,7 +782,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $03,50,000
+                        Value : FCFA 03,50,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -932,7 +932,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $02,15,000
+                        Value : FCFA 02,15,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1082,7 +1082,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $01,45,000
+                        Value : FCFA 01,45,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1232,7 +1232,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $02,15,000
+                        Value : FCFA 02,15,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1382,7 +1382,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $03,64,000
+                        Value : FCFA 03,64,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1532,7 +1532,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $02,12,000
+                        Value : FCFA 02,12,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1682,7 +1682,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $04,18,000
+                        Value : FCFA 04,18,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1834,7 +1834,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $01,23,000
+                        Value : FCFA 01,23,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -1984,7 +1984,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $03,64,000
+                        Value : FCFA 03,64,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -2134,7 +2134,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $04,10,000
+                        Value : FCFA 04,10,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -2284,7 +2284,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $04,10,000
+                        Value : FCFA 04,10,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />
@@ -2434,7 +2434,7 @@ const ProjectsGridComponent = () => {
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-report-money me-2" />
-                        Value : $04,10,000
+                        Value : FCFA 04,10,000
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <i className="ti ti-calendar-exclamation me-2" />

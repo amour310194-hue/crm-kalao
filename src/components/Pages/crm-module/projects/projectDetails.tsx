@@ -120,7 +120,7 @@ const ProjectDetailsComponent = () => {
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Deal Value</p>
-                      <p className="mb-0 text-dark">$25,11,145</p>
+                      <p className="mb-0 text-dark">FCFA 25,11,145</p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Project Type</p>

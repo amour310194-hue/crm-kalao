@@ -214,7 +214,7 @@ const ModalDiscountRules = () => {
                       <input
                         type="text"
                         className="form-control"
-                        defaultValue="$3,000"
+                        defaultValue="FCFA 3,000"
                       />
                     </div>
                   </div>

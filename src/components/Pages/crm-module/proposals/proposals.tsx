@@ -521,7 +521,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -637,7 +637,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -753,7 +753,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -869,7 +869,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -985,7 +985,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -1101,7 +1101,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -1217,7 +1217,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">
@@ -1333,7 +1333,7 @@ const ProposalsComponent = () => {
                         <span className="me-2 text-dark">
                           <i className="ti ti-moneybag fs-12" />
                         </span>
-                        Total Value : $2,04,214
+                        Total Value : FCFA 2,04,214
                       </p>
                       <p className="d-flex align-items-center mb-2">
                         <span className="me-2 text-dark">

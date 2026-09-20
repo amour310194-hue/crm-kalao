@@ -14,7 +14,7 @@ const KPIS = [
   { Label: "Total Proposals", Value: "6", Icon: "ti-file", Tone: "success", BadgeIcon: "ti-clock", Delta: "+12", DeltaLabel: "vs Last Month" },
   { Label: "Pending Review", Value: "20", Icon: "ti-cash-edit", Tone: "danger", BadgeIcon: "ti-trending-up", Delta: "", DeltaLabel: "Urgent Attention" },
   { Label: "Approved", Value: "44", Icon: "ti-checkbox", Tone: "info", BadgeIcon: "ti-trending-up", Delta: "+12", DeltaLabel: "Success Rate" },
-  { Label: "Total Value", Value: "$2000", Icon: "ti-cash-banknote", Tone: "warning", BadgeIcon: "ti-trending-up", Delta: "", DeltaLabel: "Pipeline Growth" },
+  { Label: "Total Value", Value: "FCFA 2000", Icon: "ti-cash-banknote", Tone: "warning", BadgeIcon: "ti-trending-up", Delta: "", DeltaLabel: "Pipeline Growth" },
 ];
 
 const ProposalReportComponent = () => {

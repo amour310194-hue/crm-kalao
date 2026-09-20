@@ -53,8 +53,8 @@ const KPIS = [
   {
     Key: "totalRevenue",
     Label: "Total Revenue",
-    Value: "$4348",
-    Icon: "ti-currency-dollar",
+    Value: "FCFA 4348",
+    Icon: "ti-coin",
     Tone: "info",
     DeltaIcon: "ti-trending-up",
     Delta: "+12%",

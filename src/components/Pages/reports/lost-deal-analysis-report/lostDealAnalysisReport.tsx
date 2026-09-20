@@ -12,9 +12,9 @@ import { LostDealAnalysisReportData } from "../../../../core/json/lostDealAnalys
 */
 const KPIS = [
   { Label: "Total Deals Lost", Value: "230", Icon: "assets/img/icons/lost-deal-01.svg", Tone: "orange" },
-  { Label: "Total Revenue Lost", Value: "$845,000", Icon: "assets/img/icons/lost-deal-02.svg", Tone: "purple" },
-  { Label: "Avg Lost Deal Size", Value: "$22,600", Icon: "assets/img/icons/lost-deal-03.svg", Tone: "info" },
-  { Label: "Max Single Loss", Value: "$150,000", Icon: "assets/img/icons/lost-deal-04.svg", Tone: "cyan" },
+  { Label: "Total Revenue Lost", Value: "FCFA 845,000", Icon: "assets/img/icons/lost-deal-02.svg", Tone: "purple" },
+  { Label: "Avg Lost Deal Size", Value: "FCFA 22,600", Icon: "assets/img/icons/lost-deal-03.svg", Tone: "info" },
+  { Label: "Max Single Loss", Value: "FCFA 150,000", Icon: "assets/img/icons/lost-deal-04.svg", Tone: "cyan" },
 ];
 
 const LostDealAnalysisReportComponent = () => {

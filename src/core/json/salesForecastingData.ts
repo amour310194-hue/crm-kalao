@@ -11,10 +11,10 @@ import { all_routes } from "@/router/all_routes";
 // ---- KPI cards -------------------------------------------------------------
 
 export const SalesForecastingKpis = {
-  forecastRevenue: { label: "Forecast Revenue", value: "$845K", deltaLabel: "8.4% vs last quarter", deltaDirection: "up" as const },
-  closedRevenue: { label: "Closed Revenue", value: "$612K", note: "42 deals won" },
-  openPipeline: { label: "Open Pipeline", value: "$1.84M", note: "53 open deals" },
-  salesQuota: { label: "Sales Quota", value: "$920K", note: "Q3 2026 team target" },
+  forecastRevenue: { label: "Forecast Revenue", value: "FCFA 845K", deltaLabel: "8.4% vs last quarter", deltaDirection: "up" as const },
+  closedRevenue: { label: "Closed Revenue", value: "FCFA 612K", note: "42 deals won" },
+  openPipeline: { label: "Open Pipeline", value: "FCFA 1.84M", note: "53 open deals" },
+  salesQuota: { label: "Sales Quota", value: "FCFA 920K", note: "Q3 2026 team target" },
   attainment: { label: "Attainment", value: "91.8%", meter: 91.8, tone: "warning" as const },
   forecastAccuracy: { label: "Forecast Accuracy", value: "94.2%", note: "Last 4 quarters" },
 };
@@ -30,11 +30,11 @@ export interface ForecastCategoryTile {
 }
 
 export const SalesForecastingCategoryTiles: ForecastCategoryTile[] = [
-  { key: "commit", label: "Commit", value: "$410K", note: "18 deals · 92% avg", noteTone: "muted", strength: "strong" },
-  { key: "best-case", label: "Best Case", value: "$190K", note: "11 deals · 61% avg", noteTone: "muted", strength: "good" },
-  { key: "pipeline", label: "Pipeline", value: "$245K", note: "24 deals · 28% avg", noteTone: "muted", strength: "weak" },
-  { key: "closed-won", label: "Closed Won", value: "$612K", note: "42 deals", noteTone: "success", strength: "strong" },
-  { key: "closed-lost", label: "Closed Lost", value: "$148K", note: "19 deals", noteTone: "danger", strength: "risk" },
+  { key: "commit", label: "Commit", value: "FCFA 410K", note: "18 deals · 92% avg", noteTone: "muted", strength: "strong" },
+  { key: "best-case", label: "Best Case", value: "FCFA 190K", note: "11 deals · 61% avg", noteTone: "muted", strength: "good" },
+  { key: "pipeline", label: "Pipeline", value: "FCFA 245K", note: "24 deals · 28% avg", noteTone: "muted", strength: "weak" },
+  { key: "closed-won", label: "Closed Won", value: "FCFA 612K", note: "42 deals", noteTone: "success", strength: "strong" },
+  { key: "closed-lost", label: "Closed Lost", value: "FCFA 148K", note: "19 deals", noteTone: "danger", strength: "risk" },
 ];
 
 // ---- chart 1, 3, 4, 5: view-dependent series ------------------------------
@@ -120,15 +120,15 @@ export interface RepForecastRow {
 }
 
 export const RepForecastData: RepForecastRow[] = [
-  { key: "1", SalesRep: "Ellis Vandermeer", Team: "Mid-Market", Quota: "$150K", Closed: "$139K", Forecast: "$39K", Attainment: 118, AttainmentTone: "success", Link: all_routes.manageusers },
-  { key: "2", SalesRep: "Adrian Herrera", Team: "Enterprise", Quota: "$220K", Closed: "$168K", Forecast: "$54K", Attainment: 101, AttainmentTone: "success", Link: all_routes.manageusers },
-  { key: "3", SalesRep: "Priya Raghunathan", Team: "Mid-Market", Quota: "$180K", Closed: "$121K", Forecast: "$47K", Attainment: 93, AttainmentTone: "warning", Link: all_routes.manageusers },
-  { key: "4", SalesRep: "Tomas Lindqvist", Team: "Enterprise", Quota: "$220K", Closed: "$96K", Forecast: "$71K", Attainment: 76, AttainmentTone: "danger", Link: all_routes.manageusers },
-  { key: "5", SalesRep: "Nadia Okonkwo", Team: "SMB", Quota: "$150K", Closed: "$58K", Forecast: "$34K", Attainment: 61, AttainmentTone: "danger", Link: all_routes.manageusers },
-  { key: "6", SalesRep: "John Doe", Team: "Enterprise", Quota: "$420K", Closed: "$310K", Forecast: "$286K", Attainment: 92, AttainmentTone: "success", Link: all_routes.manageusers },
-  { key: "7", SalesRep: "Marcus Lindqvist", Team: "Mid-Market", Quota: "$210K", Closed: "$132K", Forecast: "$95K", Attainment: 72, AttainmentTone: "warning", Link: all_routes.manageusers },
-  { key: "8", SalesRep: "Fatima Al-Sayed", Team: "SMB", Quota: "$95K", Closed: "$41K", Forecast: "$18K", Attainment: 47, AttainmentTone: "danger", Link: all_routes.manageusers },
-  { key: "9", SalesRep: "Diego Fernandez", Team: "Enterprise", Quota: "$275K", Closed: "$198K", Forecast: "$164K", Attainment: 84, AttainmentTone: "success", Link: all_routes.manageusers },
+  { key: "1", SalesRep: "Ellis Vandermeer", Team: "Mid-Market", Quota: "FCFA 150K", Closed: "FCFA 139K", Forecast: "FCFA 39K", Attainment: 118, AttainmentTone: "success", Link: all_routes.manageusers },
+  { key: "2", SalesRep: "Adrian Herrera", Team: "Enterprise", Quota: "FCFA 220K", Closed: "FCFA 168K", Forecast: "FCFA 54K", Attainment: 101, AttainmentTone: "success", Link: all_routes.manageusers },
+  { key: "3", SalesRep: "Priya Raghunathan", Team: "Mid-Market", Quota: "FCFA 180K", Closed: "FCFA 121K", Forecast: "FCFA 47K", Attainment: 93, AttainmentTone: "warning", Link: all_routes.manageusers },
+  { key: "4", SalesRep: "Tomas Lindqvist", Team: "Enterprise", Quota: "FCFA 220K", Closed: "FCFA 96K", Forecast: "FCFA 71K", Attainment: 76, AttainmentTone: "danger", Link: all_routes.manageusers },
+  { key: "5", SalesRep: "Nadia Okonkwo", Team: "SMB", Quota: "FCFA 150K", Closed: "FCFA 58K", Forecast: "FCFA 34K", Attainment: 61, AttainmentTone: "danger", Link: all_routes.manageusers },
+  { key: "6", SalesRep: "John Doe", Team: "Enterprise", Quota: "FCFA 420K", Closed: "FCFA 310K", Forecast: "FCFA 286K", Attainment: 92, AttainmentTone: "success", Link: all_routes.manageusers },
+  { key: "7", SalesRep: "Marcus Lindqvist", Team: "Mid-Market", Quota: "FCFA 210K", Closed: "FCFA 132K", Forecast: "FCFA 95K", Attainment: 72, AttainmentTone: "warning", Link: all_routes.manageusers },
+  { key: "8", SalesRep: "Fatima Al-Sayed", Team: "SMB", Quota: "FCFA 95K", Closed: "FCFA 41K", Forecast: "FCFA 18K", Attainment: 47, AttainmentTone: "danger", Link: all_routes.manageusers },
+  { key: "9", SalesRep: "Diego Fernandez", Team: "Enterprise", Quota: "FCFA 275K", Closed: "FCFA 198K", Forecast: "FCFA 164K", Attainment: 84, AttainmentTone: "success", Link: all_routes.manageusers },
 ];
 
 // ---- Team Forecast table ---------------------------------------------------
@@ -144,9 +144,9 @@ export interface TeamForecastRow {
 }
 
 export const TeamForecastData: TeamForecastRow[] = [
-  { key: "1", Team: "Enterprise", Quota: "$440K", Forecast: "$389K", Gap: "-$51K", GapTone: "danger", Link: all_routes.teamsList },
-  { key: "2", Team: "Mid-Market", Quota: "$330K", Forecast: "$346K", Gap: "+$16K", GapTone: "success", Link: all_routes.teamsList },
-  { key: "3", Team: "SMB", Quota: "$150K", Forecast: "$110K", Gap: "-$40K", GapTone: "danger", Link: all_routes.teamsList },
+  { key: "1", Team: "Enterprise", Quota: "FCFA 440K", Forecast: "FCFA 389K", Gap: "-FCFA 51K", GapTone: "danger", Link: all_routes.teamsList },
+  { key: "2", Team: "Mid-Market", Quota: "FCFA 330K", Forecast: "FCFA 346K", Gap: "+FCFA 16K", GapTone: "success", Link: all_routes.teamsList },
+  { key: "3", Team: "SMB", Quota: "FCFA 150K", Forecast: "FCFA 110K", Gap: "-FCFA 40K", GapTone: "danger", Link: all_routes.teamsList },
 ];
 
 // ---- Historical Performance table ------------------------------------------
@@ -165,10 +165,10 @@ export interface HistoricalPerformanceRow {
 }
 
 export const HistoricalPerformanceData: HistoricalPerformanceRow[] = [
-  { key: "1", Period: "Q2 2026", Quota: "$1.68M", Forecast: "$1.69M", Actual: "$1.72M", Attainment: "102%", AttainmentTone: "success", ForecastAccuracy: "98.3%", ForecastAccuracyTone: "success", DealsWon: 128 },
-  { key: "2", Period: "Q1 2026", Quota: "$1.52M", Forecast: "$1.51M", Actual: "$1.50M", Attainment: "99%", AttainmentTone: "success", ForecastAccuracy: "99.3%", ForecastAccuracyTone: "success", DealsWon: 114 },
-  { key: "3", Period: "Q4 2025", Quota: "$1.40M", Forecast: "$1.42M", Actual: "$1.38M", Attainment: "99%", AttainmentTone: "warning", ForecastAccuracy: "97.2%", ForecastAccuracyTone: "warning", DealsWon: 106 },
-  { key: "4", Period: "Q3 2025", Quota: "$1.26M", Forecast: "$1.31M", Actual: "$1.19M", Attainment: "94%", AttainmentTone: "danger", ForecastAccuracy: "90.8%", ForecastAccuracyTone: "danger", DealsWon: 97 },
+  { key: "1", Period: "Q2 2026", Quota: "FCFA 1.68M", Forecast: "FCFA 1.69M", Actual: "FCFA 1.72M", Attainment: "102%", AttainmentTone: "success", ForecastAccuracy: "98.3%", ForecastAccuracyTone: "success", DealsWon: 128 },
+  { key: "2", Period: "Q1 2026", Quota: "FCFA 1.52M", Forecast: "FCFA 1.51M", Actual: "FCFA 1.50M", Attainment: "99%", AttainmentTone: "success", ForecastAccuracy: "99.3%", ForecastAccuracyTone: "success", DealsWon: 114 },
+  { key: "3", Period: "Q4 2025", Quota: "FCFA 1.40M", Forecast: "FCFA 1.42M", Actual: "FCFA 1.38M", Attainment: "99%", AttainmentTone: "warning", ForecastAccuracy: "97.2%", ForecastAccuracyTone: "warning", DealsWon: 106 },
+  { key: "4", Period: "Q3 2025", Quota: "FCFA 1.26M", Forecast: "FCFA 1.31M", Actual: "FCFA 1.19M", Attainment: "94%", AttainmentTone: "danger", ForecastAccuracy: "90.8%", ForecastAccuracyTone: "danger", DealsWon: 97 },
 ];
 
 // ---- Filters (Sales Rep / Team / Region / Pipeline / Date range selects) --

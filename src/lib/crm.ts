@@ -12,22 +12,20 @@ export type EntityType =
 
 const FILE_MANAGER_ENTITY = "00000000-0000-0000-0000-000000000001";
 
-const fcfa = new Intl.NumberFormat("fr-CM", {
-  style: "currency",
-  currency: "XAF",
+const numberFmt = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
+
+export function formatMoney(value: number | null | undefined): string {
+  return `${numberFmt.format(Math.round(Number(value ?? 0)))} FCFA`;
+}
 
 const dateFmt = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "short",
   year: "numeric",
 });
-
-export function formatMoney(value: number | null | undefined): string {
-  return fcfa.format(Number(value ?? 0));
-}
 
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";

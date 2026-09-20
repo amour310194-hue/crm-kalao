@@ -648,13 +648,13 @@ export const insights: AiInsight[] = [
     id: "I-01",
     category: "risk",
     severity: "critical",
-    title: "3 deals worth $184K have gone quiet",
+    title: "3 deals worth FCFA 184K have gone quiet",
     body:
       "Meridian Health, Cobalt Studio and two smaller deals have had no logged contact for 8+ days. Combined, they represent 22% of your committed forecast this quarter.",
     why: "Deals with no contact for 8+ days at Negotiation or later slipped past their close date 64% of the time across your last 4 quarters.",
     action: "Review stalled deals",
     link: "deal-risk-analysis.html",
-    metric: "$184K",
+    metric: "FCFA 184K",
     metricLabel: "at risk",
     icon: "ti-alert-hexagon",
     tone: "danger",
@@ -666,11 +666,11 @@ export const insights: AiInsight[] = [
     severity: "opportunity",
     title: "Q3 forecast is tracking 8.4% ahead of last quarter",
     body:
-      "Weighted forecast now stands at $845K against a $920K quota. Commit-category deals have grown $62K week over week, Partners and Northwind Logistics.",
+      "Weighted forecast now stands at FCFA 845K against a FCFA 920K quota. Commit-category deals have grown FCFA 62K week over week, Partners and Northwind Logistics.",
     why: "Based on weighted pipeline across 53 open deals using stage-level historical win rates.",
     action: "Open forecast",
     link: "sales-forecasting.html",
-    metric: "$845K",
+    metric: "FCFA 845K",
     metricLabel: "weighted forecast",
     icon: "ti-trending-up",
     tone: "success",
@@ -713,7 +713,7 @@ export const insights: AiInsight[] = [
     severity: "medium",
     title: "Tomas Lindqvist is 24% behind quota with 5 weeks left",
     body:
-      "Closed-won sits at $96K against a $220K quota. Weighted forecast adds $71K, leaving a $53K gap. Activity volume is 31% below team average.",
+      "Closed-won sits at FCFA 96K against a FCFA 220K quota. Weighted forecast adds FCFA 71K, leaving a FCFA 53K gap. Activity volume is 31% below team average.",
     why: "Reps below 80% attainment at this point in the quarter finished below quota in 71% of prior quarters without an intervention.",
     action: "Open team report",
     link: "team-performance-report.html",
@@ -727,13 +727,13 @@ export const insights: AiInsight[] = [
     id: "I-06",
     category: "revenue",
     severity: "opportunity",
-    title: "$240K of expansion revenue is available in 6 accounts",
+    title: "FCFA 240K of expansion revenue is available in 6 accounts",
     body:
-      "Six existing customers are at or above 85% seat utilisation with no open expansion deal. Median expansion size in this cohort is $40K.",
+      "Six existing customers are at or above 85% seat utilisation with no open expansion deal. Median expansion size in this cohort is FCFA 40K.",
     why: "Accounts crossing 85% utilisation accepted an expansion offer 47% of the time within two quarters.",
     action: "View accounts",
     link: "companies.html",
-    metric: "$240K",
+    metric: "FCFA 240K",
     metricLabel: "expansion potential",
     icon: "ti-coin",
     tone: "success",
@@ -795,7 +795,7 @@ export const insights: AiInsight[] = [
 export const actions: AiAction[] = [
   {
     title: "Call Meridian Health before the day ends",
-    meta: "Deal stalled 8 days · $74.5K at risk",
+    meta: "Deal stalled 8 days · FCFA 74.5K at risk",
     icon: "ti-phone",
     tone: "danger",
     link: "deal-risk-analysis.html",
@@ -803,7 +803,7 @@ export const actions: AiAction[] = [
   },
   {
     title: "Send multi-year pricing to Halcyon Partners",
-    meta: "CFO requested terms 6 hours ago · $128K",
+    meta: "CFO requested terms 6 hours ago · FCFA 128K",
     icon: "ti-file-dollar",
     tone: "success",
     link: "ai-email-composer.html",
@@ -838,7 +838,7 @@ export const actions: AiAction[] = [
 // AI Command Center's actions-queue summary strip ("Revenue impact"). Not
 // derived from `actions` (which carries no dollar field) - a standalone
 // figure in the original template.
-export const AI_COMMAND_ACTIONS_REVENUE_IMPACT = "$372K";
+export const AI_COMMAND_ACTIONS_REVENUE_IMPACT = "FCFA 372K";
 
 // =======================================================================
 // AI Email Composer - canned copy keyed by purpose, tone and length
@@ -1061,20 +1061,20 @@ export const AI_ASK_LIBRARY: AiAskLibraryEntry[] = [
     keys: ["close this month", "likely to close", "closing", "close soon"],
     answer: {
       text:
-        "Four deals have a closing probability above 55% with an expected close date inside this quarter. Together they represent <strong>$361K</strong> in weighted pipeline. Halcyon Partners and Northwind Logistics are the two most likely to land - both have active buying signals in the last 48 hours.",
+        "Four deals have a closing probability above 55% with an expected close date inside this quarter. Together they represent <strong>FCFA 361K</strong> in weighted pipeline. Halcyon Partners and Northwind Logistics are the two most likely to land - both have active buying signals in the last 48 hours.",
       kpis: [
         { label: "Deals likely to close", value: "4" },
-        { label: "Combined value", value: "$360.5K" },
-        { label: "Weighted value", value: "$252K" },
+        { label: "Combined value", value: "FCFA 360.5K" },
+        { label: "Weighted value", value: "FCFA 252K" },
         { label: "Avg. probability", value: "71%", sub: "+6% vs last month", tone: "success" },
       ],
       table: {
         columns: ["Deal", "Value", "Stage", "Close date", "Probability", "Risk"],
         rows: [
-          ["Northwind Logistics - Renewal", "$96,000", "Contract Review", "28 Aug 2026", "92%", "Low Risk"],
-          ["Halcyon Partners - Pilot", "$128,000", "Negotiation", "19 Sep 2026", "74%", "Low Risk"],
-          ["Meridian Health - Expansion", "$74,500", "Negotiation", "04 Sep 2026", "61%", "Medium Risk"],
-          ["Arclight Media - Upsell", "$62,000", "Proposal Sent", "26 Sep 2026", "58%", "Medium Risk"],
+          ["Northwind Logistics - Renewal", "FCFA 96,000", "Contract Review", "28 Aug 2026", "92%", "Low Risk"],
+          ["Halcyon Partners - Pilot", "FCFA 128,000", "Negotiation", "19 Sep 2026", "74%", "Low Risk"],
+          ["Meridian Health - Expansion", "FCFA 74,500", "Negotiation", "04 Sep 2026", "61%", "Medium Risk"],
+          ["Arclight Media - Upsell", "FCFA 62,000", "Proposal Sent", "26 Sep 2026", "58%", "Medium Risk"],
         ],
         cellTones: [
           [null, null, null, null, null, "success"],
@@ -1141,11 +1141,11 @@ export const AI_ASK_LIBRARY: AiAskLibraryEntry[] = [
       table: {
         columns: ["Sales rep", "Quota", "Closed won", "Attainment"],
         rows: [
-          ["Ellis Vandermeer", "$150K", "$139K", "118%"],
-          ["Adrian Herrera", "$220K", "$168K", "101%"],
-          ["Priya Raghunathan", "$180K", "$121K", "93%"],
-          ["Tomas Lindqvist", "$220K", "$96K", "76%"],
-          ["Nadia Okonkwo", "$150K", "$58K", "61%"],
+          ["Ellis Vandermeer", "FCFA 150K", "FCFA 139K", "118%"],
+          ["Adrian Herrera", "FCFA 220K", "FCFA 168K", "101%"],
+          ["Priya Raghunathan", "FCFA 180K", "FCFA 121K", "93%"],
+          ["Tomas Lindqvist", "FCFA 220K", "FCFA 96K", "76%"],
+          ["Nadia Okonkwo", "FCFA 150K", "FCFA 58K", "61%"],
         ],
         cellTones: [
           [null, null, null, "success"],
@@ -1174,16 +1174,16 @@ export const AI_ASK_LIBRARY: AiAskLibraryEntry[] = [
         "Three accounts show churn or slip risk this quarter. <strong>Arclight Media</strong> is the most urgent - usage down 12% with a renewal in 74 days and an open upsell. <strong>Meridian Health</strong> has elevated support volume during an active expansion.",
       kpis: [
         { label: "Accounts at risk", value: "3" },
-        { label: "Revenue exposed", value: "$248K", tone: "danger", sub: "ARR at risk" },
+        { label: "Revenue exposed", value: "FCFA 248K", tone: "danger", sub: "ARR at risk" },
         { label: "Avg. health score", value: "52" },
         { label: "Renewals < 90 days", value: "2" },
       ],
       table: {
         columns: ["Account", "Health", "Signal", "Renewal", "ARR"],
         rows: [
-          ["Arclight Media", "38", "Usage down 12%", "74 days", "$96K"],
-          ["Meridian Health", "54", "Support tickets +34%", "112 days", "$88K"],
-          ["Cobalt Studio", "61", "Champion left", "156 days", "$64K"],
+          ["Arclight Media", "38", "Usage down 12%", "74 days", "FCFA 96K"],
+          ["Meridian Health", "54", "Support tickets +34%", "112 days", "FCFA 88K"],
+          ["Cobalt Studio", "61", "Champion left", "156 days", "FCFA 64K"],
         ],
         cellTones: [
           [null, "danger", null, null, null],
@@ -1199,11 +1199,11 @@ export const AI_ASK_LIBRARY: AiAskLibraryEntry[] = [
     keys: ["pipeline value", "pipeline", "forecast"],
     answer: {
       text:
-        "Total open pipeline is <strong>$1.84M</strong> across 53 deals. Weighted by stage probability that comes to <strong>$845K</strong> against a $920K quota - a coverage ratio of 2.0x, below the 3.0x you typically need at this point in the quarter.",
+        "Total open pipeline is <strong>FCFA 1.84M</strong> across 53 deals. Weighted by stage probability that comes to <strong>FCFA 845K</strong> against a FCFA 920K quota - a coverage ratio of 2.0x, below the 3.0x you typically need at this point in the quarter.",
       kpis: [
-        { label: "Open pipeline", value: "$1.84M" },
-        { label: "Weighted forecast", value: "$845K", sub: "+8.4% vs last quarter", tone: "success" },
-        { label: "Quota", value: "$920K" },
+        { label: "Open pipeline", value: "FCFA 1.84M" },
+        { label: "Weighted forecast", value: "FCFA 845K", sub: "+8.4% vs last quarter", tone: "success" },
+        { label: "Quota", value: "FCFA 920K" },
         { label: "Coverage ratio", value: "2.0x", sub: "below 3.0x target", tone: "warning" },
       ],
       chart: {
@@ -1227,18 +1227,18 @@ export const AI_ASK_LIBRARY: AiAskLibraryEntry[] = [
     keys: ["inactive", "30 days", "stalled", "quiet"],
     answer: {
       text:
-        "Two deals worth <strong>$122.5K</strong> have had no logged activity for more than 30 days, and a further six have been quiet for 8-29 days. Cobalt Studio is the most exposed - 71 days old, no decision-maker identified and a competitor already named.",
+        "Two deals worth <strong>FCFA 122.5K</strong> have had no logged activity for more than 30 days, and a further six have been quiet for 8-29 days. Cobalt Studio is the most exposed - 71 days old, no decision-maker identified and a competitor already named.",
       kpis: [
         { label: "Inactive 30+ days", value: "2" },
-        { label: "Value stalled", value: "$122.5K", tone: "danger" },
+        { label: "Value stalled", value: "FCFA 122.5K", tone: "danger" },
         { label: "Inactive 8-29 days", value: "6" },
         { label: "Avg. days quiet", value: "19" },
       ],
       table: {
         columns: ["Deal", "Value", "Days inactive", "Stage", "Owner"],
         rows: [
-          ["Cobalt Studio - New Business", "$48,000", "14 days", "Proposal Sent", "Priya Raghunathan"],
-          ["Meridian Health - Expansion", "$74,500", "8 days", "Negotiation", "Ellis Vandermeer"],
+          ["Cobalt Studio - New Business", "FCFA 48,000", "14 days", "Proposal Sent", "Priya Raghunathan"],
+          ["Meridian Health - Expansion", "FCFA 74,500", "8 days", "Negotiation", "Ellis Vandermeer"],
         ],
         cellTones: [
           [null, null, "danger", null, null],

@@ -70,7 +70,7 @@ function samplePayload(eventKey: string): string {
     "id": "D-1094",
     "name": "Northwind Logistics - Renewal",
     "amount": 96000,
-    "currency": "USD",
+    "currency": "FCFA",
     "stage": "Closed Won",
     "owner": {
       "id": "U-14",

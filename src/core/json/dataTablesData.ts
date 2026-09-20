@@ -6,7 +6,7 @@ export const DataTablesData = [
     Office: "Edinburgh",
     Age: "61",
     Start_date: "2011 Apr 25",
-    Salary: "$320,800",
+    Salary: "FCFA 320,800",
   },
   {
     key: "2",
@@ -15,7 +15,7 @@ export const DataTablesData = [
     Office: "Tokyo",
     Age: "63",
     Start_date: "2011 Jul 25",
-    Salary: "$170,750",
+    Salary: "FCFA 170,750",
   },
   {
     key: "3",
@@ -24,7 +24,7 @@ export const DataTablesData = [
     Office: "San Francisco",
     Age: "66",
     Start_date: "2009 Jan 12",
-    Salary: "$86,000",
+    Salary: "FCFA 86,000",
   },
   {
     key: "4",
@@ -33,7 +33,7 @@ export const DataTablesData = [
     Office: "Edinburgh",
     Age: "22",
     Start_date: "2012 Mar 29",
-    Salary: "$433,060",
+    Salary: "FCFA 433,060",
   },
   {
     key: "5",
@@ -42,7 +42,7 @@ export const DataTablesData = [
     Office: "Tokyo",
     Age: "33",
     Start_date: "2008 Nov 28",
-    Salary: "$162,700",
+    Salary: "FCFA 162,700",
   },
   {
     key: "6",
@@ -51,7 +51,7 @@ export const DataTablesData = [
     Office: "New York",
     Age: "61",
     Start_date: "2012 Dec 02",
-    Salary: "$372,000",
+    Salary: "FCFA 372,000",
   },
   {
     key: "7",
@@ -60,7 +60,7 @@ export const DataTablesData = [
     Office: "San Francisco",
     Age: "59",
     Start_date: "2012 Aug 06",
-    Salary: "$137,500",
+    Salary: "FCFA 137,500",
   },
   {
     key: "8",
@@ -69,7 +69,7 @@ export const DataTablesData = [
     Office: "Tokyo",
     Age: "55",
     Start_date: "2010 Oct 14",
-    Salary: "$327,900",
+    Salary: "FCFA 327,900",
   },
   {
     key: "9",
@@ -78,7 +78,7 @@ export const DataTablesData = [
     Office: "San Francisco",
     Age: "39",
     Start_date: "2009 Sep 15",
-    Salary: "$205,500",
+    Salary: "FCFA 205,500",
   },
   
 ];

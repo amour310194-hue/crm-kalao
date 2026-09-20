@@ -248,23 +248,23 @@ const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
               <div className="card-body">
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Subtotal</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$0.00</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 0.00</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Discount 2%</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Extra Discount 0%</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Tax</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <h6 className="fs-14 fw-semibold mb-0">Total</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
               </div>
             </div>
@@ -481,7 +481,7 @@ const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
                         <input
                           type="text"
                           className="form-control"
-                          defaultValue="$200"
+                          defaultValue="FCFA 200"
                         />
                       </div>
                     </td>
@@ -499,7 +499,7 @@ const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
                         <input
                           type="text"
                           className="form-control"
-                          defaultValue="$900"
+                          defaultValue="FCFA 900"
                         />
                       </div>
                     </td>
@@ -516,23 +516,23 @@ const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
               <div className="card-body">
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Subtotal</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$0.00</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 0.00</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Discount 2%</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Extra Discount 0%</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <h6 className="fs-14 fw-semibold mb-0">Tax</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <h6 className="fs-14 fw-semibold mb-0">Total</h6>
-                  <h6 className="fs-14 fw-semibold mb-0">$18</h6>
+                  <h6 className="fs-14 fw-semibold mb-0">FCFA 18</h6>
                 </div>
               </div>
             </div>

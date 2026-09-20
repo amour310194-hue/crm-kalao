@@ -222,7 +222,7 @@ const InvoicesGrid = () => {
                                     className="form-check-input m-0 me-1"
                                     type="checkbox"
                                   />
-                                  $2,15,000
+                                  FCFA 2,15,000
                                 </label>
                               </li>
                               <li>
@@ -231,7 +231,7 @@ const InvoicesGrid = () => {
                                     className="form-check-input m-0 me-1"
                                     type="checkbox"
                                   />
-                                  $1,45,000
+                                  FCFA 1,45,000
                                 </label>
                               </li>
                               <li>
@@ -240,7 +240,7 @@ const InvoicesGrid = () => {
                                     className="form-check-input m-0 me-1"
                                     type="checkbox"
                                   />
-                                  $2,12,000
+                                  FCFA 2,12,000
                                 </label>
                               </li>
                               <li>
@@ -249,7 +249,7 @@ const InvoicesGrid = () => {
                                     className="form-check-input m-0 me-1"
                                     type="checkbox"
                                   />
-                                  $4,80,380
+                                  FCFA 4,80,380
                                 </label>
                               </li>
                             </ul>
@@ -537,7 +537,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$2,15,000</span>
+                        <span className="text-dark ms-1">FCFA 2,15,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -547,12 +547,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$2,15,000</span>
+                        <span className="text-dark ms-1">FCFA 2,15,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$0</span>
+                        <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                     </div>
                   </div>
@@ -674,7 +674,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$1,45,000</span>
+                        <span className="text-dark ms-1">FCFA 1,45,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -684,12 +684,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$1,45,000</span>
+                        <span className="text-dark ms-1">FCFA 1,45,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$0</span>
+                        <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                     </div>
                   </div>
@@ -811,7 +811,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$2,15,000</span>
+                        <span className="text-dark ms-1">FCFA 2,15,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -821,12 +821,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$1,00,000</span>
+                        <span className="text-dark ms-1">FCFA 1,00,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$1,15,000</span>
+                        <span className="text-dark ms-1">FCFA 1,15,000</span>
                       </p>
                     </div>
                   </div>
@@ -946,7 +946,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$4,80,380</span>
+                        <span className="text-dark ms-1">FCFA 4,80,380</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -956,12 +956,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$4,80,380</span>
+                        <span className="text-dark ms-1">FCFA 4,80,380</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$0</span>
+                        <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                     </div>
                   </div>
@@ -1081,7 +1081,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$2,12,000</span>
+                        <span className="text-dark ms-1">FCFA 2,12,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1090,12 +1090,12 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
-                        Paid Amount : <span className="text-dark ms-1">$0</span>
+                        Paid Amount : <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$2,12,000</span>
+                        <span className="text-dark ms-1">FCFA 2,12,000</span>
                       </p>
                     </div>
                   </div>
@@ -1217,7 +1217,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$3,50,000</span>
+                        <span className="text-dark ms-1">FCFA 3,50,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1227,12 +1227,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$1,50,000</span>
+                        <span className="text-dark ms-1">FCFA 1,50,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$2,00,000</span>
+                        <span className="text-dark ms-1">FCFA 2,00,000</span>
                       </p>
                     </div>
                   </div>
@@ -1352,7 +1352,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$2,46,000</span>
+                        <span className="text-dark ms-1">FCFA 2,46,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1362,12 +1362,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$1,23,000</span>
+                        <span className="text-dark ms-1">FCFA 1,23,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$1,23,000</span>
+                        <span className="text-dark ms-1">FCFA 1,23,000</span>
                       </p>
                     </div>
                   </div>
@@ -1487,7 +1487,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$3,12,500</span>
+                        <span className="text-dark ms-1">FCFA 3,12,500</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1497,12 +1497,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$3,12,500</span>
+                        <span className="text-dark ms-1">FCFA 3,12,500</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$0</span>
+                        <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                     </div>
                   </div>
@@ -1622,7 +1622,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$4,18,000</span>
+                        <span className="text-dark ms-1">FCFA 4,18,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1631,12 +1631,12 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
-                        Paid Amount : <span className="text-dark ms-1">$0</span>
+                        Paid Amount : <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$4,18,000</span>
+                        <span className="text-dark ms-1">FCFA 4,18,000</span>
                       </p>
                     </div>
                   </div>
@@ -1758,7 +1758,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$5,00,000</span>
+                        <span className="text-dark ms-1">FCFA 5,00,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1768,12 +1768,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$5,00,000</span>
+                        <span className="text-dark ms-1">FCFA 5,00,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$0</span>
+                        <span className="text-dark ms-1">FCFA 0</span>
                       </p>
                     </div>
                   </div>
@@ -1897,7 +1897,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$5,00,000</span>
+                        <span className="text-dark ms-1">FCFA 5,00,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -1907,12 +1907,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$2,15,000</span>
+                        <span className="text-dark ms-1">FCFA 2,15,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$2,15,000</span>
+                        <span className="text-dark ms-1">FCFA 2,15,000</span>
                       </p>
                     </div>
                   </div>
@@ -2029,7 +2029,7 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-report-money text-dark fs-16 me-1" />
                         Total Value :{" "}
-                        <span className="text-dark ms-1">$2,46,000</span>
+                        <span className="text-dark ms-1">FCFA 2,46,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
@@ -2039,12 +2039,12 @@ const InvoicesGrid = () => {
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Paid Amount :{" "}
-                        <span className="text-dark ms-1">$1,23,000</span>
+                        <span className="text-dark ms-1">FCFA 1,23,000</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-0">
                         <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
                         Balance Amount :{" "}
-                        <span className="text-dark ms-1">$1,23,000</span>
+                        <span className="text-dark ms-1">FCFA 1,23,000</span>
                       </p>
                     </div>
                   </div>

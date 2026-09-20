@@ -6,7 +6,7 @@ export const PurchaseTransactionListData = [
     Customer: "NovaWave LLC",
     Email: "michael@example.com",
     CreatedDate: "12 Sep 2024",
-    Amount: "$200",
+    Amount: "FCFA 200",
     PaymentMethod: "Credit Card",
     Status: "Paid",
     Action:
@@ -19,7 +19,7 @@ export const PurchaseTransactionListData = [
     Customer: "BlueSky Industries",
     Email: "sophie@example.com",
     CreatedDate: "24 Oct 2024",
-    Amount: "$600",
+    Amount: "FCFA 600",
     PaymentMethod: "Paypal",
     Status: "Paid",
     Action:
@@ -32,7 +32,7 @@ export const PurchaseTransactionListData = [
     Customer: "Silver Hawk",
     Email: "cameron@example.com",
     CreatedDate: "18 Feb 2024",
-    Amount: "$200",
+    Amount: "FCFA 200",
     PaymentMethod: "Debit Card",
     Status: "Paid",
     Action:
@@ -45,7 +45,7 @@ export const PurchaseTransactionListData = [
     Customer: "Summit  Peak",
     Email: "doris@example.com",
     CreatedDate: "17 Oct 2024",
-    Amount: "$200",
+    Amount: "FCFA 200",
     PaymentMethod: "Paypal",
     Status: "Paid",
     Action:
@@ -58,7 +58,7 @@ export const PurchaseTransactionListData = [
     Customer: "RiverStone Ventur",
     Email: "thomas@example.com",
     CreatedDate: "20 Jul 2024",
-    Amount: "$400",
+    Amount: "FCFA 400",
     PaymentMethod: "Credit Card",
     Status: "Paid",
     Action:
@@ -71,7 +71,7 @@ export const PurchaseTransactionListData = [
     Customer: "Bright Bridge Grp",
     Email: "kathleen@example.com",
     CreatedDate: "10 Apr 2024",
-    Amount: "$200",
+    Amount: "FCFA 200",
     PaymentMethod: "Paypal",
     Status: "Paid",
     Action:
@@ -84,7 +84,7 @@ export const PurchaseTransactionListData = [
     Customer: "CoastalStar Co.",
     Email: "bruce@example.com",
     CreatedDate: "29 Aug 2024",
-    Amount: "$4800",
+    Amount: "FCFA 4800",
     PaymentMethod: "Credit Card",
     Status: "Paid",
     Action:
@@ -97,7 +97,7 @@ export const PurchaseTransactionListData = [
     Customer: "HarborView",
     Email: "estelle@example.com",
     CreatedDate: "22 Feb 2024",
-    Amount: "$50",
+    Amount: "FCFA 50",
     PaymentMethod: "Credit Card",
     Status: "Unpaid",
     Action:
@@ -110,7 +110,7 @@ export const PurchaseTransactionListData = [
     Customer: "Golden Gate Ltd",
     Email: "stephen@example.com",
     CreatedDate: "03 Nov 2024",
-    Amount: "$600",
+    Amount: "FCFA 600",
     PaymentMethod: "Paypal",
     Status: "Paid",
     Action:
@@ -123,7 +123,7 @@ export const PurchaseTransactionListData = [
     Customer: "Redwood Inc",
     Email: "angela@example.com",
     CreatedDate: "17 Dec 2024",
-    Amount: "$200",
+    Amount: "FCFA 200",
     PaymentMethod: "Credit Card",
     Status: "Paid",
     Action:

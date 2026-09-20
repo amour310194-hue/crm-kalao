@@ -145,7 +145,7 @@ const RevenueChart = () => {
               font-weight:700;
               color:#111827;
             ">
-              £${value}k
+              ${value}k FCFA
             </div>
           </div>
         `;

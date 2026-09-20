@@ -142,7 +142,7 @@ const MainDashboardComponent = () => {
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <div className="d-flex align-items-center flex-wrap gap-2">
                       <h4 className="mb-0">495K</h4>
-                      <p className="mb-0">Revenue with Sales (USD)</p>
+                      <p className="mb-0">Revenue with Sales (FCFA)</p>
                     </div>
                     <div className="d-flex align-items-center flex-wrap gap-2">
                       <div className="d-flex align-items-center border rounded px-2 py-1">
@@ -228,7 +228,7 @@ const MainDashboardComponent = () => {
               <div className="card flex-fill">
                 <div className="card-body position-relative">
                   <p className="fw-medium mb-1">Revenue</p>
-                  <h4 className="mb-3">$15,44,540</h4>
+                  <h4 className="mb-3">FCFA 15,44,540</h4>
                   <div className="d-flex align-items-center gap-2 flex-wrap">
                     <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
                       +2.5%
@@ -405,7 +405,7 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                     <div className="text-sm-end mb-0">
-                      <p className="fw-semibold mb-0 text-dark">$19,94,938</p>
+                      <p className="fw-semibold mb-0 text-dark">FCFA 19,94,938</p>
                     </div>
                   </div>
                   <div className="d-flex align-items-sm-center justify-content-between gap-2 flex-sm-row flex-column mb-3">
@@ -430,7 +430,7 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                     <div className="text-sm-end mb-0">
-                      <p className="fw-semibold mb-0 text-dark">$15,44,540</p>
+                      <p className="fw-semibold mb-0 text-dark">FCFA 15,44,540</p>
                     </div>
                   </div>
                   {/* Item-4 */}
@@ -456,7 +456,7 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                     <div className="text-sm-end mb-0">
-                      <p className="fw-semibold mb-0 text-dark">$10,36,390</p>
+                      <p className="fw-semibold mb-0 text-dark">FCFA 10,36,390</p>
                     </div>
                   </div>
                   {/* Item-2 */}
@@ -482,7 +482,7 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                     <div className="text-sm-end mb-0">
-                      <p className="fw-semibold mb-0 text-dark">$10,15,280</p>
+                      <p className="fw-semibold mb-0 text-dark">FCFA 10,15,280</p>
                     </div>
                   </div>
                   {/* Item-5 */}
@@ -508,7 +508,7 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                     <div className="text-sm-end mb-0">
-                      <p className="fw-semibold mb-0 text-dark">$10,14,112</p>
+                      <p className="fw-semibold mb-0 text-dark">FCFA 10,14,112</p>
                     </div>
                   </div>
                   <Link
@@ -556,28 +556,28 @@ const MainDashboardComponent = () => {
                     <div className="col-6 col-sm-3">
                       <div>
                         <p className="mb-1">Lead</p>
-                        <p className="text-dark fw-medium mb-1">$20010</p>
+                        <p className="text-dark fw-medium mb-1">FCFA 20010</p>
                         <p className="mb-0">80 Deals</p>
                       </div>
                     </div>
                     <div className="col-6 col-sm-3">
                       <div>
                         <p className="mb-1">Proposal</p>
-                        <p className="text-dark fw-medium mb-1">$17210</p>
+                        <p className="text-dark fw-medium mb-1">FCFA 17210</p>
                         <p className="mb-0">23 Deals</p>
                       </div>
                     </div>
                     <div className="col-6 col-sm-3">
                       <div>
                         <p className="mb-1">Sales</p>
-                        <p className="text-dark fw-medium mb-1">$9210</p>
+                        <p className="text-dark fw-medium mb-1">FCFA 9210</p>
                         <p className="mb-0">12 Deals</p>
                       </div>
                     </div>
                     <div className="col-6 col-sm-3">
                       <div>
                         <p className="mb-1">Won</p>
-                        <p className="text-dark fw-medium mb-1">$8210</p>
+                        <p className="text-dark fw-medium mb-1">FCFA 8210</p>
                         <p className="mb-0">21 Deals</p>
                       </div>
                     </div>
@@ -594,7 +594,7 @@ const MainDashboardComponent = () => {
                       <span className="fw-normal fs-14 text-body">
                         Profit Earned
                       </span>{" "}
-                      $85K{" "}
+                      FCFA 85K{" "}
                     </h5>
                     <div className="dropdown">
                       <Link
@@ -818,7 +818,7 @@ const MainDashboardComponent = () => {
                             </a>
                           </td>
                           <td>Appointment</td>
-                          <td>$19,94,938</td>
+                          <td>FCFA 19,94,938</td>
                           <td>
                             <span className="badge badge-pill border badge-soft-secondary border-secondary">
                               Rated
@@ -856,7 +856,7 @@ const MainDashboardComponent = () => {
                             </a>
                           </td>
                           <td>Appointment</td>
-                          <td>$15,44,540</td>
+                          <td>FCFA 15,44,540</td>
                           <td>
                             <span className="badge badge-pill border badge-soft-success border-success">
                               Collab
@@ -894,7 +894,7 @@ const MainDashboardComponent = () => {
                             </a>
                           </td>
                           <td>Contact Made</td>
-                          <td>$10,36,390</td>
+                          <td>FCFA 10,36,390</td>
                           <td>
                             <span className="badge badge-pill border badge-soft-purple border-purple">
                               Promotion
@@ -932,7 +932,7 @@ const MainDashboardComponent = () => {
                             </a>
                           </td>
                           <td>Presentation</td>
-                          <td>$16,11,420</td>
+                          <td>FCFA 16,11,420</td>
                           <td>
                             <span className="badge badge-pill border badge-soft-secondary border-secondary">
                               Rated
@@ -970,7 +970,7 @@ const MainDashboardComponent = () => {
                             </a>
                           </td>
                           <td>Proposal Made</td>
-                          <td>$90,59,472</td>
+                          <td>FCFA 90,59,472</td>
                           <td>
                             <span className="badge badge-pill border badge-soft-danger border-danger">
                               Rejected

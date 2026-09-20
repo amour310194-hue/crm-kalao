@@ -109,7 +109,7 @@ const DelasDashboardComponent = () => {
                             </Link>
                           </td>
                           <td>Appointment</td>
-                          <td>$04,51,000</td>
+                          <td>FCFA 04,51,000</td>
                           <td>
                             <span className="badge badge-pill  bg-success">
                               Won
@@ -126,7 +126,7 @@ const DelasDashboardComponent = () => {
                             </Link>
                           </td>
                           <td>Contact Made</td>
-                          <td>$72,14,078</td>
+                          <td>FCFA 72,14,078</td>
                           <td>
                             <span className="badge badge-pill  bg-danger">
                               Lost
@@ -143,7 +143,7 @@ const DelasDashboardComponent = () => {
                             </Link>
                           </td>
                           <td>Presentation</td>
-                          <td>$04,14,800</td>
+                          <td>FCFA 04,14,800</td>
                           <td>
                             <span className="badge badge-pill  bg-success">
                               Won
@@ -160,7 +160,7 @@ const DelasDashboardComponent = () => {
                             </Link>
                           </td>
                           <td>Proposal Made</td>
-                          <td>$16,11,400</td>
+                          <td>FCFA 16,11,400</td>
                           <td>
                             <span className="badge badge-pill  bg-success">
                               Won
@@ -177,7 +177,7 @@ const DelasDashboardComponent = () => {
                             </Link>
                           </td>
                           <td>Qualify To Buy</td>
-                          <td>$09,05,947</td>
+                          <td>FCFA 09,05,947</td>
                           <td>
                             <span className="badge badge-pill  bg-success">
                               Won

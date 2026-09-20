@@ -19,14 +19,14 @@ import {
 */
 const TOP_PERFORMERS = [
   {
-    Value: "$285K",
+    Value: "FCFA 285K",
     Name: "Robert Sheldon",
     Avatar: "assets/img/profiles/avatar-01.jpg",
     Deals: "45 deals closed",
     Conversion: "86.5% conversion",
   },
   {
-    Value: "$194K",
+    Value: "FCFA 194K",
     Name: "John Smith",
     Avatar: "assets/img/profiles/avatar-02.jpg",
     Deals: "32 deals closed",

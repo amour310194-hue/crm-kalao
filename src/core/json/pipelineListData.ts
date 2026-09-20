@@ -2,7 +2,7 @@ export const PipelineListData = [
   {
     key: "1",
     PipelineName: "Sales",
-    TotalDealValue: "$4,50,664",
+    TotalDealValue: "FCFA 4,50,664",
     NoofDeals: "315",
     Stages: "Win",
     CreatedDate: "25 Sep 2025",
@@ -11,7 +11,7 @@ export const PipelineListData = [
   {
     key: "2",
     PipelineName: "Marketing",
-    TotalDealValue: "$3,12,893",
+    TotalDealValue: "FCFA 3,12,893",
     NoofDeals: "447",
     Stages: "Win",
     CreatedDate: "29 Sep 2025",
@@ -20,7 +20,7 @@ export const PipelineListData = [
   {
     key: "3",
     PipelineName: "Email",
-    TotalDealValue: "$2,89,274",
+    TotalDealValue: "FCFA 2,89,274",
     NoofDeals: "654",
     Stages: "In Pipeline",
     CreatedDate: "15 Oct 2025",
@@ -29,7 +29,7 @@ export const PipelineListData = [
   {
     key: "4",
     PipelineName: "Chats",
-    TotalDealValue: "$1,59,326",
+    TotalDealValue: "FCFA 1,59,326",
     NoofDeals: "768",
     Stages: "Win",
     CreatedDate: "29 Oct 2025",
@@ -38,7 +38,7 @@ export const PipelineListData = [
   {
     key: "5",
     PipelineName: "Operational",
-    TotalDealValue: "$2,90,173",
+    TotalDealValue: "FCFA 2,90,173",
     NoofDeals: "142",
     Stages: "Win",
     CreatedDate: "03 Nov 2025",
@@ -47,7 +47,7 @@ export const PipelineListData = [
   {
     key: "6",
     PipelineName: "Collaborative",
-    TotalDealValue: "$4,51,417",
+    TotalDealValue: "FCFA 4,51,417",
     NoofDeals: "315",
     Stages: "Conversation",
     CreatedDate: "17 Nov 2025",
@@ -56,7 +56,7 @@ export const PipelineListData = [
   {
     key: "7",
     PipelineName: "Differentiate",
-    TotalDealValue: "$3,17,589",
+    TotalDealValue: "FCFA 3,17,589",
     NoofDeals: "478",
     Stages: "Lost",
     CreatedDate: "23 Nov 2025",
@@ -65,7 +65,7 @@ export const PipelineListData = [
   {
     key: "8",
     PipelineName: "Interact",
-    TotalDealValue: "$1,69,146",
+    TotalDealValue: "FCFA 1,69,146",
     NoofDeals: "664",
     Stages: "Lost",
     CreatedDate: "09 Dec 2025",

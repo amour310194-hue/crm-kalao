@@ -334,7 +334,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $500
+                                      FCFA 500
                                     </label>
                                   </li>
                                   <li>
@@ -343,7 +343,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $450
+                                      FCFA 450
                                     </label>
                                   </li>
                                   <li>
@@ -352,7 +352,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $1230
+                                      FCFA 1230
                                     </label>
                                   </li>
                                   <li>
@@ -361,7 +361,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $3500
+                                      FCFA 3500
                                     </label>
                                   </li>
                                   <li>
@@ -370,7 +370,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $3500
+                                      FCFA 3500
                                     </label>
                                   </li>
                                   <li>
@@ -379,7 +379,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $2120
+                                      FCFA 2120
                                     </label>
                                   </li>
                                   <li>
@@ -388,7 +388,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $4000
+                                      FCFA 4000
                                     </label>
                                   </li>
                                   <li>
@@ -397,7 +397,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $2100
+                                      FCFA 2100
                                     </label>
                                   </li>
                                   <li>
@@ -406,7 +406,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $1450
+                                      FCFA 1450
                                     </label>
                                   </li>
                                   <li>
@@ -415,7 +415,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $2500
+                                      FCFA 2500
                                     </label>
                                   </li>
                                   <li>
@@ -424,7 +424,7 @@ const PaymentsComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $280
+                                      FCFA 280
                                     </label>
                                   </li>
                                 </ul>

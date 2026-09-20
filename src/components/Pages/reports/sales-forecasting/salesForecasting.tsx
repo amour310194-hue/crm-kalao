@@ -340,7 +340,7 @@ const SalesForecastingComponent = () => {
                   <i className="ti ti-chart-arrows-vertical text-primary" />
                   Forecast Revenue
                 </div>
-                <div className="fs-20 fw-bold text-dark">$845K</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 845K</div>
                 <div className="fs-12 text-success">
                   <i className="ti ti-arrow-up-right" /> 8.4% vs last quarter
                 </div>
@@ -354,7 +354,7 @@ const SalesForecastingComponent = () => {
                   <i className="ti ti-trophy text-success" />
                   Closed Revenue
                 </div>
-                <div className="fs-20 fw-bold text-dark">$612K</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 612K</div>
                 <div className="fs-12 text-muted">42 deals won</div>
               </div>
             </div>
@@ -366,7 +366,7 @@ const SalesForecastingComponent = () => {
                   <i className="ti ti-filter text-warning" />
                   Open Pipeline
                 </div>
-                <div className="fs-20 fw-bold text-dark">$1.84M</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 1.84M</div>
                 <div className="fs-12 text-muted">53 open deals</div>
               </div>
             </div>
@@ -378,7 +378,7 @@ const SalesForecastingComponent = () => {
                   <i className="ti ti-target text-info" />
                   Sales Quota
                 </div>
-                <div className="fs-20 fw-bold text-dark">$920K</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 920K</div>
                 <div className="fs-12 text-muted">Q3 2026 team target</div>
               </div>
             </div>
@@ -421,7 +421,7 @@ const SalesForecastingComponent = () => {
                 <span className="rel-strength is-strong" />
                 <span className="fs-12 text-muted">Commit</span>
               </div>
-              <div className="fs-20 fw-bold text-dark">$410K</div>
+              <div className="fs-20 fw-bold text-dark">FCFA 410K</div>
               <div className="fs-12 text-muted">18 deals · 92% avg</div>
             </div>
           </div>
@@ -431,7 +431,7 @@ const SalesForecastingComponent = () => {
                 <span className="rel-strength is-good" />
                 <span className="fs-12 text-muted">Best Case</span>
               </div>
-              <div className="fs-20 fw-bold text-dark">$190K</div>
+              <div className="fs-20 fw-bold text-dark">FCFA 190K</div>
               <div className="fs-12 text-muted">11 deals · 61% avg</div>
             </div>
           </div>
@@ -441,7 +441,7 @@ const SalesForecastingComponent = () => {
                 <span className="rel-strength is-weak" />
                 <span className="fs-12 text-muted">Pipeline</span>
               </div>
-              <div className="fs-20 fw-bold text-dark">$245K</div>
+              <div className="fs-20 fw-bold text-dark">FCFA 245K</div>
               <div className="fs-12 text-muted">24 deals · 28% avg</div>
             </div>
           </div>
@@ -451,7 +451,7 @@ const SalesForecastingComponent = () => {
                 <span className="rel-strength is-strong" />
                 <span className="fs-12 text-muted">Closed Won</span>
               </div>
-              <div className="fs-20 fw-bold text-dark">$612K</div>
+              <div className="fs-20 fw-bold text-dark">FCFA 612K</div>
               <div className="fs-12 text-success">42 deals</div>
             </div>
           </div>
@@ -461,7 +461,7 @@ const SalesForecastingComponent = () => {
                 <span className="rel-strength is-risk" />
                 <span className="fs-12 text-muted">Closed Lost</span>
               </div>
-              <div className="fs-20 fw-bold text-dark">$148K</div>
+              <div className="fs-20 fw-bold text-dark">FCFA 148K</div>
               <div className="fs-12 text-danger">19 deals</div>
             </div>
           </div>
@@ -581,9 +581,9 @@ const SalesForecastingComponent = () => {
                           Ellis Vandermeer
                         </td>
                         <td>Mid-Market</td>
-                        <td>$150K</td>
-                        <td>$139K</td>
-                        <td>$39K</td>
+                        <td>FCFA 150K</td>
+                        <td>FCFA 139K</td>
+                        <td>FCFA 39K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-success flex-grow-1">
@@ -611,9 +611,9 @@ const SalesForecastingComponent = () => {
                       <tr>
                         <td className="fw-medium text-dark">Adrian Herrera</td>
                         <td>Enterprise</td>
-                        <td>$220K</td>
-                        <td>$168K</td>
-                        <td>$54K</td>
+                        <td>FCFA 220K</td>
+                        <td>FCFA 168K</td>
+                        <td>FCFA 54K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-success flex-grow-1">
@@ -643,9 +643,9 @@ const SalesForecastingComponent = () => {
                           Priya Raghunathan
                         </td>
                         <td>Mid-Market</td>
-                        <td>$180K</td>
-                        <td>$121K</td>
-                        <td>$47K</td>
+                        <td>FCFA 180K</td>
+                        <td>FCFA 121K</td>
+                        <td>FCFA 47K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-warning flex-grow-1">
@@ -670,9 +670,9 @@ const SalesForecastingComponent = () => {
                       <tr>
                         <td className="fw-medium text-dark">Tomas Lindqvist</td>
                         <td>Enterprise</td>
-                        <td>$220K</td>
-                        <td>$96K</td>
-                        <td>$71K</td>
+                        <td>FCFA 220K</td>
+                        <td>FCFA 96K</td>
+                        <td>FCFA 71K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-danger flex-grow-1">
@@ -697,9 +697,9 @@ const SalesForecastingComponent = () => {
                       <tr>
                         <td className="fw-medium text-dark">Nadia Okonkwo</td>
                         <td>SMB</td>
-                        <td>$150K</td>
-                        <td>$58K</td>
-                        <td>$34K</td>
+                        <td>FCFA 150K</td>
+                        <td>FCFA 58K</td>
+                        <td>FCFA 34K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-danger flex-grow-1">
@@ -724,9 +724,9 @@ const SalesForecastingComponent = () => {
                       <tr>
                         <td className="fw-medium text-dark">John Doe</td>
                         <td>Enterprise</td>
-                        <td>$420K</td>
-                        <td>$310K</td>
-                        <td>$286K</td>
+                        <td>FCFA 420K</td>
+                        <td>FCFA 310K</td>
+                        <td>FCFA 286K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-success flex-grow-1">
@@ -753,9 +753,9 @@ const SalesForecastingComponent = () => {
                           Marcus Lindqvist
                         </td>
                         <td>Mid-Market</td>
-                        <td>$210K</td>
-                        <td>$132K</td>
-                        <td>$95K</td>
+                        <td>FCFA 210K</td>
+                        <td>FCFA 132K</td>
+                        <td>FCFA 95K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-warning flex-grow-1">
@@ -780,9 +780,9 @@ const SalesForecastingComponent = () => {
                       <tr>
                         <td className="fw-medium text-dark">Fatima Al-Sayed</td>
                         <td>SMB</td>
-                        <td>$95K</td>
-                        <td>$41K</td>
-                        <td>$18K</td>
+                        <td>FCFA 95K</td>
+                        <td>FCFA 41K</td>
+                        <td>FCFA 18K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-danger flex-grow-1">
@@ -807,9 +807,9 @@ const SalesForecastingComponent = () => {
                       <tr>
                         <td className="fw-medium text-dark">Diego Fernandez</td>
                         <td>Enterprise</td>
-                        <td>$275K</td>
-                        <td>$198K</td>
-                        <td>$164K</td>
+                        <td>FCFA 275K</td>
+                        <td>FCFA 198K</td>
+                        <td>FCFA 164K</td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             <span className="ai-meter is-success flex-grow-1">
@@ -863,10 +863,10 @@ const SalesForecastingComponent = () => {
                     <tbody>
                       <tr>
                         <td className="fw-medium text-dark">Enterprise</td>
-                        <td>$440K</td>
-                        <td>$389K</td>
+                        <td>FCFA 440K</td>
+                        <td>FCFA 389K</td>
                         <td>
-                          <span className="text-danger">-$51K</span>
+                          <span className="text-danger">-FCFA 51K</span>
                         </td>
                         <td>
                           <Link
@@ -879,10 +879,10 @@ const SalesForecastingComponent = () => {
                       </tr>
                       <tr>
                         <td className="fw-medium text-dark">Mid-Market</td>
-                        <td>$330K</td>
-                        <td>$346K</td>
+                        <td>FCFA 330K</td>
+                        <td>FCFA 346K</td>
                         <td>
-                          <span className="text-success">+$16K</span>
+                          <span className="text-success">+FCFA 16K</span>
                         </td>
                         <td>
                           <Link
@@ -895,10 +895,10 @@ const SalesForecastingComponent = () => {
                       </tr>
                       <tr>
                         <td className="fw-medium text-dark">SMB</td>
-                        <td>$150K</td>
-                        <td>$110K</td>
+                        <td>FCFA 150K</td>
+                        <td>FCFA 110K</td>
                         <td>
-                          <span className="text-danger">-$40K</span>
+                          <span className="text-danger">-FCFA 40K</span>
                         </td>
                         <td>
                           <Link
@@ -948,9 +948,9 @@ const SalesForecastingComponent = () => {
                 <tbody>
                   <tr>
                     <td className="fw-medium text-dark">Q2 2026</td>
-                    <td>$1.68M</td>
-                    <td>$1.69M</td>
-                    <td>$1.72M</td>
+                    <td>FCFA 1.68M</td>
+                    <td>FCFA 1.69M</td>
+                    <td>FCFA 1.72M</td>
                     <td>
                       <span className="badge bg-soft-success text-success">
                         102%
@@ -965,9 +965,9 @@ const SalesForecastingComponent = () => {
                   </tr>
                   <tr>
                     <td className="fw-medium text-dark">Q1 2026</td>
-                    <td>$1.52M</td>
-                    <td>$1.51M</td>
-                    <td>$1.50M</td>
+                    <td>FCFA 1.52M</td>
+                    <td>FCFA 1.51M</td>
+                    <td>FCFA 1.50M</td>
                     <td>
                       <span className="badge bg-soft-success text-success">
                         99%
@@ -982,9 +982,9 @@ const SalesForecastingComponent = () => {
                   </tr>
                   <tr>
                     <td className="fw-medium text-dark">Q4 2025</td>
-                    <td>$1.40M</td>
-                    <td>$1.42M</td>
-                    <td>$1.38M</td>
+                    <td>FCFA 1.40M</td>
+                    <td>FCFA 1.42M</td>
+                    <td>FCFA 1.38M</td>
                     <td>
                       <span className="badge bg-soft-warning text-warning">
                         99%
@@ -999,9 +999,9 @@ const SalesForecastingComponent = () => {
                   </tr>
                   <tr>
                     <td className="fw-medium text-dark">Q3 2025</td>
-                    <td>$1.26M</td>
-                    <td>$1.31M</td>
-                    <td>$1.19M</td>
+                    <td>FCFA 1.26M</td>
+                    <td>FCFA 1.31M</td>
+                    <td>FCFA 1.19M</td>
                     <td>
                       <span className="badge bg-soft-danger text-danger">
                         94%

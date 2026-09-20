@@ -476,7 +476,7 @@ const InvoicesListComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $2,15,000
+                                      FCFA 2,15,000
                                     </label>
                                   </li>
                                   <li>
@@ -485,7 +485,7 @@ const InvoicesListComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $1,45,000
+                                      FCFA 1,45,000
                                     </label>
                                   </li>
                                   <li>
@@ -494,7 +494,7 @@ const InvoicesListComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $2,12,000
+                                      FCFA 2,12,000
                                     </label>
                                   </li>
                                   <li>
@@ -503,7 +503,7 @@ const InvoicesListComponent = () => {
                                         className="form-check-input m-0 me-1"
                                         type="checkbox"
                                       />
-                                      $4,80,380
+                                      FCFA 4,80,380
                                     </label>
                                   </li>
                                 </ul>

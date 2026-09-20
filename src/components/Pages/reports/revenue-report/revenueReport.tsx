@@ -86,7 +86,7 @@ const RevenueReportComponent = () => {
                         Growth Impact %
                       </p>
                       <div className="mb-1 fs-20 fw-bold text-dark">+6.12</div>
-                      <span>Avg revenue $313,100</span>
+                      <span>Avg revenue FCFA 313,100</span>
                     </div>
                     <div>
                       <p className="fw-semibold mb-1 fs-13 d-flex alig-items-center">
@@ -94,7 +94,7 @@ const RevenueReportComponent = () => {
                         Churn Impact %
                       </p>
                       <div className="mb-1 fs-20 fw-bold text-dark">-1.28</div>
-                      <span>Avg revenue $313,100</span>
+                      <span>Avg revenue FCFA 313,100</span>
                     </div>
                   </div>
                   <div className="col-md-7">
@@ -114,7 +114,7 @@ const RevenueReportComponent = () => {
       columns={columns}
       data={RevenueReportData}
       manageColumns={["Period", "Total Revenue", "New Revenue", "Expansion Revenue", "MRR", "ARR", "Growth %", "Churn Impact %"]}
-      runFilter={{ Label: "$50000 - $500000", Icon: "ti-currency-dollar", Options: ["$0 - $50000", "$50000 - $500000", "$500000+"] }}
+      runFilter={{ Label: "FCFA 50000 - FCFA 500000", Icon: "ti-coin", Options: ["FCFA 0 - FCFA 50000", "FCFA 50000 - FCFA 500000", "FCFA 500000+"] }}
       searchText={searchText}
       onSearch={setSearchText}
     />

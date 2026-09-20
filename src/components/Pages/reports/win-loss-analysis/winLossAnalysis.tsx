@@ -307,7 +307,7 @@ const WinLossAnalysisComponent = () => {
                   Won Deals
                 </div>
                 <div className="fs-20 fw-bold text-dark">98</div>
-                <div className="fs-12 text-success">$4.52M won</div>
+                <div className="fs-12 text-success">FCFA 4.52M won</div>
               </div>
             </div>
           </div>
@@ -319,7 +319,7 @@ const WinLossAnalysisComponent = () => {
                   Lost Deals
                 </div>
                 <div className="fs-20 fw-bold text-dark">65</div>
-                <div className="fs-12 text-danger">$2.14M lost</div>
+                <div className="fs-12 text-danger">FCFA 2.14M lost</div>
               </div>
             </div>
           </div>
@@ -345,7 +345,7 @@ const WinLossAnalysisComponent = () => {
                   <i className="ti ti-coin text-info" />
                   Avg. Deal Value
                 </div>
-                <div className="fs-20 fw-bold text-dark">$46,122</div>
+                <div className="fs-20 fw-bold text-dark">FCFA 46,122</div>
                 <div className="fs-12 text-success">
                   <i className="ti ti-arrow-up-right" /> 6.4% vs prior
                 </div>
