@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
@@ -12,6 +12,8 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchLeads, toLeadsListRow } from "@/lib/crm";
 
 const LeadsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -29,7 +31,11 @@ const LeadsListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = LeadsListData;
+  const loadLeads = useCallback(async () => {
+    const rows = await fetchLeads();
+    return rows ? rows.map(toLeadsListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(LeadsListData, loadLeads);
   const columns = [
     {
       title: "",
@@ -1017,7 +1023,7 @@ const LeadsListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalLeads/>
+    <ModalLeads onSaved={reload} />
     </>
   );
 };

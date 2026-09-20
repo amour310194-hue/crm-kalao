@@ -3,7 +3,7 @@
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -11,6 +11,12 @@ import Datatable from "@/core/common/dataTable";
 import ModalInvoice from "./modal/modalInvoice";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import {
+  fetchInvoices,
+  markInvoicePaid,
+  toInvoicesListRow,
+} from "@/lib/crm";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -18,7 +24,11 @@ const InvoicesListComponent = () => {
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
-  const data = InvoicesListData;
+  const loadInvoices = useCallback(async () => {
+    const rows = await fetchInvoices();
+    return rows ? rows.map(toInvoicesListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(InvoicesListData, loadInvoices);
   const columns = [
     {
       title: "Invoice ID",
@@ -112,7 +122,7 @@ const InvoicesListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -129,7 +139,8 @@ const InvoicesListComponent = () => {
               data-bs-toggle="offcanvas"
               data-bs-target="#offcanvas_edit"
             >
-              <i className="ti ti-edit me-1" /> Edit
+              <i className="ti ti-edit me-1" />
+              Edit
             </Link>
             <Link
               className="dropdown-item"
@@ -143,10 +154,45 @@ const InvoicesListComponent = () => {
             <Link className="dropdown-item" href={all_routes.invoice_details}>
               <i className="ti ti-clipboard-copy me-1" /> View Invoices
             </Link>
-            <Link className="dropdown-item" href="#">
+            <Link
+              className="dropdown-item"
+              href="#"
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  await markInvoicePaid({
+                    id: record.key,
+                    amount: record.amountValue,
+                    paid_amount: record.paidValue,
+                  } as any);
+                  await reload();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Erreur");
+                }
+              }}
+            >
               <i className="ti ti-checks me-1" /> Mark as Paid
             </Link>
-            <Link className="dropdown-item" href="#">
+            <Link
+              className="dropdown-item"
+              href="#"
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  await markInvoicePaid(
+                    {
+                      id: record.key,
+                      amount: record.amountValue,
+                      paid_amount: record.paidValue,
+                    } as any,
+                    true
+                  );
+                  await reload();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Erreur");
+                }
+              }}
+            >
               <i className="ti ti-file me-1" /> Mark as Partially Paid
             </Link>
             <Link className="dropdown-item" href="#">
@@ -676,7 +722,7 @@ const InvoicesListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalInvoice />
+      <ModalInvoice onSaved={reload} />
     </>
   );
 };

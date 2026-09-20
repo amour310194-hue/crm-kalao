@@ -1,13 +1,22 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useCallback } from "react";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ModalContacts from "./modals/modalContacts";
 import Link from "next/link";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import Footer from "@/core/common/footer/footer";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchContacts, toContactsListRow } from "@/lib/crm";
+import { ContactsListData } from "../../../../core/json/contactsListData";
 
 const ContactsComponent = () => {
+  const loadContacts = useCallback(async () => {
+    const rows = await fetchContacts();
+    return rows ? rows.map(toContactsListRow) : null;
+  }, []);
+  const { rows, live, reload } = useLiveRows(ContactsListData, loadContacts);
   return (
     <>
       {/* ========================
@@ -700,7 +709,60 @@ const ContactsComponent = () => {
           </div>
           {/* table header */}
           {/* Contact Grid */}
-          <div className="row">
+          {live ? (
+            <div className="row">
+              {rows.map((contact: any) => (
+                <div className="col-xxl-3 col-xl-4 col-md-6" key={contact.key}>
+                  <div className="card border shadow">
+                    <div className="card-body">
+                      <div className="d-flex align-items-center justify-content-between mb-3">
+                        <div className="d-flex align-items-center">
+                          <Link
+                            href={`${all_routes.contactDetails}?id=${contact.key}`}
+                            className="avatar avatar-md flex-shrink-0 me-2"
+                          >
+                            <ImageWithBasePath
+                              src={`assets/img/profiles/${contact.Image}`}
+                              alt="img"
+                              className="rounded-circle"
+                            />
+                          </Link>
+                          <div>
+                            <h6 className="fs-14">
+                              <Link
+                                href={`${all_routes.contactDetails}?id=${contact.key}`}
+                                className="fw-medium"
+                              >
+                                {contact.Name}
+                              </Link>
+                            </h6>
+                            <p className="text-default mb-0">{contact.Role}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-block">
+                        <div className="d-flex flex-column">
+                          <p className="text-default d-inline-flex align-items-center mb-2">
+                            <i className="ti ti-mail text-dark me-1" />
+                            {contact.Email}
+                          </p>
+                          <p className="text-default d-inline-flex align-items-center mb-2">
+                            <i className="ti ti-phone text-dark me-1" />
+                            {contact.Phone}
+                          </p>
+                          <p className="text-default d-inline-flex align-items-center">
+                            <i className="ti ti-map-pin-pin text-dark me-1" />
+                            {contact.Location}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className={`row${live ? " d-none" : ""}`}>
             <div className="col-xxl-3 col-xl-4 col-md-6">
               <div className="card border shadow">
                 <div className="card-body">
@@ -2265,7 +2327,7 @@ const ContactsComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-  <ModalContacts/>
+  <ModalContacts onSaved={reload} />
     </>
   );
 };

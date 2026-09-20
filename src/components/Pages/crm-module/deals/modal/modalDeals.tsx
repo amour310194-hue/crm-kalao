@@ -10,10 +10,11 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker"
 import TextEditor from "@/core/common/texteditor/texteditor"
 import Link from "next/link"
 import { all_routes } from "@/router/all_routes"
+import { closeBootstrapChrome, createDeal, parseAmount, readForm, showBootstrap } from "@/lib/crm"
 
+type ModalDealsProps = { onSaved?: () => void }
 
-
-const ModalDeals = () => {
+const ModalDeals = ({ onSaved }: ModalDealsProps) => {
 
  const [tags, setTags] = useState<string[]>(["Devops Design", "MargrateDesign","UI for Chat"]);
   const handleTagsChange = (newTags: string[]) => {
@@ -24,6 +25,22 @@ const ModalDeals = () => {
 
   const handleTagsChange2 = (newTags: string[]) => {
     setTags2(newTags);
+  };
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const vals = readForm(e.currentTarget);
+      await createDeal({
+        title: vals.title || "Opportunité",
+        amount: parseAmount(vals.amount),
+      });
+      onSaved?.();
+      closeBootstrapChrome(e.currentTarget);
+      showBootstrap("create_success");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
   };
      const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
@@ -287,14 +304,14 @@ const options2 = [
       ></button>
     </div>
     <div className="offcanvas-body">
-      <form >
+      <form onSubmit={onCreate}>
         <div className="row mb-3">
           <div className="col-md-12">
             <div className="mb-3">
               <label className="form-label">
                 Deal Name <span className="text-danger">*</span>
               </label>
-              <input type="text" className="form-control" />
+              <input type="text" className="form-control" name="title" />
             </div>
           </div>
           <div className="col-md-6">
@@ -337,7 +354,7 @@ const options2 = [
               <label className="form-label">
                 Deal Value<span className="text-danger"> *</span>
               </label>
-              <input className="form-control" type="text" />
+              <input className="form-control" type="text" name="amount" />
             </div>
           </div>
           <div className="col-md-6">
@@ -492,12 +509,7 @@ const options2 = [
           >
             Cancel
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#create_success"
-          >
+          <button type="submit" className="btn btn-primary">
             Create New
           </button>
         </div>

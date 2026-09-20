@@ -1,12 +1,52 @@
+"use client";
 
 import { Client, Currency, Payment_Method, Proposal_Project, Status_Paid, Zero } from "../../../../../core/json/selectOption"
 import CommonSelect from "@/core/common/common-select/commonSelect"
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker"
 import TextEditor from "@/core/common/texteditor/texteditor"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import {
+  closeBootstrapChrome,
+  createInvoice,
+  emptyUuid,
+  fetchCompanies,
+  parseAmount,
+  readForm,
+} from "@/lib/crm"
+import type { Option } from "@/core/common/common-select/commonSelect"
 
+type ModalInvoiceProps = { onSaved?: () => void }
 
-const ModalInvoice = () => {
+const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
+  const [companyOptions, setCompanyOptions] = useState<Option[]>(Client)
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (!rows) return
+      setCompanyOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ])
+    })
+  }, [])
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    try {
+      const vals = readForm(e.currentTarget)
+      await createInvoice({
+        company_id: emptyUuid(vals.company_id),
+        project: vals.project || "Facture",
+        amount: parseAmount(vals.amount),
+      })
+      onSaved?.()
+      closeBootstrapChrome(e.currentTarget)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur")
+    }
+  }
+
   return (
     <>
   {/* Add New Invoices */}
@@ -25,7 +65,7 @@ const ModalInvoice = () => {
       ></button>
     </div>
     <div className="offcanvas-body">
-      <form >
+      <form onSubmit={onCreate}>
         <div>
           <div className="row">
             <div className="mb-3">
@@ -42,9 +82,10 @@ const ModalInvoice = () => {
                 </Link>
               </div>
               <CommonSelect
-                            options={Client}
+                            name="company_id"
+                            options={companyOptions}
                             className="select"
-                            defaultValue={Client[0]}
+                            defaultValue={companyOptions[0]}
                           />
             </div>
             <div className="col-md-6">
@@ -87,7 +128,7 @@ const ModalInvoice = () => {
                 <label className="form-label">
                   Amount<span className="text-danger"> *</span>
                 </label>
-                <input className="form-control" type="text" />
+                <input className="form-control" type="text" name="amount" />
               </div>
             </div>
             <div className="col-md-6">

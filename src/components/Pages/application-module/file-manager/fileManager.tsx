@@ -1,12 +1,29 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useCallback, useState } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchAttachments, uploadAttachment } from "@/lib/crm";
 
 
 const FileManagerComponent = () => {
+  const loadFiles = useCallback(async () => {
+    return fetchAttachments("misc");
+  }, []);
+  const { rows: liveFiles, reload } = useLiveRows([], loadFiles);
+
+  const onUpload = async (file: File) => {
+    try {
+      await uploadAttachment({ file, entity_type: "misc" });
+      await reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   return (
     <>
       {/* ========================
@@ -361,8 +378,29 @@ const FileManagerComponent = () => {
                       <input
                         type="file"
                         className="position-absolute top-0 start-0 opacity-0 w-100 h-100"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) await onUpload(file);
+                          e.target.value = "";
+                        }}
                       />
                     </div>
+                    {liveFiles.length ? (
+                      <div className="files-list nav d-block mb-3">
+                        {liveFiles.map((file) => (
+                          <a
+                            key={file.id}
+                            href={file.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="d-flex align-items-center fw-medium p-2"
+                          >
+                            <i className="ti ti-file me-2" />
+                            {file.file_name}
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
                     <div className="files-list nav d-block">
                       <Link
                         href="javscript:void(0);"

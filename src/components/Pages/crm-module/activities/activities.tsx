@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -10,6 +10,8 @@ import ModalActivities from "./modal/modalActivities";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchActivities, toActivitiesListRow } from "@/lib/crm";
 
 
 /* AI guidance tiles shown above the activities table (html/activities.html). */
@@ -38,7 +40,11 @@ const AI_ACTIVITY_GUIDANCE = [
 ];
 
 const ActivitiesComponent = () => {
-  const data = ActivitiesListData;
+  const loadActivities = useCallback(async () => {
+    const rows = await fetchActivities();
+    return rows ? rows.map(toActivitiesListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(ActivitiesListData, loadActivities);
   const columns = [
     {
       title: "Title",
@@ -749,7 +755,7 @@ const ActivitiesComponent = () => {
     </div>
   </footer>
   {/* End Footer */}
-  <ModalActivities/>
+  <ModalActivities onSaved={reload} />
 </div>
 
   );

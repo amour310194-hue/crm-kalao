@@ -25,8 +25,37 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import TextEditor from "@/core/common/texteditor/texteditor";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import {
+  closeBootstrapChrome,
+  createCompany,
+  readForm,
+  showBootstrap,
+  updateCompany,
+} from "@/lib/crm";
 
-const ModalCompanies = () => {
+type ModalCompaniesProps = {
+  selectedId?: string | null;
+  onSaved?: () => void;
+  onDelete?: () => void;
+};
+
+const ModalCompanies = ({ selectedId, onSaved, onDelete }: ModalCompaniesProps) => {
+  const saveCompany = async (form: HTMLFormElement, id?: string | null) => {
+    const vals = readForm(form);
+    const payload = {
+      name: (vals.name || "").trim() || "Société Kalao",
+      email: vals.email || null,
+      phone: phone || vals.phone || null,
+      website: vals.website || null,
+      industry: tags[0] || null,
+    };
+    if (id) await updateCompany(id, payload);
+    else await createCompany(payload);
+    onSaved?.();
+    closeBootstrapChrome(form);
+    showBootstrap("create_success");
+  };
+
   const [tags, setTags] = useState<string[]>(["Collab", "VIP"]);
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
@@ -554,7 +583,16 @@ const ModalCompanies = () => {
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await saveCompany(e.currentTarget);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : "Erreur");
+              }
+            }}
+          >
             <div className="accordion accordion-bordered" id="main_accordion">
               {/* Basic Info */}
               <div className="accordion-item rounded mb-3">
@@ -604,7 +642,7 @@ const ModalCompanies = () => {
                           <label className="form-label">
                             Company Name<span className="text-danger">*</span>
                           </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="name" />
                         </div>
                       </div>
                       <div className="col-md-12">
@@ -625,7 +663,7 @@ const ModalCompanies = () => {
                               </label>
                             </div>
                           </div>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="email" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -657,7 +695,7 @@ const ModalCompanies = () => {
                       <div className="col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Website</label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="website" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -1012,12 +1050,7 @@ const ModalCompanies = () => {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#create_success"
-              >
+              <button type="submit" className="btn btn-primary">
                 Create New
               </button>
             </div>
@@ -1091,7 +1124,7 @@ const ModalCompanies = () => {
                           <label className="form-label">
                             Company Name<span className="text-danger">*</span>
                           </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="name" />
                         </div>
                       </div>
                       <div className="col-md-12">
@@ -1112,7 +1145,7 @@ const ModalCompanies = () => {
                               </label>
                             </div>
                           </div>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="email" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -1144,7 +1177,7 @@ const ModalCompanies = () => {
                       <div className="col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Website</label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="website" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -1791,6 +1824,14 @@ const ModalCompanies = () => {
                   href="#"
                   className="btn btn-primary position-relative z-1 w-100"
                   data-bs-dismiss="modal"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    try {
+                      await onDelete?.();
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : "Erreur");
+                    }
+                  }}
                 >
                   Yes, Delete
                 </Link>

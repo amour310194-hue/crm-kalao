@@ -3,12 +3,13 @@
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 
 import ModalDeals from "./modal/modalDeals";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { fetchDeals, formatMoney } from "@/lib/crm";
 
 const DealsGridComponent = () => {
   // Kanban data
@@ -277,6 +278,47 @@ const DealsGridComponent = () => {
   function KanbanBoard() {
     const [columns, setColumns] = useState(initialColumns);
 
+    const reloadDeals = () => {
+      void fetchDeals().then((rows) => {
+        if (!rows?.length) return;
+        setColumns((prev) =>
+          prev.map((col, index) =>
+            index === 0
+              ? {
+                  ...col,
+                  leads: rows.length,
+                  amount: formatMoney(
+                    rows.reduce((s, d) => s + Number(d.amount || 0), 0)
+                  ),
+                  cards: rows.map((deal) => ({
+                    id: deal.id,
+                    avatar: {
+                      text: deal.title.slice(0, 2).toUpperCase(),
+                      color: "success",
+                    },
+                    name: deal.title,
+                    amount: formatMoney(deal.amount),
+                    email: deal.companies?.name ?? "",
+                    phone: "",
+                    location: deal.stage,
+                    owner: {
+                      name: "Kalao",
+                      img: "assets/img/profiles/avatar-01.jpg",
+                    },
+                    progress: { value: deal.probability ?? 10, color: "success" },
+                    date: "",
+                  })),
+                }
+              : col
+          )
+        );
+      });
+    };
+
+    useEffect(() => {
+      reloadDeals();
+    }, []);
+
     // Drag and drop handler
     const onDragEnd = (result: any) => {
       if (!result.destination) return;
@@ -320,6 +362,7 @@ const DealsGridComponent = () => {
     };
 
     return (
+      <>
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="d-flex overflow-x-auto align-items-start mb-0 gap-3">
           {columns.map((col, _colIdx) => (
@@ -499,6 +542,8 @@ const DealsGridComponent = () => {
           ))}
         </div>
       </DragDropContext>
+      <ModalDeals onSaved={reloadDeals} />
+      </>
     );
   }
 
@@ -1001,10 +1046,9 @@ const DealsGridComponent = () => {
         <Footer />
         {/* End Footer */}
       </div>
-      {/* ========================
+        {/* ========================
 			End Page Content
 		========================= */}
-    <ModalDeals/>
     </>
   );
 };

@@ -3,13 +3,15 @@
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { DealsListData } from "../../../../core/json/dealsListData";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import Datatable from "@/core/common/dataTable";
 import ModalDeals from "./modal/modalDeals";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchDeals, toDealsListRow } from "@/lib/crm";
 
 const DealsListComponent = () => {
 const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>({});
@@ -20,7 +22,11 @@ const handleClick = (key: string) => {
     [key]: !prev[key], // toggle on/off
   }));
 };
-  const data = DealsListData;
+  const loadDeals = useCallback(async () => {
+    const rows = await fetchDeals();
+    return rows ? rows.map(toDealsListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(DealsListData, loadDeals);
   const columns = [
   {
     title: "",
@@ -859,7 +865,7 @@ const handleClick = (key: string) => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalDeals/>
+    <ModalDeals onSaved={reload} />
     </>
   );
 };

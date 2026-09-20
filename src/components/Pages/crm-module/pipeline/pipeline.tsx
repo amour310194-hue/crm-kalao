@@ -3,13 +3,15 @@
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
 import ModalPipeline from "./modal/modalPipeline";
 import { PipelineListData } from "../../../../core/json/pipelineListData";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchDeals, toPipelineRows } from "@/lib/crm";
 
 const PipelineComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -17,7 +19,11 @@ const PipelineComponent = () => {
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
-  const data = PipelineListData;
+  const loadPipeline = useCallback(async () => {
+    const rows = await fetchDeals();
+    return rows ? toPipelineRows(rows) : null;
+  }, []);
+  const { rows: data } = useLiveRows(PipelineListData, loadPipeline);
   const columns = [
     {
       title: "Pipeline Name",

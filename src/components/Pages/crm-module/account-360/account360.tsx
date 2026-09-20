@@ -1,12 +1,31 @@
 "use client";
 import Link from "next/link";
-import { type CSSProperties } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { all_routes } from "@/router/all_routes";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
+import { fetchCompanies, fetchContacts, fetchInvoices } from "@/lib/crm";
 
 const route = all_routes;
 
 const Account360Component = () => {
+  const [companyName, setCompanyName] = useState("Halcyon Partners");
+  const [contactLabel, setContactLabel] = useState("Ellis Vandermeer");
+  const [invoiceLabel, setInvoiceLabel] = useState("");
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (rows?.[0]) setCompanyName(rows[0].name);
+    });
+    void fetchContacts().then((rows) => {
+      if (rows?.[0]) {
+        setContactLabel(`${rows[0].first_name} ${rows[0].last_name}`.trim());
+      }
+    });
+    void fetchInvoices().then((rows) => {
+      if (rows?.[0]) setInvoiceLabel(rows[0].number || rows[0].id.slice(0, 8));
+    });
+  }, []);
+
   return (
     <>
   {/* ========================
@@ -77,7 +96,7 @@ const Account360Component = () => {
                 </span>
                 <div className="pt-2">
                   <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                    <h4 className="mb-0">Halcyon Partners</h4>
+                    <h4 className="mb-0">{companyName}</h4>
                     <span className="badge bg-success">Active Customer</span>
                     <span className="badge bg-primary">Enterprise</span>
                   </div>
@@ -676,7 +695,7 @@ const Account360Component = () => {
                             href={route.contactDetails}
                             className="fw-medium text-dark"
                           >
-                            Ellis Vandermeer
+                            {contactLabel}
                           </Link>
                           <span className="fs-12 text-muted d-block">
                             Chief Financial Officer
@@ -1149,7 +1168,7 @@ const Account360Component = () => {
                     <p className="ai-timeline-text">
                       Invoice{" "}
                       <Link href={route.invoice_details} className="link-primary">
-                        INV-2048
+                        {invoiceLabel ? `#${invoiceLabel}` : "INV-2048"}
                       </Link>{" "}
                       for $18,600 is 6 days past due.
                     </p>

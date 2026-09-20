@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
 import { ContactsListData } from "../../../../core/json/contactsListData";
@@ -11,6 +11,8 @@ import PredefinedDatePicker from "@/core/common/common-dateRangePicker/Predefine
 import ModalContacts from "./modals/modalContacts";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { deleteContact, fetchContacts, toContactsListRow } from "@/lib/crm";
 
 const ContactsListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
@@ -23,7 +25,12 @@ const ContactsListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = ContactsListData;
+  const loadContacts = useCallback(async () => {
+    const rows = await fetchContacts();
+    return rows ? rows.map(toContactsListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(ContactsListData, loadContacts);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const columns = [
     {
       title: "",
@@ -45,14 +52,14 @@ const ContactsListComponent = () => {
       dataIndex: "Name",
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
-          <Link href={all_routes.contactDetails} className="avatar me-2">
+          <Link href={`${all_routes.contactDetails}?id=${render.key}`} className="avatar me-2">
             <ImageWithBasePath
               className="img-fluid rounded-circle"
               src={`assets/img/profiles/${render.Image}`}
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.contactDetails} className="d-flex flex-column">
+          <Link href={`${all_routes.contactDetails}?id=${render.key}`} className="d-flex flex-column">
             {text}{" "}
             <span className="text-body fs-13 fw-normal mt-1">
               {render.role}{" "}
@@ -161,7 +168,7 @@ const ContactsListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -177,6 +184,7 @@ const ContactsListComponent = () => {
               href="#"
               data-bs-toggle="offcanvas"
               data-bs-target="#offcanvas_edit"
+              onClick={() => setSelectedId(record.key)}
             >
               <i className="ti ti-edit text-blue" /> Edit
             </Link>
@@ -185,10 +193,11 @@ const ContactsListComponent = () => {
               href="#"
               data-bs-toggle="modal"
               data-bs-target="#delete_contact"
+              onClick={() => setSelectedId(record.key)}
             >
               <i className="ti ti-trash" /> Delete
             </Link>
-            <Link className="dropdown-item" href={all_routes.contactDetails}>
+            <Link className="dropdown-item" href={`${all_routes.contactDetails}?id=${record.key}`}>
               <i className="ti ti-eye text-blue-light" /> Preview
             </Link>
           </div>
@@ -1085,7 +1094,16 @@ const ContactsListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalContacts/>
+    <ModalContacts
+      selectedId={selectedId}
+      onSaved={reload}
+      onDelete={async () => {
+        if (selectedId) {
+          await deleteContact(selectedId);
+          await reload();
+        }
+      }}
+    />
     </>
   );
 };

@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import CommonSelect from "@/core/common/common-select/commonSelect";
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
@@ -26,9 +26,58 @@ import MultipleSelect from "@/core/common/multiple-Select/multipleSelect";
 import TextEditor from "@/core/common/texteditor/texteditor";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import type { Option } from "@/core/common/common-select/commonSelect";
+import {
+  closeBootstrapChrome,
+  createContact,
+  emptyUuid,
+  fetchCompanies,
+  readForm,
+  showBootstrap,
+  updateContact,
+} from "@/lib/crm";
 
+type ModalContactsProps = {
+  selectedId?: string | null;
+  onSaved?: () => void;
+  onDelete?: () => void;
+};
 
-const ModalContacts = () => {
+const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) => {
+  const [companyOptions, setCompanyOptions] = useState<Option[]>(Company_Name);
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (!rows) return;
+      setCompanyOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+  }, []);
+
+  const saveContact = async (form: HTMLFormElement, id?: string | null) => {
+    const vals = readForm(form);
+    const first_name = (vals.first_name || "").trim() || "Contact";
+    const last_name = (vals.last_name || "").trim() || "Kalao";
+    const payload = {
+      first_name,
+      last_name,
+      job_title: vals.job_title || null,
+      email: vals.email || null,
+      phone: phone || vals.phone || null,
+      company_id: emptyUuid(vals.company_id),
+    };
+    if (id) {
+      await updateContact(id, payload);
+    } else {
+      await createContact(payload);
+    }
+    onSaved?.();
+    closeBootstrapChrome(form);
+    showBootstrap("create_success");
+  };
+
   const [tags, setTags] = useState<string[]>(["Collab", "VIP"]);
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
@@ -305,7 +354,16 @@ const options2 = [
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await saveContact(e.currentTarget);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : "Erreur");
+              }
+            }}
+          >
             <div className="accordion accordion-bordered" id="main_accordion">
               {/* Basic Info */}
               <div className="accordion-item rounded mb-3">
@@ -355,7 +413,7 @@ const options2 = [
                           <label className="form-label">
                             First Name <span className="text-danger">*</span>
                           </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="first_name" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -363,7 +421,7 @@ const options2 = [
                           <label className="form-label">
                             Last Name <span className="text-danger">*</span>
                           </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="last_name" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -371,7 +429,7 @@ const options2 = [
                           <label className="form-label">
                             Job Title <span className="text-danger">*</span>
                           </label>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="job_title" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -381,9 +439,10 @@ const options2 = [
                             <span className="text-danger ms-1">*</span>
                           </label>
                           <CommonSelect
-                            options={Company_Name}
+                            name="company_id"
+                            options={companyOptions}
                             className="select"
-                            defaultValue={Company_Name[0]}
+                            defaultValue={companyOptions[0]}
                           />
                         </div>
                       </div>
@@ -405,7 +464,7 @@ const options2 = [
                               </label>
                             </div>
                           </div>
-                          <input type="text" className="form-control" />
+                          <input type="text" className="form-control" name="email" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -781,12 +840,7 @@ const options2 = [
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#create_success"
-              >
+              <button type="submit" className="btn btn-primary">
                 Create New
               </button>
             </div>
@@ -811,7 +865,16 @@ const options2 = [
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await saveContact(e.currentTarget, selectedId);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : "Erreur");
+              }
+            }}
+          >
             <div className="accordion accordion-bordered" id="main_accordion2">
               {/* Basic Info */}
               <div className="accordion-item rounded mb-3">
@@ -873,6 +936,7 @@ const options2 = [
                           <input
                             type="text"
                             className="form-control"
+                            name="first_name"
                             defaultValue="William"
                           />
                         </div>
@@ -885,6 +949,7 @@ const options2 = [
                           <input
                             type="text"
                             className="form-control"
+                            name="last_name"
                             defaultValue="Anderson"
                           />
                         </div>
@@ -897,6 +962,7 @@ const options2 = [
                           <input
                             type="text"
                             className="form-control"
+                            name="job_title"
                             defaultValue="Data Analytics"
                           />
                         </div>
@@ -936,6 +1002,7 @@ const options2 = [
                             type="text"
                             className="form-control"
                             defaultValue="william@example.com"
+                            name="email"
                           />
                         </div>
                       </div>
@@ -1323,7 +1390,7 @@ const options2 = [
               >
                 Cancel
               </button>
-              <button type="button" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary">
                 Save Changes
               </button>
             </div>
@@ -1619,6 +1686,14 @@ const options2 = [
                   href="#"
                   className="btn btn-primary position-relative z-1 w-100"
                   data-bs-dismiss="modal"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    try {
+                      await onDelete?.();
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : "Erreur");
+                    }
+                  }}
                 >
                   Yes, Delete
                 </Link>

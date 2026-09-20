@@ -18,30 +18,22 @@ const ProductsComponent = () => {
   const route = all_routes;
   const [data, setData] = useState<ProductsListInterface[]>(ProductsListData);
   const [source, setSource] = useState<"demo" | "supabase">("demo");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const loadCatalog = async () => {
+    try {
+      const items = await fetchCatalogItems();
+      if (items === null) return;
+      setData(items.map(toProductsListRow));
+      setSource("supabase");
+    } catch {
+      setData(ProductsListData);
+      setSource("demo");
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const items = await fetchCatalogItems();
-        if (cancelled || items === null) {
-          return;
-        }
-        setData(items.map(toProductsListRow));
-        setSource("supabase");
-      } catch {
-        if (!cancelled) {
-          setData(ProductsListData);
-          setSource("demo");
-        }
-      }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
+    void loadCatalog();
   }, []);
 
   const columns = [
@@ -115,7 +107,7 @@ const ProductsComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -131,6 +123,7 @@ const ProductsComponent = () => {
               href="#"
               data-bs-toggle="modal"
               data-bs-target="#edit_product"
+              onClick={() => setSelectedId(record.key)}
             >
               <i className="ti ti-edit text-blue" /> Edit
             </Link>
@@ -569,7 +562,7 @@ const ProductsComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalProducts />
+      <ModalProducts selectedId={selectedId} onSaved={loadCatalog} />
     </>
   );
 };

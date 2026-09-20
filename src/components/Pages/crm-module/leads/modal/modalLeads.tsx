@@ -15,14 +15,28 @@ import {
 } from "../../../../../core/json/selectOption";
 import CommonSelect from "@/core/common/common-select/commonSelect";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MultipleSelect from "@/core/common/multiple-Select/multipleSelect";
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
 import CommonPhoneInput from "@/core/common/common-phoneInput/commonPhoneInput";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import type { Option } from "@/core/common/common-select/commonSelect";
+import {
+  closeBootstrapChrome,
+  createLead,
+  emptyUuid,
+  fetchCompanies,
+  fetchDepartments,
+  parseAmount,
+  readForm,
+  resolveDepartmentIds,
+  showBootstrap,
+} from "@/lib/crm";
 
-const ModalLeads = () => {
+type ModalLeadsProps = { onSaved?: () => void };
+
+const ModalLeads = ({ onSaved }: ModalLeadsProps) => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const handleChange = (value: string[]) => {
@@ -280,6 +294,45 @@ const ModalLeads = () => {
 
   const [phone, setPhone] = useState<string | undefined>();
   const [phone2, setPhone2] = useState<string | undefined>();
+  const [companyOptions, setCompanyOptions] = useState<Option[]>(Company_Name);
+  const [deptOptions, setDeptOptions] = useState<Option[]>(Source);
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (!rows) return;
+      setCompanyOptions([
+        { value: "", label: "Select" },
+        ...rows.map((c) => ({ value: c.id, label: c.name })),
+      ]);
+    });
+    void fetchDepartments().then((rows) => {
+      if (!rows) return;
+      setDeptOptions([
+        { value: "", label: "Select" },
+        ...rows.map((d) => ({ value: d.id, label: d.name })),
+      ]);
+    });
+  }, []);
+
+  const saveLead = async (form: HTMLFormElement) => {
+    const vals = readForm(form);
+    const departments = (await fetchDepartments()) ?? [];
+    const department_ids = await resolveDepartmentIds(
+      [vals.department_id, vals.department_id_2, ...tags],
+      departments
+    );
+    await createLead({
+      title: (vals.title || "").trim() || "Prospect Kalao",
+      company_id: emptyUuid(vals.company_id),
+      source: vals.source || null,
+      estimated_value: parseAmount(vals.estimated_value),
+      notes: vals.notes || tags.join(", "),
+      department_ids,
+    });
+    onSaved?.();
+    closeBootstrapChrome(form);
+    showBootstrap("create_success");
+  };
 
   return (
     <>
@@ -299,14 +352,23 @@ const ModalLeads = () => {
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await saveLead(e.currentTarget);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : "Erreur");
+              }
+            }}
+          >
             <div className="row">
               <div className="col-md-12">
                 <div className="mb-3">
                   <label className="form-label">
                     Lead Name<span className="text-danger">*</span>
                   </label>
-                  <input type="text" className="form-control" />
+                  <input type="text" className="form-control" name="title" />
                 </div>
               </div>
               <div className="col-md-12">
@@ -359,9 +421,10 @@ const ModalLeads = () => {
                     </Link>
                   </div>
                   <CommonSelect
-                    options={Company_Name}
+                    name="company_id"
+                    options={companyOptions}
                     className="select"
-                    defaultValue={Company_Name[0]}
+                    defaultValue={companyOptions[0]}
                   />
                 </div>
               </div>
@@ -370,7 +433,7 @@ const ModalLeads = () => {
                   <label className="form-label">
                     Value <span className="text-danger">*</span>
                   </label>
-                  <input type="text" className="form-control" />
+                  <input type="text" className="form-control" name="estimated_value" />
                 </div>
               </div>
               <div className="col-md-6">
@@ -409,9 +472,10 @@ const ModalLeads = () => {
                     Source <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
-                    options={Source}
+                    name="department_id"
+                    options={deptOptions}
                     className="select"
-                    defaultValue={Source[0]}
+                    defaultValue={deptOptions[1] ?? deptOptions[0]}
                   />
                 </div>
               </div>
@@ -421,9 +485,10 @@ const ModalLeads = () => {
                     Industry <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
-                    options={Industry}
+                    name="department_id_2"
+                    options={deptOptions}
                     className="select"
-                    defaultValue={Industry[0]}
+                    defaultValue={deptOptions[2] ?? deptOptions[1] ?? deptOptions[0]}
                   />
                 </div>
               </div>
@@ -456,6 +521,7 @@ const ModalLeads = () => {
                     className="form-control"
                     rows={3}
                     placeholder="Description"
+                    name="notes"
                     defaultValue={""}
                   />
                 </div>
@@ -519,12 +585,7 @@ const ModalLeads = () => {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#create_success"
-              >
+              <button type="submit" className="btn btn-primary">
                 Create New
               </button>
             </div>
@@ -1089,9 +1150,10 @@ const ModalLeads = () => {
                     </Link>
                   </div>
                   <CommonSelect
-                    options={Company_Name}
+                    name="company_id"
+                    options={companyOptions}
                     className="select"
-                    defaultValue={Company_Name[0]}
+                    defaultValue={companyOptions[0]}
                   />
                 </div>
               </div>

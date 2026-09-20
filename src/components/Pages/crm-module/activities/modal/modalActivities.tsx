@@ -1,3 +1,4 @@
+"use client";
 
 import CommonSelect from "@/core/common/common-select/commonSelect"
 import { BeforeDue, Company_Name, Deals, Owner } from "../../../../../core/json/selectOption"
@@ -8,13 +9,35 @@ import MultipleSelect from "@/core/common/multiple-Select/multipleSelect"
 import CommonTimePicker from "@/core/common/common-timePickers/CommonTimePicker"
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker"
 import Link from "next/link"
+import { closeBootstrapChrome, createActivity, fetchContacts, readForm } from "@/lib/crm"
 
-const ModalActivities=() => {
+type ModalActivitiesProps = { onSaved?: () => void }
+
+const ModalActivities=({ onSaved }: ModalActivitiesProps) => {
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
         const handleChange = (value: string[]) => {
         setSelectedItems(value);
         };
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const form = e.currentTarget;
+      const vals = readForm(form);
+      const contacts = await fetchContacts();
+      await createActivity({
+        type: vals.status || "task",
+        subject: vals.title || "Activité",
+        contact_id: contacts?.[0]?.id || null,
+        notes: vals.notes || null,
+      });
+      onSaved?.();
+      closeBootstrapChrome(form);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
        const options = [
     {
       label: (
@@ -152,7 +175,7 @@ const ModalActivities=() => {
       </button>
     </div>
     <div className="offcanvas-body">
-      <form>
+      <form onSubmit={onCreate}>
         <div>
           <div className="row">
             <div className="col-md-12">
@@ -160,7 +183,7 @@ const ModalActivities=() => {
                 <label className="form-label">
                   Title <span className="text-danger">*</span>
                 </label>
-                <input type="text" className="form-control" />
+                <input type="text" className="form-control" name="title" />
               </div>
             </div>
             <div className="col-md-12">
@@ -366,7 +389,7 @@ const ModalActivities=() => {
           >
             Cancel
           </button>
-          <button type="button" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary">
             Create
           </button>
         </div>

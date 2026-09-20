@@ -1,13 +1,22 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useCallback } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import PageHeader from "@/core/common/page-header/pageHeader"
 import ModalCompanies from "./modal/modalCompanies"
 import Link from "next/link"
 import { all_routes } from "@/router/all_routes"
+import { useLiveRows } from "@/lib/useLiveRows"
+import { fetchCompanies, toCompaniesListRow } from "@/lib/crm"
+import { CompaniesListData } from "../../../../core/json/companiesListData"
 
 
 const CompaniesGridComponent = () => {
+  const loadCompanies = useCallback(async () => {
+    const rows = await fetchCompanies();
+    return rows ? rows.map(toCompaniesListRow) : null;
+  }, []);
+  const { rows, live, reload } = useLiveRows(CompaniesListData, loadCompanies);
   return (
     <>
   {/* ========================
@@ -602,7 +611,56 @@ const CompaniesGridComponent = () => {
       </div>
       {/* table header */}
       {/* Company Grid */}
-      <div className="row">
+      {live ? (
+        <div className="row">
+          {rows.map((company: any) => (
+            <div className="col-xxl-3 col-xl-4 col-md-6" key={company.key || company.kye}>
+              <div className="card border shadow">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2 mb-3 border-bottom pb-3">
+                    <div className="d-flex align-items-center">
+                      <Link
+                        href={all_routes.companiesDetails}
+                        className="avatar border rounded-circle flex-shrink-0 me-2"
+                      >
+                        <ImageWithBasePath
+                          src={`assets/img/icons/${company.Image}`}
+                          className="w-auto h-auto"
+                          alt="img"
+                        />
+                      </Link>
+                      <div>
+                        <h6 className="fs-14">
+                          <Link href={all_routes.companiesDetails} className="fw-medium">
+                            {company.Name}
+                          </Link>
+                        </h6>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-block">
+                    <div className="d-flex flex-column mb-0">
+                      <p className="text-default d-inline-flex align-items-center mb-2">
+                        <i className="ti ti-mail text-dark me-1" />
+                        {company.Email}
+                      </p>
+                      <p className="text-default d-inline-flex align-items-center mb-2">
+                        <i className="ti ti-phone text-dark me-1" />
+                        {company.Phone}
+                      </p>
+                      <p className="text-default d-inline-flex align-items-center">
+                        <i className="ti ti-map-pin-pin text-dark me-1" />
+                        {company.Location}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className={`row${live ? " d-none" : ""}`}>
         <div className="col-xxl-3 col-xl-4 col-md-6">
           <div className="card border shadow">
             <div className="card-body">
@@ -2110,7 +2168,7 @@ const CompaniesGridComponent = () => {
   {/* ========================
 			End Page Content
 		========================= */}
-    <ModalCompanies/>
+    <ModalCompanies onSaved={reload} />
 </>
 
   )

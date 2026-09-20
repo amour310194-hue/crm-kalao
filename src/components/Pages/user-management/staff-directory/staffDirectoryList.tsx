@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
@@ -10,11 +10,17 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import { StaffDirectoryListData } from "../../../../core/json/staffDirectoryListData";
 import ModalStaffDirectory from "./modal/modalStaffDirectory";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchEmployees, toStaffListRow } from "@/lib/crm";
 
 const route = all_routes;
 
 const StaffDirectoryListComponent = () => {
-  const data = StaffDirectoryListData;
+  const loadStaff = useCallback(async () => {
+    const rows = await fetchEmployees();
+    return rows ? rows.map(toStaffListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(StaffDirectoryListData, loadStaff);
   const [searchText, setSearchText] = useState<string>("");
 
   const handleSearch = (value: string) => {
@@ -252,7 +258,7 @@ const StaffDirectoryListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalStaffDirectory />
+      <ModalStaffDirectory onSaved={reload} />
     </>
   );
 };

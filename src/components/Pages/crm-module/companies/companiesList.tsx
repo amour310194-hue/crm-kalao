@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
@@ -11,6 +11,8 @@ import Footer from "@/core/common/footer/footer";
 import ModalCompanies from "./modal/modalCompanies";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { deleteCompany, fetchCompanies, toCompaniesListRow } from "@/lib/crm";
 
 const CompaniesListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
@@ -22,7 +24,12 @@ const CompaniesListComponent = () => {
       [key]: !prev[key], // toggle on/off
     }));
   };
-  const data = CompaniesListData;
+  const loadCompanies = useCallback(async () => {
+    const rows = await fetchCompanies();
+    return rows ? rows.map(toCompaniesListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(CompaniesListData, loadCompanies);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const columns = [
     {
       title: "",
@@ -148,7 +155,7 @@ const CompaniesListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -164,6 +171,7 @@ const CompaniesListComponent = () => {
               href="#"
               data-bs-toggle="offcanvas"
               data-bs-target="#offcanvas_edit"
+              onClick={() => setSelectedId(record.key)}
             >
               <i className="ti ti-edit text-blue" /> Edit
             </Link>
@@ -172,6 +180,7 @@ const CompaniesListComponent = () => {
               href="#"
               data-bs-toggle="modal"
               data-bs-target="#delete_contact"
+              onClick={() => setSelectedId(record.key)}
             >
               <i className="ti ti-trash" /> Delete
             </Link>
@@ -999,7 +1008,16 @@ const CompaniesListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalCompanies/>
+    <ModalCompanies
+      selectedId={selectedId}
+      onSaved={reload}
+      onDelete={async () => {
+        if (selectedId) {
+          await deleteCompany(selectedId);
+          await reload();
+        }
+      }}
+    />
     </>
   );
 };

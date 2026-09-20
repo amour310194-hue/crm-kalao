@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useCallback } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -7,6 +8,8 @@ import TableToolbar from "@/core/common/table-toolbar/tableToolbar";
 import { all_routes } from "@/router/all_routes";
 import { StaffDirectoryListData } from "../../../../core/json/staffDirectoryListData";
 import ModalStaffDirectory from "./modal/modalStaffDirectory";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchEmployees, toStaffListRow } from "@/lib/crm";
 
 const route = all_routes;
 
@@ -15,7 +18,13 @@ const route = all_routes;
   reference hardcodes each card in markup; here the same cards render from the
   shared staffDirectoryListData used by the list view, so the two stay in sync.
 */
-const StaffDirectoryGridComponent = () => (
+const StaffDirectoryGridComponent = () => {
+  const loadStaff = useCallback(async () => {
+    const rows = await fetchEmployees();
+    return rows ? rows.map(toStaffListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(StaffDirectoryListData, loadStaff);
+  return (
   <>
     {/* ========================
 			Start Page Content
@@ -95,7 +104,7 @@ const StaffDirectoryGridComponent = () => (
               ]} />
             {/* table header */}
             <div className="row row-gap-3">
-              {StaffDirectoryListData.map((staff) => (
+              {data.map((staff) => (
                 <div className="col-xl-4 col-md-6" key={staff.key}>
                   <div className="card border shadow">
                     <div className="card-body">
@@ -192,8 +201,9 @@ const StaffDirectoryGridComponent = () => (
     {/* ========================
 			End Page Content
 		========================= */}
-    <ModalStaffDirectory />
+    <ModalStaffDirectory onSaved={reload} />
   </>
-);
+  );
+};
 
 export default StaffDirectoryGridComponent;

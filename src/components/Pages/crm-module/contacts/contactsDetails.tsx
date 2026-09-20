@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import {
   Assigned_To,
@@ -11,9 +12,46 @@ import ModalContactDetails from "./modals/modalContactDetails";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
+import {
+  fetchAttachments,
+  fetchContacts,
+  uploadAttachment,
+  type AttachmentRow,
+} from "@/lib/crm";
 
 
 const ContactsDetailsComponent = () => {
+  const contactId =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("id")
+      : null;
+  const [contactName, setContactName] = useState("Contact");
+  const [files, setFiles] = useState<AttachmentRow[]>([]);
+
+  useEffect(() => {
+    void fetchContacts().then((rows) => {
+      if (!rows?.length) return;
+      const row = rows.find((c) => c.id === contactId) ?? rows[0];
+      setContactName(`${row.first_name} ${row.last_name}`.trim());
+    });
+  }, [contactId]);
+
+  useEffect(() => {
+    const entityId = contactId;
+    if (!entityId) return;
+    void fetchAttachments("contact", entityId).then((rows) => {
+      if (rows) setFiles(rows);
+    });
+  }, [contactId]);
+
+  const uploadToFiche = async (file: File) => {
+    const entityId = contactId;
+    if (!entityId) return;
+    await uploadAttachment({ file, entity_type: "contact", entity_id: entityId });
+    const rows = await fetchAttachments("contact", entityId);
+    if (rows) setFiles(rows);
+  };
+
   return (
     <>
       {/* ========================
@@ -111,7 +149,7 @@ const ContactsDetailsComponent = () => {
                         <span className="status online" />
                       </div>
                       <div>
-                        <h5 className="mb-1">Jackson Daniel</h5>
+                        <h5 className="mb-1">{contactName}</h5>
                         <p className="mb-2">Facility Manager, Global INC</p>
                         <div className="d-flex align-items-center">
                           <span className="badge badge-soft-danger border-0 me-2">
@@ -1332,19 +1370,50 @@ const ContactsDetailsComponent = () => {
                             </div>
                             <div className="col-md-4 text-md-end">
                               <div className="mb-3">
-                                <Link
-                                  href="#"
-                                  className="btn btn-primary"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#new_file"
-                                >
+                                <label className="btn btn-primary mb-0">
                                   Create Document
-                                </Link>
+                                  <input
+                                    type="file"
+                                    className="d-none"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      try {
+                                        await uploadToFiche(file);
+                                      } catch (err) {
+                                        alert(
+                                          err instanceof Error
+                                            ? err.message
+                                            : "Erreur"
+                                        );
+                                      }
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                </label>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
+                      {files.map((file) => (
+                        <div className="card border shadow-none mb-3" key={file.id}>
+                          <div className="card-body pb-0">
+                            <div className="row align-items-center">
+                              <div className="col-md-8">
+                                <div className="mb-3">
+                                  <h6 className="fw-semibold fs-14 mb-1">
+                                    <a href={file.url} target="_blank" rel="noreferrer">
+                                      {file.file_name}
+                                    </a>
+                                  </h6>
+                                  <p>Pièce jointe liée à la fiche.</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                       <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">

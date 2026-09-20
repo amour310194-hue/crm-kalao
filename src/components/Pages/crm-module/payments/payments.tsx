@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { PaymentsListData } from "../../../../core/json/paymentsListData";
@@ -12,6 +12,8 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchPayments, toPaymentsListRow } from "@/lib/crm";
 
 const PaymentsComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -19,7 +21,11 @@ const PaymentsComponent = () => {
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
-  const data = PaymentsListData;
+  const loadPayments = useCallback(async () => {
+    const rows = await fetchPayments();
+    return rows ? rows.map(toPaymentsListRow) : null;
+  }, []);
+  const { rows: data } = useLiveRows(PaymentsListData, loadPayments);
   const columns = [
     {
       title: "Invoice ID",

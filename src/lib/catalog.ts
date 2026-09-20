@@ -34,13 +34,17 @@ export function catalogKindLabel(kind: CatalogKind): string {
 }
 
 export function toProductsListRow(item: CatalogItem): ProductsListInterface {
+  const stock =
+    item.track_stock && item.stock_qty != null
+      ? ` · stock ${item.stock_qty}`
+      : "";
   return {
     key: item.id,
     ProductID: item.sku ? `#${item.sku}` : `#${item.id.slice(0, 8).toUpperCase()}`,
     ProductName: item.name,
     Category: item.category ?? "—",
     Kind: catalogKindLabel(item.kind),
-    SKU: item.sku ?? "—",
+    SKU: `${item.sku ?? "—"}${stock}`,
     UnitPrice: formatCatalogPrice(item.unit_price),
     Tax: String(item.tax_rate),
     Status: item.status === "active" ? "Active" : "Inactive",

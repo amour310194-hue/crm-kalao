@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
@@ -10,11 +10,17 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import { DepartmentsListData } from "../../../../core/json/departmentsListData";
 import ModalDepartments from "./modal/modalDepartments";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchDepartments, toDepartmentsListRow } from "@/lib/crm";
 
 const route = all_routes;
 
 const DepartmentsListComponent = () => {
-  const data = DepartmentsListData;
+  const loadDepartments = useCallback(async () => {
+    const rows = await fetchDepartments();
+    return rows ? rows.map(toDepartmentsListRow) : null;
+  }, []);
+  const { rows: data } = useLiveRows(DepartmentsListData, loadDepartments);
   const [searchText, setSearchText] = useState<string>("");
 
   const handleSearch = (value: string) => {

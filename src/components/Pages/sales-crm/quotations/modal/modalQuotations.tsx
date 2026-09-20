@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import TextEditor from "@/core/common/texteditor/texteditor";
@@ -12,8 +13,88 @@ import {
   QuotationEditDiscountOptions,
   QuotationClientPickList,
 } from "../../../../../core/json/quotationsListData";
+import {
+  closeBootstrapChrome,
+  createQuote,
+  emptyUuid,
+  fetchCompanies,
+  parseAmount,
+  readForm,
+} from "@/lib/crm";
+import { fetchCatalogItems, type CatalogItem } from "@/lib/catalog";
 
-const ModalQuotations = () => {
+type ModalQuotationsProps = { onSaved?: () => void };
+
+const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+
+  useEffect(() => {
+    void fetchCompanies().then((rows) => {
+      if (rows) setCompanies(rows.map((c) => ({ id: c.id, name: c.name })));
+    });
+    void fetchCatalogItems().then((rows) => {
+      if (rows) setCatalog(rows);
+    });
+  }, []);
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const form = e.currentTarget;
+      const vals = readForm(form);
+      const productIds = form.querySelectorAll<HTMLSelectElement>(
+        'select[name="line_product"]'
+      );
+      const qtys = form.querySelectorAll<HTMLInputElement>('input[name="line_qty"]');
+      const prices = form.querySelectorAll<HTMLInputElement>(
+        'input[name="line_price"]'
+      );
+      const lines = Array.from(productIds)
+        .map((select, i) => {
+          const item = catalog.find((c) => c.id === select.value);
+          const qty = parseAmount(qtys[i]?.value) || 1;
+          const price = parseAmount(prices[i]?.value) || item?.unit_price || 0;
+          if (!item && !vals.amount) return null;
+          return {
+            catalog_item_id: item?.id || null,
+            kind: (item?.kind || "product") as "product" | "service",
+            label: item?.name || "Ligne",
+            quantity: qty,
+            unit_price: price,
+            tax_rate: item?.tax_rate ?? 20,
+          };
+        })
+        .filter(Boolean) as {
+        catalog_item_id: string | null;
+        kind: "product" | "service";
+        label: string;
+        quantity: number;
+        unit_price: number;
+        tax_rate: number;
+      }[];
+      if (!lines.length && parseAmount(vals.amount)) {
+        lines.push({
+          catalog_item_id: catalog[0]?.id || null,
+          kind: catalog[0]?.kind || "product",
+          label: catalog[0]?.name || "Prestation",
+          quantity: 1,
+          unit_price: parseAmount(vals.amount),
+          tax_rate: 20,
+        });
+      }
+      await createQuote({
+        company_id: emptyUuid(vals.company_id),
+        notes: vals.notes || null,
+        lines,
+      });
+      onSaved?.();
+      closeBootstrapChrome(form);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   return (
     <>
       {/* Add Canvas */}
@@ -32,7 +113,7 @@ const ModalQuotations = () => {
           />
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form onSubmit={onCreate}>
             <div className="row">
               <div className="col-md-12">
                 <div className="mb-3">
@@ -48,9 +129,12 @@ const ModalQuotations = () => {
                       Add New
                     </Link>
                   </div>
-                  <select className="select">
-                    {QuotationClientOptions.map((option) => (
-                      <option key={option}>{option}</option>
+                  <select className="form-control" name="company_id">
+                    <option value="">Select</option>
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -60,7 +144,7 @@ const ModalQuotations = () => {
                   <label className="form-label">
                     Amount <span className="text-danger">*</span>
                   </label>
-                  <input className="form-control" />
+                  <input className="form-control" name="amount" />
                 </div>
               </div>
               <div className="col-md-6">
@@ -115,17 +199,25 @@ const ModalQuotations = () => {
                     <tbody>
                       <tr className="product-list">
                         <td className="product-select">
-                          <select className="select">
+                          <select className="form-control" name="line_product">
+                            <option value="">Select</option>
+                            {catalog.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.name}
+                              </option>
+                            ))}
                             {QuotationProductOptions.map((option) => (
-                              <option key={option}>{option}</option>
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
                             ))}
                           </select>
                         </td>
                         <td>
-                          <input className="form-control" />
+                          <input className="form-control" name="line_qty" />
                         </td>
                         <td>
-                          <input className="form-control" />
+                          <input className="form-control" name="line_price" />
                         </td>
                         <td>
                           <select className="select">
@@ -141,17 +233,25 @@ const ModalQuotations = () => {
                       </tr>
                       <tr className="product-list">
                         <td className="product-select">
-                          <select className="select">
+                          <select className="form-control" name="line_product">
+                            <option value="">Select</option>
+                            {catalog.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.name}
+                              </option>
+                            ))}
                             {QuotationProductOptions.map((option) => (
-                              <option key={option}>{option}</option>
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
                             ))}
                           </select>
                         </td>
                         <td>
-                          <input className="form-control" />
+                          <input className="form-control" name="line_qty" />
                         </td>
                         <td>
-                          <input className="form-control" />
+                          <input className="form-control" name="line_price" />
                         </td>
                         <td>
                           <select className="select">
@@ -216,7 +316,7 @@ const ModalQuotations = () => {
                 Cancel
               </button>
               <div className="d-flex align-items-center gap-2">
-                <button type="button" className="btn btn-dark">
+                <button type="submit" className="btn btn-dark">
                   Save
                 </button>
                 <button type="button" className="btn btn-primary">
@@ -272,7 +372,7 @@ const ModalQuotations = () => {
                   <label className="form-label">
                     Amount <span className="text-danger">*</span>
                   </label>
-                  <input className="form-control" />
+                  <input className="form-control" name="amount" />
                 </div>
               </div>
               <div className="col-md-6">
@@ -356,17 +456,25 @@ const ModalQuotations = () => {
                       </tr>
                       <tr className="product-list">
                         <td className="product-select">
-                          <select className="select">
+                          <select className="form-control" name="line_product">
+                            <option value="">Select</option>
+                            {catalog.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.name}
+                              </option>
+                            ))}
                             {QuotationProductOptions.map((option) => (
-                              <option key={option}>{option}</option>
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
                             ))}
                           </select>
                         </td>
                         <td>
-                          <input className="form-control" />
+                          <input className="form-control" name="line_qty" />
                         </td>
                         <td>
-                          <input className="form-control" />
+                          <input className="form-control" name="line_price" />
                         </td>
                         <td>
                           <select className="select">
@@ -442,7 +550,7 @@ const ModalQuotations = () => {
                 Cancel
               </button>
               <div className="d-flex align-items-center gap-2">
-                <button type="button" className="btn btn-dark">
+                <button type="submit" className="btn btn-dark">
                   Save
                 </button>
                 <button type="button" className="btn btn-primary">

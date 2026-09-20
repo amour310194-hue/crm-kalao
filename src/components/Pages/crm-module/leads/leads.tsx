@@ -2,13 +2,14 @@
 /* eslint-disable @next/next/no-img-element */
 import Footer from "@/core/common/footer/footer"
 import PageHeader from "@/core/common/page-header/pageHeader"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ModalLeads from "./modal/modalLeads";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { fetchLeads, leadAffiliationNames } from "@/lib/crm";
 
 
 const LeadsComponent = () => {
@@ -176,6 +177,35 @@ const initialLeadsColumns = [
 function LeadsKanbanBoard() {
   const [columns, setColumns] = useState(initialLeadsColumns);
 
+  const reloadLeads = () => {
+    void fetchLeads().then((rows) => {
+      if (!rows?.length) return;
+      setColumns((prev) =>
+        prev.map((col, index) =>
+          index === 0
+            ? {
+                ...col,
+                cards: rows.map((lead) => ({
+                  id: lead.id,
+                  avatar: { text: lead.title.slice(0, 2).toUpperCase(), color: "info" },
+                  name: lead.title,
+                  amount: String(lead.estimated_value ?? 0),
+                  email: "",
+                  phone: lead.contacts?.phone ?? "",
+                  location: leadAffiliationNames(lead),
+                  companyIcon: "assets/img/icons/company-icon-01.svg",
+                })),
+              }
+            : col
+        )
+      );
+    });
+  };
+
+  useEffect(() => {
+    reloadLeads();
+  }, []);
+
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
     const { source, destination } = result;
@@ -207,6 +237,7 @@ function LeadsKanbanBoard() {
   };
 
   return (
+    <>
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="d-flex overflow-x-auto align-items-start gap-3">
         {columns.map((col) => (
@@ -365,6 +396,8 @@ function LeadsKanbanBoard() {
         ))}
       </div>
     </DragDropContext>
+    <ModalLeads onSaved={reloadLeads} />
+    </>
   );
 }
 
@@ -1042,7 +1075,6 @@ function LeadsKanbanBoard() {
   {/* ========================
 			End Page Content
 		========================= */}
-    <ModalLeads/>
 </>
 
   )

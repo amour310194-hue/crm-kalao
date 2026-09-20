@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import Footer from "@/core/common/footer/footer";
 import Datatable from "@/core/common/dataTable";
@@ -14,10 +14,16 @@ import {
 } from "../../../../core/json/quotationsListData";
 import { all_routes } from "@/router/all_routes";
 import ModalQuotations from "./modal/modalQuotations";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { acceptQuote, fetchQuotes, toQuotationsListRow } from "@/lib/crm";
 
 const QuotationsListComponent = () => {
   const route = all_routes;
-  const data = QuotationsListData;
+  const loadQuotes = useCallback(async () => {
+    const rows = await fetchQuotes();
+    return rows ? rows.map(toQuotationsListRow) : null;
+  }, []);
+  const { rows: data, reload } = useLiveRows(QuotationsListData, loadQuotes);
   const [searchText, setSearchText] = useState<string>("");
 
   const handleSearch = (value: string) => {
@@ -87,7 +93,7 @@ const QuotationsListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -105,6 +111,21 @@ const QuotationsListComponent = () => {
               data-bs-target="#edit-offcanvas"
             >
               <i className="ti ti-edit text-blue" /> Edit
+            </Link>
+            <Link
+              className="dropdown-item"
+              href="#"
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  await acceptQuote(record.key);
+                  await reload();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Erreur");
+                }
+              }}
+            >
+              <i className="ti ti-checks text-blue" /> Accept
             </Link>
             <Link
               className="dropdown-item"
@@ -495,7 +516,7 @@ const QuotationsListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalQuotations />
+      <ModalQuotations onSaved={reload} />
     </>
   );
 };

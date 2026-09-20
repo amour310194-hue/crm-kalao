@@ -276,3 +276,6 @@ create table if not exists public.employee_assignments (
   created_at timestamptz not null default now(),
   primary key (employee_id, department_id)
 );
+
+-- V1 cœur commercial : voir supabase/migrations/20260920_v1_coeur_commercial.sql
+-- lead_affiliations, stock_locations, stock_movements, payments, attachments

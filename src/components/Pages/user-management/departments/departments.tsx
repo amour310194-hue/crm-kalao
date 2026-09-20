@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useCallback } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -7,6 +8,8 @@ import TableToolbar from "@/core/common/table-toolbar/tableToolbar";
 import { all_routes } from "@/router/all_routes";
 import { DepartmentsListData } from "../../../../core/json/departmentsListData";
 import ModalDepartments from "./modal/modalDepartments";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchDepartments, toDepartmentsListRow } from "@/lib/crm";
 
 const route = all_routes;
 
@@ -15,7 +18,13 @@ const route = all_routes;
   each card in markup; here the same cards are rendered from the shared
   departmentsListData used by the list view, so the two stay in sync.
 */
-const DepartmentsComponent = () => (
+const DepartmentsComponent = () => {
+  const loadDepartments = useCallback(async () => {
+    const rows = await fetchDepartments();
+    return rows ? rows.map(toDepartmentsListRow) : null;
+  }, []);
+  const { rows: data } = useLiveRows(DepartmentsListData, loadDepartments);
+  return (
   <>
     {/* ========================
 			Start Page Content
@@ -98,7 +107,7 @@ const DepartmentsComponent = () => (
               ]} />
             {/* table header */}
             <div className="row row-gap-3">
-              {DepartmentsListData.map((department) => (
+              {data.map((department) => (
                 <div
                   className="col-xl-4 col-lg-6 col-md-6"
                   key={department.key}
@@ -196,6 +205,7 @@ const DepartmentsComponent = () => (
 		========================= */}
     <ModalDepartments />
   </>
-);
+  );
+};
 
 export default DepartmentsComponent;

@@ -1,12 +1,21 @@
 "use client";
+import { useCallback } from "react";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { all_routes } from "@/router/all_routes";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import ModalInvoice from "./modal/modalInvoice";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchInvoices, markInvoicePaid, toInvoicesListRow } from "@/lib/crm";
+import { InvoicesListData } from "../../../../core/json/invoicesListData";
 
 const InvoicesGrid = () => {
+  const loadInvoices = useCallback(async () => {
+    const rows = await fetchInvoices();
+    return rows ? rows.map(toInvoicesListRow) : null;
+  }, []);
+  const { rows, live, reload } = useLiveRows(InvoicesListData, loadInvoices);
   return (
     <>
       {/* ========================
@@ -301,7 +310,137 @@ const InvoicesGrid = () => {
           </div>
           {/* table header */}
           {/* start row */}
-          <div className="row">
+          {live ? (
+            <div className="row">
+              {rows.map((invoice: any) => (
+                <div className="col-xxl-3 col-xl-4 col-md-6" key={invoice.key || invoice.Key}>
+                  <div className="card border shadow">
+                    <div className="card-body">
+                      <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                        <div className="users-profile">
+                          <span className="badge badge-soft-info">
+                            {invoice.Invoice_ID}
+                          </span>
+                        </div>
+                        <div className="dropdown table-action">
+                          <Link
+                            href="#"
+                            className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="ti ti-dots-vertical" />
+                          </Link>
+                          <div className="dropdown-menu dropdown-menu-right">
+                            <Link
+                              className="dropdown-item d-inline-flex align-items-center"
+                              href={all_routes.invoice_details}
+                            >
+                              <i className="ti ti-clipboard-copy me-1" /> View
+                              Invoices
+                            </Link>
+                            <Link
+                              className="dropdown-item d-inline-flex align-items-center"
+                              href="#"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                try {
+                                  await markInvoicePaid({
+                                    id: invoice.key,
+                                    amount: invoice.amountValue,
+                                    paid_amount: invoice.paidValue,
+                                  } as never);
+                                  await reload();
+                                } catch (err) {
+                                  alert(
+                                    err instanceof Error ? err.message : "Erreur"
+                                  );
+                                }
+                              }}
+                            >
+                              <i className="ti ti-checks me-1" /> Mark as Paid
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center justify-content-between mb-3">
+                        <div className="d-flex align-items-center overflow-hidden">
+                          <span className="avatar avatar-sm rounded-circle me-2 flex-shrink-0">
+                            <ImageWithBasePath
+                              src={`assets/img/priority/${invoice.Project_Image}`}
+                              alt="img"
+                            />
+                          </span>
+                          <div>
+                            <h6 className="fs-14 fw-medium mb-0">
+                              <Link href={all_routes.projectDetails}>
+                                {invoice.Project}
+                              </Link>
+                            </h6>
+                          </div>
+                        </div>
+                        <div>
+                          <span
+                            className={`badge ${
+                              invoice.Status === "Partially Paid"
+                                ? "bg-warning"
+                                : invoice.Status === "Paid"
+                                  ? "bg-success"
+                                  : invoice.Status === "Overdue"
+                                    ? "bg-info"
+                                    : "bg-danger"
+                            }`}
+                          >
+                            {invoice.Status}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <p className="text-default d-inline-flex align-items-center mb-1">
+                          <i className="ti ti-report-money text-dark fs-16 me-1" />
+                          Total Value :{" "}
+                          <span className="text-dark ms-1">{invoice.Amount}</span>
+                        </p>
+                        <p className="text-default d-inline-flex align-items-center mb-1">
+                          <i className="ti ti-calendar-event text-dark fs-16 me-1" />
+                          Due Date :{" "}
+                          <span className="text-dark ms-1">{invoice.Due_Date}</span>
+                        </p>
+                        <p className="text-default d-inline-flex align-items-center mb-1">
+                          <i className="ti ti-calendar-stats text-dark fs-16 me-1" />
+                          Paid Amount :{" "}
+                          <span className="text-dark ms-1">
+                            {invoice.Paid_Amount}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center">
+                      <Link
+                        href={all_routes.companiesDetails}
+                        className="avatar avatar-rounded border me-2"
+                      >
+                        <ImageWithBasePath
+                          src={`assets/img/company/${invoice.Client_Image}`}
+                          className="w-auto h-auto rounded-0"
+                          alt="img"
+                        />
+                      </Link>
+                      <div className="d-flex flex-column">
+                        <h6 className="fs-14 fw-medium mb-1">
+                          <Link href={all_routes.companiesDetails}>
+                            {invoice.Client}
+                          </Link>
+                        </h6>
+                        <span className="d-block fs-13">Sent to</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className={`row${live ? " d-none" : ""}`}>
             <div className="col-xxl-3 col-xl-4 col-md-6">
               <div className="card border shadow">
                 <div className="card-body">
@@ -1949,7 +2088,7 @@ const InvoicesGrid = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalInvoice />
+      <ModalInvoice onSaved={reload} />
     </>
   );
 };
