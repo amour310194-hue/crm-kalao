@@ -116,8 +116,11 @@ const ProjectDashboardComponent = () => {
                                   >
                                     <ImageWithBasePath
                                       className="w-auto h-auto"
-                                      src={`assets/img/projects/kalao-${dossier.kind}.jpg`}
-                                      alt={dossier.kindLabel}
+                                      src={
+                                        dossier.flag ??
+                                        `assets/img/projects/kalao-${dossier.kind}.jpg`
+                                      }
+                                      alt={dossier.destination ?? dossier.kindLabel}
                                     />
                                   </Link>
                                   <Link href={all_routes.projectDetails}>
@@ -151,7 +154,7 @@ const ProjectDashboardComponent = () => {
                                   }`}
                                 >
                                   <i className="ti ti-square-rounded-filled me-1" />{" "}
-                                  {dossier.kindLabel}
+                                  {dossier.destination ?? dossier.kindLabel}
                                 </span>
                               </td>
                               <td>{dossier.endLabel}</td>

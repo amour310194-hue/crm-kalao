@@ -14,6 +14,7 @@ import ModalProjectDetails from "./modal/modalProjectDetails";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import {
+  dossierFlag,
   fetchAttachments,
   fetchDossiers,
   formatDate,
@@ -83,6 +84,7 @@ const ProjectDetailsComponent = () => {
 
   /** L'id vient de l'URL ; sans id on retombe sur le premier dossier chargé. */
   const currentId = dossier?.id ?? dossierId ?? null;
+  const destination = dossier ? dossierFlag(dossier) : null;
 
   const reloadSuivi = useCallback(async (id: string | null) => {
     if (!id) return;
@@ -246,8 +248,8 @@ const ProjectDetailsComponent = () => {
                     <div className="d-flex align-items-center mb-2">
                       <div className="avatar avatar-xxl p-2 avatar-rounded border me-3 flex-shrink-0">
                         <ImageWithBasePath
-                          src="assets/img/priority/truellysel.svg"
-                          alt="img"
+                          src={destination?.src ?? "assets/img/priority/truellysel.svg"}
+                          alt={destination?.label ?? "img"}
                           className="avatar avtart-sm rounded-circle"
                         />
                       </div>

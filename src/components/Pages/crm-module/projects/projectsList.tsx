@@ -70,8 +70,8 @@ const ProjectsListComponent = () => {
           >
             <ImageWithBasePath
               className="w-auto h-auto"
-              src={`assets/img/projects/${render.Image}`}
-              alt="User Image"
+              src={render.Flag ?? `assets/img/projects/${render.Image}`}
+              alt={render.Destination ?? "User Image"}
             />
           </Link>
           <Link href={`${all_routes.projectDetails}?id=${render.key}`}>{text}</Link>

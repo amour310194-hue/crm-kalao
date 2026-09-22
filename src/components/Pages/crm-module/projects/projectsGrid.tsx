@@ -742,9 +742,9 @@ const ProjectsGridComponent = () => {
                             className="avatar border rounded-circle bg-white flex-shrink-0 me-2"
                           >
                             <ImageWithBasePath
-                              src={`assets/img/projects/${project.Image}`}
+                              src={project.Flag ?? `assets/img/projects/${project.Image}`}
                               className="w-auto h-auto"
-                              alt="img"
+                              alt={project.Destination ?? "img"}
                             />
                           </Link>
                           <div>
@@ -753,7 +753,9 @@ const ProjectsGridComponent = () => {
                                 {project.Name}
                               </Link>
                             </h5>
-                            <p className="fs-13 mb-0">{project.Kind || project.PipelineStage}</p>
+                            <p className="fs-13 mb-0">
+                              {project.Destination ?? project.Kind ?? project.PipelineStage}
+                            </p>
                           </div>
                         </div>
                         <div className="dropdown table-action">

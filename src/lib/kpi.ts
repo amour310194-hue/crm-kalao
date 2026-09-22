@@ -11,6 +11,7 @@ import {
   fetchPayments,
   fetchQuotes,
   formatDate,
+  dossierFlag,
   formatMoney,
   isDossierClosed,
   type ActivityRow,
@@ -96,6 +97,9 @@ export interface KalaoKpis {
     company: string;
     kind: DossierKind;
     kindLabel: string;
+    /** Drapeau du pays de destination pour les procédures d'immigration. */
+    flag: string | null;
+    destination: string | null;
     status: string;
     endLabel: string;
     members: string;
@@ -369,6 +373,8 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
       company: d.companies?.name ?? "Groupe Kalao",
       kind: d.kind,
       kindLabel: KIND_FR[d.kind] ?? d.kind,
+      flag: dossierFlag(d)?.src ?? null,
+      destination: dossierFlag(d)?.label ?? null,
       status: d.status,
       endLabel: d.end_at ? formatDate(d.end_at) : "—",
       members:

@@ -73,7 +73,7 @@ const InvoicesListComponent = () => {
           >
             <ImageWithBasePath
               className="w-auto h-auto"
-              src={`assets/img/projects/${render.Project_Image}`}
+              src={render.Flag ?? `assets/img/projects/${render.Project_Image}`}
               alt="User Image"
             />
           </Link>

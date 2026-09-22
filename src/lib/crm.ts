@@ -814,6 +814,7 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Project: row.project ?? "—",
     project: row.project ?? "—",
     Project_Image: "project-01.svg",
+    Flag: dossierFlag({ title: row.project })?.src ?? null,
     Due_Date: formatDate(row.due_date),
     Amount: formatMoney(row.amount),
     Paid_Amount: formatMoney(row.paid_amount),
@@ -1246,6 +1247,52 @@ function dossierImage(kind?: string | null): string {
   return KIND_IMAGES[kind || ""] ?? KIND_IMAGES.chantier;
 }
 
+/**
+ * Pays de destination d'une procédure d'immigration. Le nom du pays est écrit
+ * dans le titre du dossier ou de la facture : on le reconnaît pour afficher le
+ * drapeau. Seuls les drapeaux présents dans public/assets/img/flags sont listés.
+ */
+const DESTINATIONS: { label: string; flag: string; match: RegExp }[] = [
+  { label: "Russie", flag: "russia.svg", match: /russ/i },
+  { label: "Allemagne", flag: "de.svg", match: /allemagne|german|deutsch/i },
+  { label: "Canada", flag: "canada.svg", match: /canad/i },
+  { label: "France", flag: "fr.svg", match: /france|fran[çc]ais/i },
+  { label: "États-Unis", flag: "us.svg", match: /[ée]tats[- ]unis|usa|am[ée]ric/i },
+  { label: "Émirats arabes unis", flag: "ae.svg", match: /[ée]mirats|dubai|duba[ïi]/i },
+  { label: "Chine", flag: "china.svg", match: /chine|chinois/i },
+  { label: "Espagne", flag: "spain.svg", match: /espagne|espagnol/i },
+  { label: "Italie", flag: "italy.svg", match: /italie|italien/i },
+  { label: "Inde", flag: "india.svg", match: /\binde\b|indien/i },
+  { label: "Brésil", flag: "brazil.svg", match: /br[ée]sil/i },
+  { label: "Mexique", flag: "mexico.svg", match: /mexi/i },
+  { label: "Cameroun", flag: "cm.svg", match: /cameroun/i },
+];
+
+export interface Destination {
+  label: string;
+  /** Chemin utilisable tel quel par ImageWithBasePath. */
+  src: string;
+}
+
+export function findDestination(...texts: (string | null | undefined)[]): Destination | null {
+  const haystack = texts.filter(Boolean).join(" ");
+  if (!haystack) return null;
+  const hit = DESTINATIONS.find((d) => d.match.test(haystack));
+  return hit ? { label: hit.label, src: `assets/img/flags/${hit.flag}` } : null;
+}
+
+/** Drapeau à afficher pour un dossier : uniquement les procédures d'immigration. */
+export function dossierFlag(row: {
+  kind?: string | null;
+  title?: string | null;
+  notes?: string | null;
+}): Destination | null {
+  const isImmigration =
+    row.kind === "visa" || /immigration|visa/i.test(`${row.title ?? ""} ${row.notes ?? ""}`);
+  if (!isImmigration) return null;
+  return findDestination(row.title, row.notes);
+}
+
 function companyImageName(row: CompanyRow, index: number): string {
   const v = `${row.industry ?? ""} ${row.name ?? ""}`.toLowerCase();
   if (v.includes("plant") || v.includes("cacao") || v.includes("agro")) return "kalao-plantation.jpg";
@@ -1406,10 +1453,13 @@ export function projectKindsFromQuery(raw?: string | null): DossierKind | Dossie
 }
 
 export function toProjectsListRow(row: DossierRow, index: number) {
+  const destination = dossierFlag(row);
   return {
     key: row.id,
     Name: row.title,
     Image: dossierImage(row.kind),
+    Flag: destination?.src ?? null,
+    Destination: destination?.label ?? null,
     Client: row.companies?.name ?? "Kalao",
     ClientImage: "kalao-entreprise.jpg",
     Priority: KIND_PRIORITY[row.kind] ?? "Medium",
