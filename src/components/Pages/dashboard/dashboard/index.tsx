@@ -10,8 +10,10 @@ import ProfitChart from "./chart/profitChart";
 import CommonFooter from "@/core/common/common-footer/commonFooter";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { formatMoney, useKalaoKpis } from "@/lib/kpi";
 
 const MainDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
   return (
     <>
       {/* ========================
@@ -227,14 +229,27 @@ const MainDashboardComponent = () => {
             <div className="col-xl-3 col-sm-6 d-flex">
               <div className="card flex-fill">
                 <div className="card-body position-relative">
-                  <p className="fw-medium mb-1">Revenue</p>
-                  <h4 className="mb-3">FCFA 15,44,540</h4>
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <p className="fw-medium mb-1">
+                    {live ? "Encaissé" : "Revenue"}
+                  </p>
+                  <h4 className="mb-3">
+                    {live && kpis ? formatMoney(kpis.collected) : "FCFA 15,44,540"}
+                  </h4>
+                  <div
+                    className={`d-flex align-items-center gap-2 flex-wrap${
+                      live ? " d-none" : ""
+                    }`}
+                  >
                     <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
                       +2.5%
                     </span>
                     <p className="text-dark mb-0">From Last Week</p>
                   </div>
+                  {live && kpis ? (
+                    <p className="mb-0">
+                      Reste à encaisser {formatMoney(kpis.outstanding)}
+                    </p>
+                  ) : null}
                   <div className="custom-card-icon">
                     <div className="avatar avatar-rounded avatar-lg bg-primary-gradient-100 position-absolute top-0 end-0">
                       <ImageWithBasePath
@@ -252,13 +267,20 @@ const MainDashboardComponent = () => {
               <div className="card flex-fill">
                 <div className="card-body position-relative">
                   <p className="fw-medium mb-1">Active Deals</p>
-                  <h4 className="mb-3">147</h4>
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <h4 className="mb-3">{live && kpis ? kpis.dealsActive : 147}</h4>
+                  <div
+                    className={`d-flex align-items-center gap-2 flex-wrap${
+                      live ? " d-none" : ""
+                    }`}
+                  >
                     <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-danger border-0">
                       -21.15%
                     </span>
                     <p className="text-dark mb-0">From Last Week</p>
                   </div>
+                  {live && kpis ? (
+                    <p className="mb-0">{kpis.dossiersOpen} dossiers ouverts</p>
+                  ) : null}
                   <div className="custom-card-icon">
                     <div className="avatar avatar-rounded avatar-lg bg-info-gradient-100 position-absolute top-0 end-0">
                       <ImageWithBasePath
@@ -276,13 +298,24 @@ const MainDashboardComponent = () => {
               <div className="card flex-fill">
                 <div className="card-body position-relative">
                   <p className="fw-medium mb-1">Conversion Rate</p>
-                  <h4 className="mb-3">32.8%</h4>
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <h4 className="mb-3">
+                    {live && kpis ? `${kpis.conversionRate}%` : "32.8%"}
+                  </h4>
+                  <div
+                    className={`d-flex align-items-center gap-2 flex-wrap${
+                      live ? " d-none" : ""
+                    }`}
+                  >
                     <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
                       +15.5%
                     </span>
                     <p className="text-dark mb-0">From Last Week</p>
                   </div>
+                  {live && kpis ? (
+                    <p className="mb-0">
+                      {kpis.dealsWon} gagnés / {kpis.dealsLost} perdus
+                    </p>
+                  ) : null}
                   <div className="custom-card-icon">
                     <div className="avatar avatar-rounded avatar-lg bg-pink-gradient-100 position-absolute top-0 end-0">
                       <ImageWithBasePath
@@ -302,8 +335,12 @@ const MainDashboardComponent = () => {
                   <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3">
                     <div>
                       <div className="d-flex align-items-center gap-1">
-                        <h4 className="mb-0">4569</h4>
-                        <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                        <h4 className="mb-0">{live && kpis ? kpis.contacts : 4569}</h4>
+                        <span
+                          className={`d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0${
+                            live ? " d-none" : ""
+                          }`}
+                        >
                           +2.5%
                         </span>
                       </div>
@@ -343,7 +380,11 @@ const MainDashboardComponent = () => {
                         +4
                       </Link>
                     </div>
-                    <p className="text-dark mb-0">From Last Week</p>
+                    <p className="text-dark mb-0">
+                      {live && kpis
+                        ? `${kpis.companies} sociétés`
+                        : "From Last Week"}
+                    </p>
                   </div>
                 </div>
               </div>{" "}
@@ -383,6 +424,43 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                   </div>
+                  {live && kpis
+                    ? kpis.topCompanies.map((company) => (
+                        <div
+                          className="d-flex align-items-sm-center justify-content-between gap-2 flex-sm-row flex-column mb-3"
+                          key={company.key}
+                        >
+                          <div className="d-flex align-items-center">
+                            <Link
+                              href={all_routes.companiesDetails}
+                              className="avatar avatar-md border rounded-circle flex-shrink-0"
+                            >
+                              <ImageWithBasePath
+                                src="assets/img/icons/kalao-entreprise.jpg"
+                                className="img-fluid w-auto h-auto"
+                                alt="img"
+                              />
+                            </Link>
+                            <div className="ms-2 flex-fill">
+                              <p className="fw-medium text-truncate mb-1 fs-14">
+                                <Link href={all_routes.companiesDetails}>
+                                  {company.label}
+                                </Link>
+                              </p>
+                              <p className="fs-13 mb-0">
+                                {company.count} deal{company.count > 1 ? "s" : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm-end mb-0">
+                            <p className="fw-semibold mb-0 text-dark">
+                              {formatMoney(company.value)}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    : null}
+                  <div className={live ? "d-none" : ""}>
                   <div className="d-flex align-items-sm-center justify-content-between gap-2 flex-sm-row flex-column mb-3">
                     <div className="d-flex align-items-center">
                       <Link
@@ -511,6 +589,7 @@ const MainDashboardComponent = () => {
                       <p className="fw-semibold mb-0 text-dark">FCFA 10,14,112</p>
                     </div>
                   </div>
+                  </div>
                   <Link
                     className="btn btn-sm btn-light d-flex align-items-center"
                     href={all_routes.dealsGrid}
@@ -552,7 +631,24 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="row g-3 mb-3">
+                  {live && kpis ? (
+                    <div className="row g-3 mb-3">
+                      {kpis.pipeline.slice(0, 4).map((stage) => (
+                        <div className="col-6 col-sm-3" key={stage.key}>
+                          <div>
+                            <p className="mb-1">{stage.label}</p>
+                            <p className="text-dark fw-medium mb-1">
+                              {formatMoney(stage.value)}
+                            </p>
+                            <p className="mb-0">
+                              {stage.count} deal{stage.count > 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className={`row g-3 mb-3${live ? " d-none" : ""}`}>
                     <div className="col-6 col-sm-3">
                       <div>
                         <p className="mb-1">Lead</p>
@@ -676,45 +772,62 @@ const MainDashboardComponent = () => {
                   </div>
                   <div className="mb-4">
                     <div className="d-flex align-items-center gap-2 flex-wrap mb-3">
-                      <h4 className="mb-0">2656</h4>
-                      <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                      <h4 className="mb-0">{live && kpis ? kpis.dealsTotal : 2656}</h4>
+                      <span
+                        className={`d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0${
+                          live ? " d-none" : ""
+                        }`}
+                      >
                         +12.5%
                       </span>
-                      <p className="mb-0">compared to last week</p>
+                      <p className={`mb-0${live ? " d-none" : ""}`}>
+                        compared to last week
+                      </p>
+                      {live && kpis ? (
+                        <p className="mb-0">{formatMoney(kpis.dealsValue)} au total</p>
+                      ) : null}
                     </div>
                     <div className="p-2 d-flex align-items-center justify-content-between border-bottom">
                       <p className="text-dark d-flex align-items-center mb-0">
                         <i className="ti ti-circle-filled text-teal fs-8 me-1" />
                         Successful Deals
                       </p>
-                      <p className="text-dark mb-0">1000 Deals</p>
+                      <p className="text-dark mb-0">
+                        {live && kpis ? kpis.dealsWon : 1000} Deals
+                      </p>
                     </div>
                     <div className="p-2 d-flex align-items-center justify-content-between border-bottom">
                       <p className="text-dark d-flex align-items-center mb-0">
                         <i className="ti ti-circle-filled text-secondary fs-8 me-1" />
                         Pending Deals
                       </p>
-                      <p className="text-dark mb-0">1056 Deals</p>
+                      <p className="text-dark mb-0">
+                        {live && kpis ? kpis.dealsActive : 1056} Deals
+                      </p>
                     </div>
                     <div className="p-2 d-flex align-items-center justify-content-between border-bottom">
                       <p className="text-dark d-flex align-items-center mb-0">
                         <i className="ti ti-circle-filled text-purple fs-8 me-1" />
                         Rejected Deals
                       </p>
-                      <p className="text-dark mb-0">500 Deals</p>
+                      <p className="text-dark mb-0">
+                        {live && kpis ? kpis.dealsLost : 500} Deals
+                      </p>
                     </div>
                     <div className="p-2 d-flex align-items-center justify-content-between">
                       <p className="text-dark d-flex align-items-center mb-0">
                         <i className="ti ti-circle-filled text-danger fs-8 me-1" />
                         Upcoming Deals
                       </p>
-                      <p className="text-dark mb-0">100 Deals</p>
+                      <p className="text-dark mb-0">
+                        {live && kpis ? kpis.dealsUpcoming : 100} Deals
+                      </p>
                     </div>
                   </div>
                   <div className="p-3 border rounded bg-light d-flex align-items-center justify-content-between">
                     <div>
                       <p className="mb-1">Deals Won</p>
-                      <h4 className="mb-0">689</h4>
+                      <h4 className="mb-0">{live && kpis ? kpis.dealsWon : 689}</h4>
                     </div>
                     <div className="avatar-group avatar-group-sm">
                       <Link
@@ -810,7 +923,64 @@ const MainDashboardComponent = () => {
                           <th>Status</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      {live && kpis ? (
+                        <tbody>
+                          {kpis.recentDeals.map((deal, index) => (
+                            <tr className={index % 2 ? "even" : "odd"} key={deal.key}>
+                              <td>
+                                <Link href={all_routes.dealsGrid} className="fw-medium">
+                                  {deal.title}
+                                </Link>
+                              </td>
+                              <td>{deal.stage}</td>
+                              <td>{deal.amount}</td>
+                              <td>
+                                <span className="badge badge-pill border badge-soft-secondary border-secondary">
+                                  {deal.stage}
+                                </span>
+                              </td>
+                              <td>
+                                <p className="d-flex align-items-center fs-14 mb-0">
+                                  <Link
+                                    href={all_routes.companiesDetails}
+                                    className="avatar avatar-sm avatar-rounded border me-2"
+                                  >
+                                    <ImageWithBasePath
+                                      className="img-fluid"
+                                      src="assets/img/icons/kalao-entreprise.jpg"
+                                      alt="Client"
+                                    />
+                                  </Link>
+                                  <Link href={all_routes.companiesDetails}>
+                                    {deal.company}
+                                  </Link>
+                                </p>
+                              </td>
+                              <td>
+                                <p className="text-dark">{deal.probability}%</p>
+                              </td>
+                              <td>
+                                <span
+                                  className={`badge badge-pill ${
+                                    deal.stage === "Gagné"
+                                      ? "bg-success"
+                                      : deal.stage === "Perdu"
+                                      ? "bg-danger"
+                                      : "bg-indigo"
+                                  }`}
+                                >
+                                  {deal.stage === "Gagné"
+                                    ? "Won"
+                                    : deal.stage === "Perdu"
+                                    ? "Lost"
+                                    : "Open"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      ) : null}
+                      <tbody className={live ? "d-none" : ""}>
                         <tr className="odd">
                           <td>
                             <a href="deals_details" className="fw-medium">

@@ -10,8 +10,10 @@ import LastChart from "./chats/lastChart";
 import WonChart from "./chats/wonChart";
 import DealsYearChart from "./chats/dealsYearChart";
 import { all_routes } from "@/router/all_routes";
+import { useKalaoKpis } from "@/lib/kpi";
 
 const DelasDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
   return (
     <>
       {/* ========================
@@ -98,7 +100,42 @@ const DelasDashboardComponent = () => {
                           </th>
                         </tr>
                       </thead>
-                      <tbody>
+                      {live && kpis ? (
+                        <tbody>
+                          {kpis.recentDeals.map((deal, index) => (
+                            <tr className={index % 2 ? "even" : "odd"} key={deal.key}>
+                              <td>
+                                <Link
+                                  href={all_routes.dealsDetails}
+                                  className="fw-medium"
+                                >
+                                  {deal.title}
+                                </Link>
+                              </td>
+                              <td>{deal.stage}</td>
+                              <td>{deal.amount}</td>
+                              <td>
+                                <span
+                                  className={`badge badge-pill ${
+                                    deal.stage === "Gagné"
+                                      ? "bg-success"
+                                      : deal.stage === "Perdu"
+                                      ? "bg-danger"
+                                      : "bg-indigo"
+                                  }`}
+                                >
+                                  {deal.stage === "Gagné"
+                                    ? "Won"
+                                    : deal.stage === "Perdu"
+                                    ? "Lost"
+                                    : "Open"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      ) : null}
+                      <tbody className={live ? "d-none" : ""}>
                         <tr className="odd">
                           <td>
                             <Link
@@ -250,7 +287,12 @@ const DelasDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="deals-chart">
-                    <DealsChart />
+                    <DealsChart
+                      categories={
+                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
+                      }
+                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

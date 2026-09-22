@@ -206,6 +206,7 @@ export interface ActivityRow {
   due_at: string | null;
   created_at: string;
   notes: string | null;
+  done?: boolean;
 }
 
 export interface DepartmentRow {
@@ -899,6 +900,27 @@ export async function deleteActivity(id: string) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("activities").delete().eq("id", id);
+  throwIf(error);
+}
+
+export async function setActivityDone(id: string, done: boolean) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.from("activities").update({ done }).eq("id", id);
+  throwIf(error);
+}
+
+export async function updateActivity(
+  id: string,
+  input: { subject?: string; notes?: string | null; due_at?: string | null }
+) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const patch: Record<string, unknown> = {};
+  if (input.subject !== undefined) patch.subject = input.subject;
+  if (input.notes !== undefined) patch.notes = input.notes;
+  if (input.due_at !== undefined) patch.due_at = input.due_at;
+  const { error } = await supabase.from("activities").update(patch).eq("id", id);
   throwIf(error);
 }
 

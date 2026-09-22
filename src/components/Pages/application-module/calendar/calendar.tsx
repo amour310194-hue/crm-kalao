@@ -9,10 +9,21 @@ import Modal from "./modal/modal";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import Footer from "@/core/common/footer/footer";
+import { useKalaoCalendar } from "@/lib/kpi";
 
+const TONE_BORDER: Record<string, string> = {
+  Visas: "border-warning",
+  Baux: "border-info",
+  Facture: "border-danger",
+  Activité: "border-primary",
+  Chantiers: "border-success",
+  Plantations: "border-success",
+  Voyages: "border-info",
+  Événements: "border-purple",
+};
 
 const CalenderComponent = () => {
-
+  const { deadlines, events, live } = useKalaoCalendar();
 
    const calendarRef = useRef(null);
   const [, setShowEventDetailsModal] = useState(false);
@@ -160,10 +171,28 @@ const CalenderComponent = () => {
                 <h5 className="mb-2">
                   Upcoming Event
                   <span className="badge badge-success rounded-pill ms-2">
-                    15
+                    {live ? deadlines.length : 15}
                   </span>
                 </h5>
-                <div className="border-start border-secondary border-3 mb-3">
+                {live
+                  ? deadlines.slice(0, 5).map((deadline) => (
+                      <div
+                        className={`border-start ${
+                          TONE_BORDER[deadline.origin] ?? "border-primary"
+                        } border-3 mb-3`}
+                        key={deadline.key}
+                      >
+                        <div className="ps-3">
+                          <h6 className="fw-medium mb-1">{deadline.title}</h6>
+                          <p className="fs-12">
+                            <i className="ti ti-calendar-check text-info me-2" />
+                            {deadline.dateLabel} · {deadline.origin}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  : null}
+                <div className={`${live ? "d-none " : ""}border-start border-secondary border-3 mb-3`}>
                   <div className="ps-3">
                     <h6 className="fw-medium mb-1">Meeting with Team Dev</h6>
                     <p className="fs-12">
@@ -172,7 +201,7 @@ const CalenderComponent = () => {
                     </p>
                   </div>
                 </div>
-                <div className="border-start border-danger border-3 mb-3">
+                <div className={`${live ? "d-none " : ""}border-start border-danger border-3 mb-3`}>
                   <div className="ps-3">
                     <h6 className="fw-medium mb-1">
                       Design System With Client
@@ -183,7 +212,7 @@ const CalenderComponent = () => {
                     </p>
                   </div>
                 </div>
-                <div className="border-start border-success border-3 mb-3">
+                <div className={`${live ? "d-none " : ""}border-start border-success border-3 mb-3`}>
                   <div className="ps-3">
                     <h6 className="fw-medium mb-1">UI/UX Team Call</h6>
                     <p className="fs-12">
@@ -228,6 +257,7 @@ const CalenderComponent = () => {
                         end: "dayGridMonth,dayGridWeek,dayGridDay",
                       }}
                       eventClick={handleEventClick}
+                      events={live ? events : undefined}
                       ref={calendarRef}
                     />
               </div>

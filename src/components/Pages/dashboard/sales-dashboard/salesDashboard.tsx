@@ -8,8 +8,10 @@ import YtdRevenueChart from "./chart/ytdRevenueChart";
 import DealSizeChart from "./chart/dealSizeChart";
 import DealChart from "./chart/dealChart";
 import Link from "next/link";
+import { formatMoney, useKalaoKpis } from "@/lib/kpi";
 
 const SalesDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
   return (
     <>
       {/* ========================
@@ -135,10 +137,18 @@ const SalesDashboardComponent = () => {
                         </div>
                         <div className="bg-light rounded-4 w-100 p-3">
                           <p className="text-dark mb-2">Total MTD Revenue</p>
-                          <h3 className="mb-4">FCFA 18,50,800.00</h3>
+                          <h3 className="mb-4">
+                            {live && kpis
+                              ? formatMoney(kpis.collectedMtd)
+                              : "FCFA 18,50,800.00"}
+                          </h3>
                           <div className="d-flex align-items-center justify-content-between gap-1 flex-wrap">
                             <div className="d-flex align-items-center gap-1 flex-wrap">
-                              <span className="badge badge-pill rounded-pill border badge-soft-success border-0">
+                              <span
+                                className={`badge badge-pill rounded-pill border badge-soft-success border-0${
+                                  live ? " d-none" : ""
+                                }`}
+                              >
                                 +2.5%
                               </span>
                               <p className="mb-0">Month Till Date</p>
@@ -158,10 +168,18 @@ const SalesDashboardComponent = () => {
                         </div>
                         <div className="bg-light rounded-4 w-100 p-3">
                           <p className="text-dark mb-2">Total YTD Revenue</p>
-                          <h3 className="mb-4">FCFA 85,25,800.00</h3>
+                          <h3 className="mb-4">
+                            {live && kpis
+                              ? formatMoney(kpis.collectedYtd)
+                              : "FCFA 85,25,800.00"}
+                          </h3>
                           <div className="d-flex align-items-center justify-content-between gap-1 flex-wrap">
                             <div className="d-flex align-items-center gap-1 flex-wrap">
-                              <span className="badge badge-pill rounded-pill border badge-soft-danger border-0">
+                              <span
+                                className={`badge badge-pill rounded-pill border badge-soft-danger border-0${
+                                  live ? " d-none" : ""
+                                }`}
+                              >
                                 -5.0%
                               </span>
                               <p className="mb-0">Year Till Date</p>
@@ -193,11 +211,21 @@ const SalesDashboardComponent = () => {
                     <StorageRequestChart />
                   </div>
                   <div className="d-flex align-items-center gap-1 flex-wrap">
-                    <h3 className="sub-title mb-0">55.6%</h3>
-                    <span className="badge badge-pill rounded-pill border badge-soft-success border-0">
+                    <h3 className="sub-title mb-0">
+                      {live && kpis ? `${kpis.conversionRate}%` : "55.6%"}
+                    </h3>
+                    <span
+                      className={`badge badge-pill rounded-pill border badge-soft-success border-0${
+                        live ? " d-none" : ""
+                      }`}
+                    >
                       +2.5%
                     </span>
-                    <p className="mb-0">Last Week</p>
+                    <p className="mb-0">
+                      {live && kpis
+                        ? `${kpis.dealsWon} deals gagnés`
+                        : "Last Week"}
+                    </p>
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -233,8 +261,10 @@ const SalesDashboardComponent = () => {
                         <div>
                           <p className="text-dark fw-medium mb-1">Deals Won</p>
                           <div className="d-flex align-items-center gap-1 flex-wrap">
-                            <h3 className="custom-title mb-0 me-1">68</h3>
-                            <p className="fs-12 mb-0">
+                            <h3 className="custom-title mb-0 me-1">
+                              {live && kpis ? kpis.dealsWon : 68}
+                            </h3>
+                            <p className={`fs-12 mb-0${live ? " d-none" : ""}`}>
                               <span className="text-success">+2.5%</span> Last
                               Week
                             </p>
@@ -249,9 +279,9 @@ const SalesDashboardComponent = () => {
                           <p className="text-dark fw-medium mb-1">Deals Lost</p>
                           <div className="d-flex align-items-center gap-1 flex-wrap">
                             <h3 className="custom-title text-danger mb-0 me-1">
-                              16
+                              {live && kpis ? kpis.dealsLost : 16}
                             </h3>
-                            <p className="fs-12 mb-0">
+                            <p className={`fs-12 mb-0${live ? " d-none" : ""}`}>
                               <span className="text-danger">-5.8%</span> Last
                               Week
                             </p>
@@ -386,7 +416,37 @@ const SalesDashboardComponent = () => {
                         <th>Status</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    {live && kpis ? (
+                      <tbody>
+                        {kpis.recentDeals.map((deal, index) => (
+                          <tr className={index % 2 ? "even" : "odd"} key={deal.key}>
+                            <td>
+                              <p className="text-dark fw-medium mb-1">
+                                {deal.title}
+                              </p>
+                              <p className="mb-0">{deal.company}</p>
+                            </td>
+                            <td>
+                              <p className="text-dark mb-0">{deal.amount}</p>
+                            </td>
+                            <td>
+                              <span
+                                className={`badge badge-pill ${
+                                  deal.stage === "Gagné"
+                                    ? "bg-soft-success text-success"
+                                    : deal.stage === "Perdu"
+                                    ? "bg-soft-danger text-danger"
+                                    : "bg-soft-info text-info"
+                                }`}
+                              >
+                                {deal.stage}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    ) : null}
+                    <tbody className={live ? "d-none" : ""}>
                       <tr className="odd">
                         <td>
                           <p className="text-dark fw-medium mb-1">

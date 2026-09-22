@@ -4,7 +4,13 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const ProjectStageChart = () => {
+interface ProjectStageChartProps {
+  /** Étiquettes live « Pôle : nombre » ; absentes, la maquette reste affichée. */
+  categories?: string[];
+  data?: number[];
+}
+
+const ProjectStageChart = ({ categories, data }: ProjectStageChartProps) => {
   const options: ApexOptions = {
     chart: {
       type: 'bar' as const,
@@ -40,14 +46,16 @@ const ProjectStageChart = () => {
       }
     },
     xaxis: {
-      categories: [
-        'Inpipeline : 1454',
-        'Follow Up : 1454',
-        'Schedule service : 1454',
-        'Conversation : 1454',
-        'Win : 1454',
-        'Lost : 1454'
-      ]
+      categories: categories?.length
+        ? categories
+        : [
+            'Inpipeline : 1454',
+            'Follow Up : 1454',
+            'Schedule service : 1454',
+            'Conversation : 1454',
+            'Win : 1454',
+            'Lost : 1454'
+          ]
     },
     legend: {
       show: false
@@ -57,7 +65,7 @@ const ProjectStageChart = () => {
   const series = [
     {
       name: '',
-      data: [1200, 1000, 800, 600, 400, 200]
+      data: data?.length ? data : [1200, 1000, 800, 600, 400, 200]
     }
   ];
 

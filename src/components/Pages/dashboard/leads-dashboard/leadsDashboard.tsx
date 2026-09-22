@@ -12,10 +12,10 @@ import PredefinedDatePicker from "@/core/common/common-dateRangePicker/Predefine
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
 import Datatable from "@/core/common/dataTable";
 import Footer from "@/core/common/footer/footer";
+import { useKalaoKpis } from "@/lib/kpi";
 
 const LeadsDashboardComponent = () => {
-
-
+  const { kpis, live } = useKalaoKpis();
 
   return (
     <>
@@ -105,7 +105,48 @@ const LeadsDashboardComponent = () => {
                           </th>
                         </tr>
                       </thead>
-                      <tbody>
+                      {live && kpis ? (
+                        <tbody>
+                          {kpis.recentLeads.map((lead, index) => (
+                            <tr className={index % 2 ? "even" : "odd"} key={lead.key}>
+                              <td>
+                                <Link href={all_routes.leadsDetails}>{lead.name}</Link>
+                              </td>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  <Link
+                                    href={all_routes.companyDetails}
+                                    className="avatar avatar-rounded border"
+                                  >
+                                    <ImageWithBasePath
+                                      className="w-auto h-auto"
+                                      src="assets/img/icons/kalao-entreprise.jpg"
+                                      alt="Client"
+                                    />
+                                  </Link>
+                                  <div className="ms-2">
+                                    <h6 className="fs-14 fw-medium mb-0">
+                                      <Link
+                                        href={all_routes.companyDetails}
+                                        className="d-flex flex-column"
+                                      >
+                                        {lead.company}
+                                      </Link>
+                                    </h6>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>{lead.phone}</td>
+                              <td>
+                                <span className={`badge badge-pill bg-${lead.tone}`}>
+                                  {lead.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      ) : null}
+                      <tbody className={live ? "d-none" : ""}>
                         <tr className="odd">
                           <td>
                             <Link href={all_routes.leadsDetails}>Collins</Link>
@@ -299,7 +340,9 @@ const LeadsDashboardComponent = () => {
               <div className="card flex-fill">
                 <div className="card-header">
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h6 className="mb-0">Projects By Stage</h6>
+                    <h6 className="mb-0">
+                      {live ? "Leads par pôle" : "Projects By Stage"}
+                    </h6>
                     <div className="dropdown">
                       <Link
                         className="dropdown-toggle btn btn-outline-light shadow"
@@ -324,7 +367,16 @@ const LeadsDashboardComponent = () => {
                 </div>
                 <div className="card-body">
                   <div id="leadpiechart" className="text-center">
-                    <LeadPieChart/>
+                    <LeadPieChart
+                      labels={
+                        live
+                          ? kpis?.leadsByPole.map((pole) => pole.label)
+                          : undefined
+                      }
+                      values={
+                        live ? kpis?.leadsByPole.map((pole) => pole.count) : undefined
+                      }
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

@@ -11,13 +11,64 @@ import { Assignee, Priority, StatusActive } from "@/core/json/selectOption";
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
 import { all_routes } from "@/router/all_routes";
 import Footer from "@/core/common/footer/footer";
-
-
+import { useCallback, useEffect } from "react";
+import {
+  closeBootstrapChrome,
+  createActivity,
+  deleteActivity,
+  fetchActivities,
+  formatDate,
+  readForm,
+  type ActivityRow,
+} from "@/lib/crm";
 
 const NotesComponent = () => {
   const [tags, setTags] = useState<string[]>(["Pending", "Done"]);
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
+  };
+
+  const [notes, setNotes] = useState<ActivityRow[] | null>(null);
+  const live = notes !== null;
+
+  const reload = useCallback(async () => {
+    try {
+      const rows = await fetchActivities();
+      if (rows) setNotes(rows.filter((row) => row.type === "note"));
+    } catch (err) {
+      console.error("[crm] notes", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    try {
+      const vals = readForm(form);
+      await createActivity({
+        type: "note",
+        subject: vals.title || "Note",
+        notes: vals.notes || null,
+      });
+      form.reset();
+      await reload();
+      closeBootstrapChrome(form);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const remove = async (note: ActivityRow) => {
+    try {
+      await deleteActivity(note.id);
+      await reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
   };
 
   const getModalContainer = () => {
@@ -236,7 +287,59 @@ const NotesComponent = () => {
                 >
                   <div>
                     {/* start row */}
-                    <div className="row">
+                    {live ? (
+                      <div className="row">
+                        {notes!.length ? (
+                          notes!.map((note) => (
+                            <div className="col-md-4 d-flex" key={note.id}>
+                              <div className="card flex-fill">
+                                <div className="card-body">
+                                  <div className="d-flex align-items-center justify-content-between">
+                                    <span className="badge badge-outline-info d-inline-flex align-items-center">
+                                      <i className="ti ti-circle-filled fs-7 me-1" />
+                                      Note
+                                    </span>
+                                  </div>
+                                  <div className="my-3">
+                                    <h6 className="fs-16 text-truncate mb-1">
+                                      {note.subject}
+                                    </h6>
+                                    <p className="mb-3 d-flex align-items-center text-dark">
+                                      <i className="ti ti-calendar me-1" />
+                                      {formatDate(note.due_at ?? note.created_at)}
+                                    </p>
+                                    <p className="text-truncate line-clamb-2 text-wrap">
+                                      {note.notes || "—"}
+                                    </p>
+                                  </div>
+                                  <div className="d-flex align-items-center justify-content-between border-top pt-3">
+                                    <span className="text-info d-flex align-items-center">
+                                      <i className="ti ti-square-filled square-rotate fs-10 me-1" />
+                                      Kalao
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="btn btn-icon btn-sm btn-outline-light"
+                                      onClick={() => void remove(note)}
+                                      aria-label="Supprimer"
+                                    >
+                                      <i className="ti ti-trash text-danger" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-md-12">
+                            <p className="mb-0">
+                              Aucune note. Utilise « Add Note » pour en créer une.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                    <div className={`row${live ? " d-none" : ""}`}>
                       <div className="col-md-12">
                         <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-3">
                           <div className="d-flex align-items-center">
@@ -256,7 +359,7 @@ const NotesComponent = () => {
                     </div>
                     {/* end row */}
                     {/* start row */}
-                    <div className="row">
+                    <div className={`row${live ? " d-none" : ""}`}>
                       <div className="col-md-4 d-flex">
                         <div className="card flex-fill">
                           <div className="card-body">
@@ -612,7 +715,7 @@ const NotesComponent = () => {
                   </div>
                   {/* end row */}
                   {/* start row */}
-                  <div className="row">
+                  <div className={`row${live ? " d-none" : ""}`}>
                     <div className="col-md-4 d-flex">
                       <div className="card flex-fill">
                         <div className="card-body">
@@ -2433,13 +2536,28 @@ const NotesComponent = () => {
                   aria-label="Close"
                 />
               </div>
-              <form>
+              <form onSubmit={onCreate}>
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-12">
                       <div className="mb-3">
                         <label className="form-label">Note Title</label>
-                        <input type="text" className="form-control" />
+                        <input
+                          type="text"
+                          name="title"
+                          className="form-control"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Contenu</label>
+                        <textarea
+                          name="notes"
+                          className="form-control"
+                          rows={3}
+                        />
                       </div>
                     </div>
                     <div className="col-12">

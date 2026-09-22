@@ -7,8 +7,10 @@ import RevenuePerformanceChart from "./chart/revenuePerformanceChart";
 import RevenueExpenseChart from "./chart/revenueExpense";
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
 import Link from "next/link";
+import { formatMoney, useKalaoKpis } from "@/lib/kpi";
 
 const RevenueSummaryDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
   return (
     <>
       {/* ========================
@@ -78,13 +80,25 @@ const RevenueSummaryDashboardComponent = () => {
                               <div className="avatar avatar-md bg-primary-gradient-100 fs-16 mb-2">
                                 <i className="ti ti-coin fs-22" />
                               </div>
-                              <p className="mb-1">Total Revenue</p>
-                              <h5 className="mb-3">FCFA 2.45M</h5>
+                              <p className="mb-1">
+                                {live ? "Encaissé" : "Total Revenue"}
+                              </p>
+                              <h5 className="mb-3">
+                                {live && kpis ? formatMoney(kpis.collected) : "FCFA 2.45M"}
+                              </h5>
                               <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                                <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                                <span
+                                  className={`d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0${
+                                    live ? " d-none" : ""
+                                  }`}
+                                >
                                   +2.5%
                                 </span>
-                                <p className="text-dark mb-0">vs Last Period</p>
+                                <p className="text-dark mb-0">
+                                  {live && kpis
+                                    ? `Facturé ${formatMoney(kpis.invoiced)}`
+                                    : "vs Last Period"}
+                                </p>
                               </div>
                             </div>
                           </div>{" "}
@@ -95,12 +109,20 @@ const RevenueSummaryDashboardComponent = () => {
                                 <i className="ti ti-antenna-bars-5 fs-22" />
                               </div>
                               <p className="mb-1">Revenue Growth</p>
-                              <h5 className="mb-3">18.2%</h5>
+                              <h5 className="mb-3">
+                                {live && kpis ? `${kpis.collectedGrowth}%` : "18.2%"}
+                              </h5>
                               <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                                <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                                <span
+                                  className={`d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0${
+                                    live ? " d-none" : ""
+                                  }`}
+                                >
                                   +3.4%
                                 </span>
-                                <p className="text-dark mb-0">QoQ Improved</p>
+                                <p className="text-dark mb-0">
+                                  {live ? "vs mois précédent" : "QoQ Improved"}
+                                </p>
                               </div>
                             </div>
                           </div>{" "}
@@ -110,13 +132,27 @@ const RevenueSummaryDashboardComponent = () => {
                               <div className="avatar avatar-md bg-info fs-16 mb-2">
                                 <i className="ti ti-box fs-22" />
                               </div>
-                              <p className="mb-1">Annual Recurring</p>
-                              <h5 className="mb-3">FCFA 28.4M</h5>
+                              <p className="mb-1">
+                                {live ? "Impayé" : "Annual Recurring"}
+                              </p>
+                              <h5 className="mb-3">
+                                {live && kpis ? formatMoney(kpis.outstanding) : "FCFA 28.4M"}
+                              </h5>
                               <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                                <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                                <span
+                                  className={`d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0${
+                                    live ? " d-none" : ""
+                                  }`}
+                                >
                                   +2.5%
                                 </span>
-                                <p className="text-dark mb-0">ARR Growth</p>
+                                <p className="text-dark mb-0">
+                                  {live && kpis
+                                    ? `${kpis.unpaidCount} facture${
+                                        kpis.unpaidCount > 1 ? "s" : ""
+                                      } en attente`
+                                    : "ARR Growth"}
+                                </p>
                               </div>
                             </div>
                           </div>{" "}
@@ -149,14 +185,22 @@ const RevenueSummaryDashboardComponent = () => {
                                   <i className="ti ti-square-filled fs-8 text-purple-gradient me-1" />
                                   Avg Deal Value
                                 </p>
-                                <h5 className="main-title mb-0">FCFA 43.2K</h5>
+                                <h5 className="main-title mb-0">
+                                  {live && kpis
+                                    ? formatMoney(kpis.avgDealValue)
+                                    : "FCFA 43.2K"}
+                                </h5>
                               </div>
                               <div className="mb-0">
                                 <p className="d-flex align-items-center mb-1">
                                   <i className="ti ti-square-filled fs-8 text-danger-gradient me-1" />
-                                  Previous
+                                  {live ? "Devis en attente" : "Previous"}
                                 </p>
-                                <h5 className="main-title mb-0">FCFA 39.8K</h5>
+                                <h5 className="main-title mb-0">
+                                  {live && kpis
+                                    ? formatMoney(kpis.quotesPendingValue)
+                                    : "FCFA 39.8K"}
+                                </h5>
                               </div>
                             </div>
                             <div id="deal-value-chart">
@@ -164,10 +208,18 @@ const RevenueSummaryDashboardComponent = () => {
                             </div>
                           </div>
                           <div className="d-flex align-items-center gap-2 flex-wrap">
-                            <span className="d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0">
+                            <span
+                              className={`d-inline-flex align-items-center badge rounded-pill badge-soft-success border-0${
+                                live ? " d-none" : ""
+                              }`}
+                            >
                               +2.5%
                             </span>
-                            <p className="text-dark mb-0">From Last Week</p>
+                            <p className="text-dark mb-0">
+                              {live && kpis
+                                ? `${kpis.dealsTotal} deals suivis`
+                                : "From Last Week"}
+                            </p>
                           </div>
                         </div>
                       </div>

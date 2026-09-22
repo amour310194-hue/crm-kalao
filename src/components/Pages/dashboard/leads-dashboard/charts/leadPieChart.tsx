@@ -4,14 +4,22 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const LeadPieChart = () => {
+interface LeadPieChartProps {
+  /** Répartition live des leads ; absente, la maquette reste affichée. */
+  labels?: string[];
+  values?: number[];
+}
+
+const LeadPieChart = ({ labels, values }: LeadPieChartProps) => {
   const options: ApexOptions = {
     chart: {
       type: 'pie' as const,
       height: 440
     },
     colors: ['#2F80ED', '#27AE60', '#FFA201', '#E41F07'],
-    labels: ['Inpipeline', 'Follow Up', 'Schedule Service', 'Conversation'],
+    labels: labels?.length
+      ? labels
+      : ['Inpipeline', 'Follow Up', 'Schedule Service', 'Conversation'],
     legend: {
       position: 'bottom'
     },
@@ -44,7 +52,7 @@ const LeadPieChart = () => {
     ]
   };
 
-  const series = [44, 55, 13, 43];
+  const series = values?.length ? values : [44, 55, 13, 43];
 
   return (
     

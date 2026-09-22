@@ -6,9 +6,51 @@ import Link from "next/link";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import Footer from "@/core/common/footer/footer";
-
+import { useCallback, useEffect, useState } from "react";
+import {
+  deleteActivity,
+  fetchActivities,
+  formatDate,
+  setActivityDone,
+  type ActivityRow,
+} from "@/lib/crm";
 
 const TodoComponent = () => {
+  const [tasks, setTasks] = useState<ActivityRow[] | null>(null);
+  const live = tasks !== null;
+
+  const reload = useCallback(async () => {
+    try {
+      const rows = await fetchActivities();
+      if (rows) setTasks(rows.filter((row) => row.type === "task"));
+    } catch (err) {
+      console.error("[crm] todo", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const toggle = async (task: ActivityRow) => {
+    try {
+      await setActivityDone(task.id, !task.done);
+      await reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const remove = async (task: ActivityRow) => {
+    try {
+      await deleteActivity(task.id);
+      await reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const doneCount = (tasks ?? []).filter((task) => task.done).length;
 
   return (
     <>
@@ -106,13 +148,19 @@ const TodoComponent = () => {
                 <div className="col-sm-8">
                   <div className="d-flex align-items-center justify-content-end">
                     <p className="mb-0 me-2 pe-2 border-end fs-14">
-                      Total Task : <span className="text-dark"> 55 </span>
+                      Total Task :{" "}
+                      <span className="text-dark"> {live ? tasks!.length : 55} </span>
                     </p>
                     <p className="mb-0 me-2 pe-2 border-end fs-14">
-                      Pending : <span className="text-dark"> 15 </span>
+                      Pending :{" "}
+                      <span className="text-dark">
+                        {" "}
+                        {live ? tasks!.length - doneCount : 15}{" "}
+                      </span>
                     </p>
                     <p className="mb-0 fs-14">
-                      Completed : <span className="text-dark"> 40 </span>
+                      Completed :{" "}
+                      <span className="text-dark"> {live ? doneCount : 40} </span>
                     </p>
                   </div>
                 </div>
@@ -213,8 +261,75 @@ const TodoComponent = () => {
                 </div>
                 {/* end row */}
               </div>
+              {live ? (
+                <div className="list-group list-group-flush mb-3">
+                  {tasks!.length ? (
+                    tasks!.map((task) => (
+                      <div
+                        className="list-group-item list-item-hover border rounded mb-2 p-3"
+                        key={task.id}
+                      >
+                        <div className="row align-items-center row-gap-3">
+                          <div className="col-lg-6 col-md-7">
+                            <div
+                              className={`todo-inbox-check d-flex align-items-center flex-wrap row-gap-3${
+                                task.done ? " todo-strike-content" : ""
+                              }`}
+                            >
+                              <span className="me-2 d-flex align-items-center">
+                                <i className="ti ti-grid-dots text-dark" />
+                              </span>
+                              <div className="form-check form-check-md me-2">
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  checked={Boolean(task.done)}
+                                  onChange={() => void toggle(task)}
+                                />
+                              </div>
+                              <div className="strike-info">
+                                <h4 className="fs-14 mb-0">{task.subject}</h4>
+                              </div>
+                              <span className="badge badge-soft-info ms-2 d-inline-flex align-items-center p-1">
+                                <i className="ti ti-calendar me-1" />
+                                {formatDate(task.due_at ?? task.created_at)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="col-lg-6 col-md-5">
+                            <div className="d-flex align-items-center justify-content-md-end flex-wrap row-gap-3">
+                              <span
+                                className={`badge d-inline-flex align-items-center me-2 ${
+                                  task.done
+                                    ? "badge-soft-success"
+                                    : "badge-soft-secondary"
+                                }`}
+                              >
+                                <i className="fas fa-circle fs-6 me-1" />
+                                {task.done ? "Completed" : "Pending"}
+                              </span>
+                              <button
+                                type="button"
+                                className="btn btn-icon btn-sm btn-outline-light"
+                                onClick={() => void remove(task)}
+                                aria-label="Supprimer"
+                              >
+                                <i className="ti ti-trash" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="mb-0">
+                      Aucune tâche. Crée la première avec « Create New ».
+                    </p>
+                  )}
+                </div>
+              ) : null}
               <div
-                className="accordion  accordion-arrow-none"
+                className={`accordion  accordion-arrow-none${live ? " d-none" : ""}`}
                 id="accordionExample"
               >
                 {/* Accordion Start */}
@@ -1080,7 +1195,7 @@ const TodoComponent = () => {
                 </div>
                 {/* Accordion End */}
               </div>
-              <div className="text-center">
+              <div className={`text-center${live ? " d-none" : ""}`}>
                 <Link href="#" className="btn btn-primary btn-sm">
                   <i className="ti ti-loader me-2" />
                   Load More
@@ -1099,7 +1214,7 @@ const TodoComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <Modals />
+      <Modals onSaved={reload} />
     </>
   );
 };

@@ -11,8 +11,30 @@ import TextEditor from "@/core/common/texteditor/texteditor";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { closeBootstrapChrome, createActivity, readForm } from "@/lib/crm";
 
-const Modals = () => {
+type ModalsProps = { onSaved?: () => void };
+
+const Modals = ({ onSaved }: ModalsProps) => {
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    try {
+      const vals = readForm(form);
+      await createActivity({
+        type: "task",
+        subject: vals.title || "Tâche",
+        notes: vals.notes || null,
+        due_at: vals.due_at || null,
+      });
+      form.reset();
+      onSaved?.();
+      closeBootstrapChrome(form);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   return (
     <>
       {/* Add Todo */}
@@ -28,13 +50,19 @@ const Modals = () => {
                 aria-label="Close"
               />
             </div>
-            <form>
+            <form onSubmit={onCreate}>
               <div className="modal-body">
                 <div className="row">
                   <div className="col-12">
                     <div className="mb-3">
                       <label className="form-label">Todo Title</label>
-                      <input type="text" className="form-control" />
+                      <input type="text" name="title" className="form-control" required />
+                    </div>
+                  </div>
+                  <div className="col-12">
+                    <div className="mb-3">
+                      <label className="form-label">Échéance</label>
+                      <input type="date" name="due_at" className="form-control" />
                     </div>
                   </div>
                   <div className="col-6">

@@ -11,8 +11,23 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import Footer from "@/core/common/footer/footer";
+import { useKalaoKpis } from "@/lib/kpi";
+
+const KIND_TONE: Record<string, string> = {
+  chantier: "danger",
+  plantation: "success",
+  voyage: "info",
+  visa: "warning",
+  evenement: "purple",
+  bien: "secondary",
+};
 
 const ProjectDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
+  const stageCategories = (kpis?.dossiersByKind ?? []).map(
+    (kind) => `${kind.label} : ${kind.count}`
+  );
+  const stageData = (kpis?.dossiersByKind ?? []).map((kind) => kind.count);
   return (
     <>
       {/* ========================
@@ -82,11 +97,69 @@ const ProjectDashboardComponent = () => {
                         <tr>
                           <th>Name</th>
                           <th>Company Name</th>
-                          <th>Priority</th>
+                          <th>{live ? "Pôle" : "Priority"}</th>
                           <th>Due Date</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      {live && kpis ? (
+                        <tbody>
+                          {kpis.recentDossiers.map((dossier, index) => (
+                            <tr
+                              className={index % 2 ? "even" : "odd"}
+                              key={dossier.key}
+                            >
+                              <td>
+                                <h2 className="d-flex align-items-center fs-14 fw-medium mb-0">
+                                  <Link
+                                    href={all_routes.projectDetails}
+                                    className="avatar avatar-rounded border me-2"
+                                  >
+                                    <ImageWithBasePath
+                                      className="w-auto h-auto"
+                                      src={`assets/img/projects/kalao-${dossier.kind}.jpg`}
+                                      alt={dossier.kindLabel}
+                                    />
+                                  </Link>
+                                  <Link href={all_routes.projectDetails}>
+                                    {dossier.title}
+                                  </Link>
+                                </h2>
+                              </td>
+                              <td>
+                                <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
+                                  <Link
+                                    href={all_routes.companyDetails}
+                                    className="avatar avatar-rounded border me-2"
+                                  >
+                                    <ImageWithBasePath
+                                      className="w-auto h-auto"
+                                      src="assets/img/icons/kalao-entreprise.jpg"
+                                      alt="Client"
+                                    />
+                                  </Link>
+                                  <Link href={all_routes.companyDetails}>
+                                    {dossier.company}
+                                  </Link>
+                                </h6>
+                              </td>
+                              <td>
+                                <span
+                                  className={`d-inline-flex align-items-center badge badge-pill badge-soft-${
+                                    KIND_TONE[dossier.kind] ?? "secondary"
+                                  } border border-${
+                                    KIND_TONE[dossier.kind] ?? "secondary"
+                                  }`}
+                                >
+                                  <i className="ti ti-square-rounded-filled me-1" />{" "}
+                                  {dossier.kindLabel}
+                                </span>
+                              </td>
+                              <td>{dossier.endLabel}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      ) : null}
+                      <tbody className={live ? "d-none" : ""}>
                         <tr className="odd">
                           <td>
                             <h2 className="d-flex align-items-center fs-14 fw-medium mb-0">
@@ -436,10 +509,17 @@ const ProjectDashboardComponent = () => {
                 </div>
                 <div className="card-body text-center pt-0">
                   <div id="project-stage">
-                    <ProjectStageChart/>
+                    <ProjectStageChart
+                      categories={live ? stageCategories : undefined}
+                      data={live ? stageData : undefined}
+                    />
                   </div>
                   <p className="fw-medium mb-0">
-                    This data collected based on the Projects for last 30 days
+                    {live && kpis
+                      ? `${kpis.dossiersOpen} dossiers ouverts sur ${
+                          kpis.dossiersByKind.length
+                        } pôle${kpis.dossiersByKind.length > 1 ? "s" : ""}`
+                      : "This data collected based on the Projects for last 30 days"}
                   </p>
                 </div>{" "}
                 {/* end card body */}
