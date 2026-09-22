@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -15,13 +15,18 @@ import {
   fetchDossiers,
   projectKindsFromQuery,
   toProjectsListRow,
+  type DossierRow,
 } from "@/lib/crm";
 
 const ProjectsGridComponent = () => {
   const searchParams = useSearchParams();
   const kindParam = searchParams.get("kind");
+  /** Gardé à part des lignes affichées : le modal d'édition a besoin du dossier brut. */
+  const [dossiers, setDossiers] = useState<DossierRow[]>([]);
+  const [editing, setEditing] = useState<DossierRow | null>(null);
   const loadDossiers = useCallback(async () => {
     const rows = await fetchDossiers(projectKindsFromQuery(kindParam));
+    if (rows) setDossiers(rows);
     return rows ? rows.map(toProjectsListRow) : null;
   }, [kindParam]);
   const { rows, live, reload } = useLiveRows(ProjectListData, loadDossiers);
@@ -749,6 +754,44 @@ const ProjectsGridComponent = () => {
                               </Link>
                             </h5>
                             <p className="fs-13 mb-0">{project.Kind || project.PipelineStage}</p>
+                          </div>
+                        </div>
+                        <div className="dropdown table-action">
+                          <button
+                            type="button"
+                            className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="ti ti-dots-vertical" />
+                          </button>
+                          <div className="dropdown-menu dropdown-menu-right">
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              data-bs-toggle="offcanvas"
+                              data-bs-target="#offcanvas_edit"
+                              onClick={() =>
+                                setEditing(
+                                  dossiers.find((d) => d.id === project.key) ?? null
+                                )
+                              }
+                            >
+                              <i className="ti ti-edit text-blue" /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              data-bs-toggle="modal"
+                              data-bs-target="#delete_project"
+                              onClick={() =>
+                                setEditing(
+                                  dossiers.find((d) => d.id === project.key) ?? null
+                                )
+                              }
+                            >
+                              <i className="ti ti-trash" /> Delete
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -2597,7 +2640,7 @@ const ProjectsGridComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-    <ModalProject onSaved={reload} defaultKind={kindParam} />
+    <ModalProject onSaved={reload} defaultKind={kindParam} editing={editing} />
     </>
   );
 };

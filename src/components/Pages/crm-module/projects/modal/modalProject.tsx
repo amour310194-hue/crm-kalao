@@ -13,7 +13,6 @@ import {
 import CommonSelect from "@/core/common/common-select/commonSelect";
 import type { Option } from "@/core/common/common-select/commonSelect";
 import MultipleSelect from "@/core/common/multiple-Select/multipleSelect";
-import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { fetchCatalogItems } from "@/lib/catalog";
@@ -24,11 +23,18 @@ import {
   fetchCompanies,
   fetchEmployees,
   readForm,
+  type DossierRow,
 } from "@/lib/crm";
+import { deleteDossier, updateDossier } from "@/lib/dossiers";
 
-type ModalProjectProps = { onSaved?: () => void; defaultKind?: string | null };
+type ModalProjectProps = {
+  onSaved?: () => void;
+  defaultKind?: string | null;
+  /** Dossier visé par l'offcanvas d'édition et le modal de suppression. */
+  editing?: DossierRow | null;
+};
 
-const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
+const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
   const [companyOptions, setCompanyOptions] = useState<Option[]>(Client);
   const [employeeOptions, setEmployeeOptions] = useState<Option[]>([{ value: "", label: "Select" }]);
   const [catalogOptions, setCatalogOptions] = useState<Option[]>([{ value: "", label: "Select" }]);
@@ -84,6 +90,41 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
       });
       onSaved?.();
       closeBootstrapChrome(e.currentTarget);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const onUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editing) return;
+    try {
+      const vals = readForm(e.currentTarget);
+      if (!vals.title?.trim()) {
+        alert("Nom requis");
+        return;
+      }
+      await updateDossier(editing.id, {
+        title: vals.title.trim(),
+        kind: vals.kind || undefined,
+        company_id: vals.company_id,
+        start_at: vals.start_at || null,
+        end_at: vals.end_at || null,
+        notes: vals.notes || null,
+      });
+      onSaved?.();
+      closeBootstrapChrome(e.currentTarget);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const onDelete = async (from: HTMLElement) => {
+    if (!editing) return;
+    try {
+      await deleteDossier(editing.id);
+      onSaved?.();
+      closeBootstrapChrome(from);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erreur");
     }
@@ -528,7 +569,7 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
         id="offcanvas_edit"
       >
         <div className="offcanvas-header border-bottom">
-          <h5 className="mb-0">Edit Project</h5>
+          <h5 className="mb-0">{editing ? `Edit — ${editing.title}` : "Edit Project"}</h5>
           <button
             type="button"
             className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
@@ -537,7 +578,7 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
           ></button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form onSubmit={onUpdate} key={editing?.id ?? "edit"}>
             <div className="row">
               <div className="col-md-12">
                 <div className="mb-3">
@@ -547,7 +588,9 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                   <input
                     type="text"
                     className="form-control"
-                    defaultValue="Truelysell"
+                    name="title"
+                    defaultValue={editing?.title ?? "Truelysell"}
+                    required
                   />
                 </div>
               </div>
@@ -559,7 +602,10 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                   <input
                     type="text"
                     className="form-control"
-                    defaultValue="#274729"
+                    readOnly
+                    defaultValue={
+                      editing ? `#${editing.id.slice(0, 8).toUpperCase()}` : "#274729"
+                    }
                   />
                 </div>
               </div>
@@ -569,9 +615,12 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                     Project Type <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
+                    name="kind"
                     options={Project_Type}
                     className="select"
-                    defaultValue={Project_Type[1]}
+                    defaultValue={
+                      Project_Type.find((o) => o.value === editing?.kind) ?? Project_Type[1]
+                    }
                   />
                 </div>
               </div>
@@ -581,9 +630,13 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                     Client <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
-                    options={Client}
+                    name="company_id"
+                    options={companyOptions}
                     className="select"
-                    defaultValue={Client[1]}
+                    defaultValue={
+                      companyOptions.find((o) => o.value === editing?.company_id) ??
+                      companyOptions[0]
+                    }
                   />
                 </div>
               </div>
@@ -655,7 +708,12 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                     Start Date <span className="text-danger">*</span>
                   </label>
                   <div className="input-group w-auto input-group-flat">
-                    <CommonDatePicker placeholder="dd/mm/yyyy" />
+                    <input
+                      type="date"
+                      name="start_at"
+                      className="form-control"
+                      defaultValue={editing?.start_at ?? ""}
+                    />
                   </div>
                 </div>
               </div>
@@ -665,7 +723,12 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                     Due Date <span className="text-danger">*</span>
                   </label>
                   <div className="input-group w-auto input-group-flat">
-                    <CommonDatePicker placeholder="dd/mm/yyyy" />
+                    <input
+                      type="date"
+                      name="end_at"
+                      className="form-control"
+                      defaultValue={editing?.end_at ?? ""}
+                    />
                   </div>
                 </div>
               </div>
@@ -698,8 +761,9 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                     className="form-control"
                     rows={3}
                     placeholder="Description"
+                    name="notes"
                     defaultValue={
-                      "Provides a multiple ondemand service marketplace"
+                      editing?.notes ?? "Provides a multiple ondemand service marketplace"
                     }
                   />
                 </div>
@@ -713,13 +777,8 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#create_success"
-              >
-                Create New
+              <button type="submit" className="btn btn-primary">
+                Save Changes
               </button>
             </div>
           </form>
@@ -770,7 +829,9 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
               </div>
               <h5 className="mb-1">Delete Confirmation</h5>
               <p className="mb-3">
-                Are you sure you want to remove project you selected.
+                {editing
+                  ? `Supprimer définitivement « ${editing.title} » et son suivi ?`
+                  : "Are you sure you want to remove project you selected."}
               </p>
               <div className="d-flex justify-content-center">
                 <Link
@@ -780,13 +841,13 @@ const ModalProject = ({ onSaved, defaultKind }: ModalProjectProps) => {
                 >
                   Cancel
                 </Link>
-                <Link
-                  href="#"
+                <button
+                  type="button"
                   className="btn btn-primary position-relative z-1 w-100"
-                  data-bs-dismiss="modal"
+                  onClick={(e) => void onDelete(e.currentTarget)}
                 >
                   Yes, Delete
-                </Link>
+                </button>
               </div>
             </div>
           </div>

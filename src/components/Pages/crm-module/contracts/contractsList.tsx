@@ -4,7 +4,7 @@ import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Datatable from "@/core/common/dataTable";
 import { ContractListData } from "../../../../core/json/contractsListData";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -12,7 +12,20 @@ import ModalContracts from "./modal/modalContracts";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { fetchDossiers, toContractsListRow } from "@/lib/crm";
+import {
+  fetchDossiers,
+  formatDate,
+  formatMoney,
+  readForm,
+  showBootstrap,
+  toContractsListRow,
+  type DossierRow,
+} from "@/lib/crm";
+import {
+  createRentReceipt,
+  fetchRentReceipts,
+  type RentReceiptRow,
+} from "@/lib/dossiers";
 
 const ContractsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -20,11 +33,60 @@ const ContractsListComponent = () => {
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
+  /** Les baux bruts servent à la quittance : le mapping table ne garde pas les ids. */
+  const [leases, setLeases] = useState<DossierRow[]>([]);
+  const [receiptLease, setReceiptLease] = useState<DossierRow | null>(null);
+  const [receipts, setReceipts] = useState<RentReceiptRow[]>([]);
+  const [printed, setPrinted] = useState<RentReceiptRow | null>(null);
   const loadContracts = useCallback(async () => {
     const rows = await fetchDossiers("bien");
+    if (rows) setLeases(rows);
     return rows ? rows.map(toContractsListRow) : null;
   }, []);
   const { rows: data, reload } = useLiveRows(ContractListData, loadContracts);
+
+  /** Bascule le body en mode impression le temps d'un window.print(). */
+  useEffect(() => {
+    if (!printed) return;
+    document.body.classList.add("kalao-printing");
+    const timer = window.setTimeout(() => {
+      window.print();
+      document.body.classList.remove("kalao-printing");
+    }, 150);
+    return () => {
+      window.clearTimeout(timer);
+      document.body.classList.remove("kalao-printing");
+    };
+  }, [printed]);
+
+  const openReceipt = async (key: string) => {
+    const lease = leases.find((row) => row.id === key) ?? null;
+    setReceiptLease(lease);
+    setReceipts([]);
+    showBootstrap("kalao_rent_receipt");
+    if (!lease) return;
+    const rows = await fetchRentReceipts(lease.id);
+    if (rows) setReceipts(rows);
+  };
+
+  const onCreateReceipt = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!receiptLease) return;
+    const vals = readForm(e.currentTarget);
+    try {
+      const created = await createRentReceipt({
+        dossier_id: receiptLease.id,
+        period: vals.period || new Date().toISOString().slice(0, 7),
+        amount: vals.amount,
+        paid_at: vals.paid_at || null,
+      });
+      const rows = await fetchRentReceipts(receiptLease.id);
+      if (rows) setReceipts(rows);
+      setPrinted(created);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
   const columns = [
     {
       title: "Contract ID",
@@ -84,7 +146,7 @@ const ContractsListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_text: any, row: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -125,8 +187,15 @@ const ContractsListComponent = () => {
             <Link className="dropdown-item" href="#">
               <i className="ti ti-checks" /> Mark as Signed
             </Link>
-            <Link className="dropdown-item" href="#">
-              <i className="ti ti-printer" /> Print
+            <Link
+              className="dropdown-item"
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                void openReceipt(row.key);
+              }}
+            >
+              <i className="ti ti-printer" /> Quittance de loyer
             </Link>
           </div>
         </div>
@@ -850,6 +919,160 @@ const ContractsListComponent = () => {
 			End Page Content
 		========================= */}
         <ModalContracts onSaved={reload} />
+      {/* Quittance de loyer */}
+      <div className="modal fade" id="kalao_rent_receipt">
+        <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">
+                Quittance de loyer{receiptLease ? ` — ${receiptLease.title}` : ""}
+              </h5>
+              <button
+                type="button"
+                className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+            <div className="modal-body">
+              {receiptLease ? (
+                <>
+                  <form className="row gy-2 align-items-end mb-3" onSubmit={onCreateReceipt}>
+                    <div className="col-md-4">
+                      <label className="form-label">
+                        Période <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="month"
+                        className="form-control"
+                        name="period"
+                        defaultValue={new Date().toISOString().slice(0, 7)}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">
+                        Montant (FCFA) <span className="text-danger">*</span>
+                      </label>
+                      <input type="text" className="form-control" name="amount" required />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">Date de paiement</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        name="paid_at"
+                        defaultValue={new Date().toISOString().slice(0, 10)}
+                      />
+                    </div>
+                    <div className="col-md-12">
+                      <button type="submit" className="btn btn-primary">
+                        <i className="ti ti-printer me-1" />
+                        Enregistrer et imprimer
+                      </button>
+                    </div>
+                  </form>
+                  {receipts.length ? (
+                    <div className="table-responsive">
+                      <table className="table table-nowrap mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Période</th>
+                            <th>Payée le</th>
+                            <th className="text-end">Montant</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {receipts.map((row) => (
+                            <tr key={row.id}>
+                              <td>{row.period}</td>
+                              <td>{formatDate(row.paid_at)}</td>
+                              <td className="text-end text-dark fw-medium">
+                                {formatMoney(row.amount)}
+                              </td>
+                              <td className="text-end">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-light shadow"
+                                  onClick={() => setPrinted(row)}
+                                >
+                                  <i className="ti ti-printer me-1" />
+                                  Imprimer
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="mb-0">Aucune quittance émise pour ce bail.</p>
+                  )}
+                </>
+              ) : (
+                <p className="mb-0">
+                  Les quittances ne sont disponibles que sur les baux enregistrés dans Supabase.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* /Quittance de loyer */}
+      {/* Bloc imprimable : seul visible pendant window.print() */}
+      <div className="kalao-receipt">
+        {printed && receiptLease ? (
+          <>
+            <div className="kalao-receipt__head">
+              <div>
+                <h2>Groupe Kalao</h2>
+                <p>Yaoundé — Cameroun</p>
+                <p>contact@groupe-kalao.com</p>
+              </div>
+              <div>
+                <h3>Quittance de loyer</h3>
+                <p>N° {printed.id.slice(0, 8).toUpperCase()}</p>
+                <p>Période : {printed.period}</p>
+              </div>
+            </div>
+            <p>
+              Le Groupe Kalao reconnaît avoir reçu de{" "}
+              <strong>{receiptLease.companies?.name ?? "—"}</strong> la somme ci-dessous au titre du
+              bail <strong>{receiptLease.title}</strong>, et lui en donne quittance.
+            </p>
+            <table className="kalao-receipt__table">
+              <tbody>
+                <tr>
+                  <th>Bail</th>
+                  <td>{receiptLease.title}</td>
+                </tr>
+                <tr>
+                  <th>Locataire</th>
+                  <td>{receiptLease.companies?.name ?? "—"}</td>
+                </tr>
+                <tr>
+                  <th>Période quittancée</th>
+                  <td>{printed.period}</td>
+                </tr>
+                <tr>
+                  <th>Date de paiement</th>
+                  <td>{formatDate(printed.paid_at)}</td>
+                </tr>
+                <tr>
+                  <th>Montant réglé</th>
+                  <td className="kalao-receipt__total">{formatMoney(printed.amount)}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>
+              Cette quittance annule tout reçu antérieur portant sur la même période. Elle est
+              délivrée sous réserve d&apos;encaissement effectif.
+            </p>
+            <p>Fait à Yaoundé, le {formatDate(new Date().toISOString().slice(0, 10))}</p>
+          </>
+        ) : null}
+      </div>
     </>
   );
 };

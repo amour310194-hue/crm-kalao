@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -16,9 +16,47 @@ import Link from "next/link";
 import {
   fetchAttachments,
   fetchDossiers,
+  formatDate,
+  formatMoney,
+  readForm,
   uploadAttachment,
   type AttachmentRow,
+  type DossierRow,
 } from "@/lib/crm";
+import {
+  createChecklistItem,
+  createMilestone,
+  createPurchase,
+  deleteChecklistItem,
+  deleteDossier,
+  deleteMilestone,
+  deletePurchase,
+  fetchChecklist,
+  fetchMilestones,
+  fetchPurchases,
+  setChecklistProvided,
+  toggleMilestone,
+  updateDossier,
+  type DossierChecklistRow,
+  type DossierMilestoneRow,
+  type DossierPurchaseRow,
+} from "@/lib/dossiers";
+
+const KIND_LABEL: Record<string, string> = {
+  chantier: "Chantier",
+  plantation: "Plantation",
+  voyage: "Voyage",
+  visa: "Visa",
+  evenement: "Événement",
+  bien: "Bail / bien",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  plan: "Plan",
+  design: "Design",
+  develop: "Development",
+  done: "Completed",
+};
 
 const ProjectDetailsComponent = () => {
   const dossierId =
@@ -28,6 +66,10 @@ const ProjectDetailsComponent = () => {
   const [dossierTitle, setDossierTitle] = useState("Trulysell");
   const [dossierCode, setDossierCode] = useState("154454887");
   const [files, setFiles] = useState<AttachmentRow[]>([]);
+  const [dossier, setDossier] = useState<DossierRow | null>(null);
+  const [milestones, setMilestones] = useState<DossierMilestoneRow[]>([]);
+  const [purchases, setPurchases] = useState<DossierPurchaseRow[]>([]);
+  const [checklist, setChecklist] = useState<DossierChecklistRow[]>([]);
 
   useEffect(() => {
     void fetchDossiers().then((rows) => {
@@ -35,8 +77,130 @@ const ProjectDetailsComponent = () => {
       const row = (dossierId ? rows.find((d) => d.id === dossierId) : null) ?? rows[0];
       setDossierTitle(row.title);
       setDossierCode(row.id.slice(0, 8).toUpperCase());
+      setDossier(row);
     });
   }, [dossierId]);
+
+  /** L'id vient de l'URL ; sans id on retombe sur le premier dossier chargé. */
+  const currentId = dossier?.id ?? dossierId ?? null;
+
+  const reloadSuivi = useCallback(async (id: string | null) => {
+    if (!id) return;
+    const [mil, pur, chk] = await Promise.all([
+      fetchMilestones(id),
+      fetchPurchases(id),
+      fetchChecklist(id),
+    ]);
+    if (mil) setMilestones(mil);
+    if (pur) setPurchases(pur);
+    if (chk) setChecklist(chk);
+  }, []);
+
+  useEffect(() => {
+    void reloadSuivi(currentId);
+  }, [currentId, reloadSuivi]);
+
+  const guard = async (run: () => Promise<void>) => {
+    try {
+      await run();
+      await reloadSuivi(currentId);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const onAddMilestone = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!currentId) return;
+    const form = e.currentTarget;
+    const vals = readForm(form);
+    if (!vals.label?.trim()) return;
+    await guard(async () => {
+      await createMilestone({
+        dossier_id: currentId,
+        label: vals.label.trim(),
+        due_at: vals.due_at || null,
+      });
+      form.reset();
+    });
+  };
+
+  const onAddPurchase = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!currentId) return;
+    const form = e.currentTarget;
+    const vals = readForm(form);
+    if (!vals.label?.trim()) return;
+    await guard(async () => {
+      await createPurchase({
+        dossier_id: currentId,
+        label: vals.label.trim(),
+        amount: vals.amount,
+        spent_at: vals.spent_at || null,
+        supplier: vals.supplier || null,
+      });
+      form.reset();
+    });
+  };
+
+  const onAddChecklistItem = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!currentId) return;
+    const form = e.currentTarget;
+    const vals = readForm(form);
+    if (!vals.label?.trim()) return;
+    await guard(async () => {
+      await createChecklistItem({ dossier_id: currentId, label: vals.label.trim() });
+      form.reset();
+    });
+  };
+
+  const onUpdateDossier = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!currentId) return;
+    const vals = readForm(e.currentTarget);
+    if (!vals.title?.trim()) {
+      alert("Nom requis");
+      return;
+    }
+    try {
+      const saved = await updateDossier(currentId, {
+        title: vals.title.trim(),
+        status: vals.status || undefined,
+        start_at: vals.start_at || null,
+        end_at: vals.end_at || null,
+        notes: vals.notes || null,
+      });
+      setDossier((prev) => (prev ? { ...prev, ...saved } : saved));
+      setDossierTitle(saved.title);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const onChangeStatus = async (status: string) => {
+    if (!currentId) return;
+    try {
+      const saved = await updateDossier(currentId, { status });
+      setDossier((prev) => (prev ? { ...prev, ...saved } : saved));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const onDeleteDossier = async () => {
+    if (!currentId) return;
+    if (!confirm("Supprimer définitivement ce dossier et son suivi ?")) return;
+    try {
+      await deleteDossier(currentId);
+      window.location.href = all_routes.projectsGrid;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const purchasesTotal = purchases.reduce((sum, row) => sum + Number(row.amount), 0);
+  const checklistDone = checklist.filter((row) => row.provided).length;
 
   useEffect(() => {
     if (!dossierId) return;
@@ -118,20 +282,48 @@ const ProjectDetailsComponent = () => {
                         >
                           {" "}
                           <i className="ti ti-thumb-up me-1" />
-                          Completed
+                          {dossier ? STATUS_LABEL[dossier.status] ?? dossier.status : "Completed"}
                           <i className="ti ti-chevron-down ms-1" />{" "}
                         </Link>
                         <div className="dropdown-menu dropdown-menu-right">
-                          <Link className="dropdown-item" href="#">
+                          <Link
+                            className="dropdown-item"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void onChangeStatus("done");
+                            }}
+                          >
                             <span>Completed</span>
                           </Link>
-                          <Link className="dropdown-item" href="#">
+                          <Link
+                            className="dropdown-item"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void onChangeStatus("develop");
+                            }}
+                          >
                             <span>Development</span>
                           </Link>
-                          <Link className="dropdown-item" href="#">
+                          <Link
+                            className="dropdown-item"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void onChangeStatus("design");
+                            }}
+                          >
                             <span>Design</span>
                           </Link>
-                          <Link className="dropdown-item" href="#">
+                          <Link
+                            className="dropdown-item"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void onChangeStatus("plan");
+                            }}
+                          >
                             <span>Plan</span>
                           </Link>
                         </div>
@@ -150,19 +342,27 @@ const ProjectDetailsComponent = () => {
                   <div className="border-bottom mb-3 pb-3">
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Start Date</p>
-                      <p className="mb-0 text-dark"> 27 Sep 2025, 11:45 PM</p>
+                      <p className="mb-0 text-dark">
+                        {dossier ? formatDate(dossier.start_at) : " 27 Sep 2025, 11:45 PM"}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Due Date </p>
-                      <p className="mb-0 text-dark"> 27 Sep 2025, 11:45 PM</p>
+                      <p className="mb-0 text-dark">
+                        {dossier ? formatDate(dossier.end_at) : " 27 Sep 2025, 11:45 PM"}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <p className="mb-0">Deal Value</p>
-                      <p className="mb-0 text-dark">FCFA 25,11,145</p>
+                      <p className="mb-0">Achats engagés</p>
+                      <p className="mb-0 text-dark">{formatMoney(purchasesTotal)}</p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Project Type</p>
-                      <p className="mb-0 text-dark">Mobile Application</p>
+                      <p className="mb-0 text-dark">
+                        {dossier
+                          ? KIND_LABEL[dossier.kind] ?? dossier.kind
+                          : "Mobile Application"}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Project Timing</p>
@@ -393,6 +593,38 @@ const ProjectDetailsComponent = () => {
                         <span className="d-md-inline-block">
                           <i className="ti ti-mail-check me-1" />
                           Email
+                        </span>
+                      </Link>
+                    </li>
+                    <li className="nav-item" role="presentation">
+                      <Link
+                        href="#tab_6"
+                        data-bs-toggle="tab"
+                        aria-expanded="false"
+                        className="nav-link border-3"
+                        aria-selected="false"
+                        tabIndex={-1}
+                        role="tab"
+                      >
+                        <span className="d-md-inline-block">
+                          <i className="ti ti-flag me-1" />
+                          Suivi
+                        </span>
+                      </Link>
+                    </li>
+                    <li className="nav-item" role="presentation">
+                      <Link
+                        href="#tab_7"
+                        data-bs-toggle="tab"
+                        aria-expanded="false"
+                        className="nav-link border-3"
+                        aria-selected="false"
+                        tabIndex={-1}
+                        role="tab"
+                      >
+                        <span className="d-md-inline-block">
+                          <i className="ti ti-edit me-1" />
+                          Dossier
                         </span>
                       </Link>
                     </li>
@@ -1571,6 +1803,321 @@ const ProjectDetailsComponent = () => {
                   </div>
                 </div>
                 {/* /Email */}
+                {/* Suivi Kalao : jalons, achats, pièces à fournir */}
+                <div className="tab-pane fade" id="tab_6">
+                  <div className="card">
+                    <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                      <h5 className="fw-semibold mb-0">Jalons</h5>
+                      <span className="badge badge-soft-info border-0">
+                        {milestones.filter((m) => m.status === "done").length} / {milestones.length}{" "}
+                        atteints
+                      </span>
+                    </div>
+                    <div className="card-body">
+                      <form className="row gy-2 align-items-end mb-3" onSubmit={onAddMilestone}>
+                        <div className="col-md-6">
+                          <label className="form-label">Jalon</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="label"
+                            placeholder="Dépôt consulat, coulage dalle…"
+                            required
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label">Date prévue</label>
+                          <input type="date" className="form-control" name="due_at" />
+                        </div>
+                        <div className="col-md-2">
+                          <button type="submit" className="btn btn-primary w-100">
+                            Ajouter
+                          </button>
+                        </div>
+                      </form>
+                      {milestones.length ? (
+                        milestones.map((row) => (
+                          <div className="card border shadow-none mb-3" key={row.id}>
+                            <div className="card-body p-3">
+                              <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
+                                <div className="d-flex align-items-center">
+                                  <span
+                                    className={`avatar avatar-md flex-shrink-0 rounded me-2 ${
+                                      row.status === "done" ? "bg-success" : "bg-warning"
+                                    }`}
+                                  >
+                                    <i className="ti ti-flag fs-20" />
+                                  </span>
+                                  <div>
+                                    <h6 className="fw-medium fs-14 mb-1">{row.label}</h6>
+                                    <p className="mb-0">
+                                      Prévu le {formatDate(row.due_at)}
+                                      {row.done_at ? ` — fait le ${formatDate(row.done_at)}` : ""}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="d-inline-flex align-items-center gap-2">
+                                  <button
+                                    type="button"
+                                    className={`btn btn-sm ${
+                                      row.status === "done" ? "btn-outline-light" : "btn-outline-success"
+                                    }`}
+                                    onClick={() => void guard(() => toggleMilestone(row))}
+                                  >
+                                    <i className="ti ti-checks me-1" />
+                                    {row.status === "done" ? "Rouvrir" : "Marquer atteint"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                                    onClick={() => void guard(() => deleteMilestone(row.id))}
+                                  >
+                                    <i className="ti ti-trash" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="mb-0">Aucun jalon enregistré sur ce dossier.</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="card">
+                    <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                      <h5 className="fw-semibold mb-0">Achats et dépenses</h5>
+                      <span className="badge badge-soft-danger border-0">
+                        Total {formatMoney(purchasesTotal)}
+                      </span>
+                    </div>
+                    <div className="card-body">
+                      <form className="row gy-2 align-items-end mb-3" onSubmit={onAddPurchase}>
+                        <div className="col-md-4">
+                          <label className="form-label">Libellé</label>
+                          <input type="text" className="form-control" name="label" required />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label">Montant (FCFA)</label>
+                          <input type="text" className="form-control" name="amount" />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label">Fournisseur</label>
+                          <input type="text" className="form-control" name="supplier" />
+                        </div>
+                        <div className="col-md-2">
+                          <label className="form-label">Date</label>
+                          <input type="date" className="form-control" name="spent_at" />
+                        </div>
+                        <div className="col-md-12">
+                          <button type="submit" className="btn btn-primary">
+                            Ajouter l&apos;achat
+                          </button>
+                        </div>
+                      </form>
+                      {purchases.length ? (
+                        <div className="table-responsive">
+                          <table className="table table-nowrap mb-0">
+                            <thead className="table-light">
+                              <tr>
+                                <th>Libellé</th>
+                                <th>Fournisseur</th>
+                                <th>Date</th>
+                                <th className="text-end">Montant</th>
+                                <th />
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {purchases.map((row) => (
+                                <tr key={row.id}>
+                                  <td>{row.label}</td>
+                                  <td>{row.supplier || "—"}</td>
+                                  <td>{formatDate(row.spent_at)}</td>
+                                  <td className="text-end text-dark fw-medium">
+                                    {formatMoney(row.amount)}
+                                  </td>
+                                  <td className="text-end">
+                                    <button
+                                      type="button"
+                                      className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                                      onClick={() => void guard(() => deletePurchase(row.id))}
+                                    >
+                                      <i className="ti ti-trash" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="mb-0">Aucun achat rattaché à ce dossier.</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="card mb-0">
+                    <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                      <h5 className="fw-semibold mb-0">Pièces à fournir</h5>
+                      <span className="badge badge-soft-success border-0">
+                        {checklistDone} / {checklist.length} fournies
+                      </span>
+                    </div>
+                    <div className="card-body">
+                      <form className="row gy-2 align-items-end mb-3" onSubmit={onAddChecklistItem}>
+                        <div className="col-md-10">
+                          <label className="form-label">Pièce attendue</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="label"
+                            placeholder="Passeport, justificatif d'hébergement…"
+                            required
+                          />
+                        </div>
+                        <div className="col-md-2">
+                          <button type="submit" className="btn btn-primary w-100">
+                            Ajouter
+                          </button>
+                        </div>
+                      </form>
+                      {checklist.length ? (
+                        checklist.map((row) => (
+                          <div
+                            className="d-flex align-items-center justify-content-between border-bottom py-2"
+                            key={row.id}
+                          >
+                            <div className="form-check mb-0">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`chk_${row.id}`}
+                                checked={row.provided}
+                                onChange={(e) =>
+                                  void guard(() => setChecklistProvided(row.id, e.target.checked))
+                                }
+                              />
+                              <label className="form-check-label" htmlFor={`chk_${row.id}`}>
+                                {row.label}
+                              </label>
+                            </div>
+                            <div className="d-inline-flex align-items-center gap-2">
+                              <span
+                                className={`badge ${row.provided ? "bg-success" : "badge-soft-warning border-0"}`}
+                              >
+                                {row.provided ? "Fournie" : "En attente"}
+                              </span>
+                              <button
+                                type="button"
+                                className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                                onClick={() => void guard(() => deleteChecklistItem(row.id))}
+                              >
+                                <i className="ti ti-trash" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="mb-0">Aucune pièce attendue sur ce dossier.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* /Suivi Kalao */}
+                {/* Dossier : édition et suppression */}
+                <div className="tab-pane fade" id="tab_7">
+                  <div className="card mb-0">
+                    <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                      <h5 className="fw-semibold mb-0">Modifier le dossier</h5>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => void onDeleteDossier()}
+                        disabled={!currentId}
+                      >
+                        <i className="ti ti-trash me-1" />
+                        Supprimer le dossier
+                      </button>
+                    </div>
+                    <div className="card-body">
+                      {dossier ? (
+                        <form onSubmit={onUpdateDossier} key={dossier.id}>
+                          <div className="row">
+                            <div className="col-md-12">
+                              <div className="mb-3">
+                                <label className="form-label">
+                                  Nom <span className="text-danger">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  name="title"
+                                  defaultValue={dossier.title}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="col-md-4">
+                              <div className="mb-3">
+                                <label className="form-label">Statut</label>
+                                <select
+                                  className="form-control"
+                                  name="status"
+                                  defaultValue={dossier.status}
+                                >
+                                  <option value="plan">Plan</option>
+                                  <option value="design">Design</option>
+                                  <option value="develop">Development</option>
+                                  <option value="done">Completed</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="col-md-4">
+                              <div className="mb-3">
+                                <label className="form-label">Date de début</label>
+                                <input
+                                  type="date"
+                                  className="form-control"
+                                  name="start_at"
+                                  defaultValue={dossier.start_at ?? ""}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-md-4">
+                              <div className="mb-3">
+                                <label className="form-label">Échéance</label>
+                                <input
+                                  type="date"
+                                  className="form-control"
+                                  name="end_at"
+                                  defaultValue={dossier.end_at ?? ""}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-md-12">
+                              <div className="mb-3">
+                                <label className="form-label">Description</label>
+                                <textarea
+                                  className="form-control"
+                                  rows={3}
+                                  name="notes"
+                                  defaultValue={dossier.notes ?? ""}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="d-flex align-items-center justify-content-end">
+                            <button type="submit" className="btn btn-primary">
+                              Enregistrer
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <p className="mb-0">Dossier introuvable.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* /Dossier */}
               </div>
               {/* /Tab Content */}
             </div>
