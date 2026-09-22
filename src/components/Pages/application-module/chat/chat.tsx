@@ -2,12 +2,97 @@
 /* eslint-disable @next/next/no-img-element */
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
+import {
+  conversationAvatar,
+  conversationParty,
+  createConversation,
+  ensureInternalThread,
+  fetchConversations,
+  fetchMessages,
+  formatChatTime,
+  liveChannelLabel,
+  sendChatMessage,
+  type ConversationRow,
+  type MessageRow,
+} from "@/lib/inbox";
+import { fetchCompanies } from "@/lib/crm";
+import { useLiveRows } from "@/lib/useLiveRows";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import "overlayscrollbars/overlayscrollbars.css";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const ChatComponent = () => {
+  const [query, setQuery] = useState("");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState<MessageRow[]>([]);
+  const loadConversations = useCallback(async () => {
+    return fetchConversations("internal");
+  }, []);
+  const { rows: conversations, live, reload } = useLiveRows(
+    [] as ConversationRow[],
+    loadConversations
+  );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return conversations;
+    return conversations.filter((row) =>
+      `${conversationParty(row)} ${row.last_preview ?? ""}`
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [conversations, query]);
+  const active =
+    conversations.find((row) => row.id === activeId) ?? conversations[0] ?? null;
+
+  useEffect(() => {
+    if (active && active.id !== activeId) setActiveId(active.id);
+  }, [active, activeId]);
+
+  useEffect(() => {
+    if (!active?.id) {
+      setMessages([]);
+      return;
+    }
+    void fetchMessages(active.id).then((rows) => {
+      if (rows) setMessages(rows);
+    });
+  }, [active?.id]);
+
+  const sendDraft = async () => {
+    const body = draft.trim();
+    if (!body) return;
+    let thread = active;
+    if (!thread) thread = await ensureInternalThread();
+    if (!thread) return;
+    await sendChatMessage({ conversationId: thread.id, body });
+    setDraft("");
+    setActiveId(thread.id);
+    const rows = await fetchMessages(thread.id);
+    if (rows) setMessages(rows);
+    await reload();
+  };
+
+  const startThread = async () => {
+    const companies = await fetchCompanies();
+    const company = companies?.[0];
+    if (!company) return;
+    const existing = conversations.find((row) => row.company_id === company.id);
+    if (existing) {
+      setActiveId(existing.id);
+      return;
+    }
+    const created = await createConversation({
+      title: company.name,
+      channel: "internal",
+      company_id: company.id,
+    });
+    setActiveId(created.id);
+    await reload();
+  };
+
   return (
     <>
   {/* ========================
@@ -42,6 +127,10 @@ const ChatComponent = () => {
             data-bs-placement="top"
             aria-label="Refresh"
             data-bs-original-title="Refresh"
+            onClick={(e) => {
+              e.preventDefault();
+              void reload();
+            }}
           >
             <i className="ti ti-refresh" />
           </Link>
@@ -75,8 +164,10 @@ const ChatComponent = () => {
                         />
                       </span>
                       <div>
-                        <h6 className="fs-14 mb-1">James Hong </h6>
-                        <p className="mb-0">Admin</p>
+                        <h6 className="fs-14 mb-1">
+                          {live ? "Kalao" : "James Hong "}
+                        </h6>
+                        <p className="mb-0">{live ? "Interne" : "Admin"}</p>
                       </div>
                     </div>
                     <Link
@@ -85,6 +176,10 @@ const ChatComponent = () => {
                       data-bs-toggle="tooltip"
                       data-bs-placement="top"
                       data-bs-title="New Chat"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        void startThread();
+                      }}
                     >
                       <i className="ti ti-plus" />
                     </Link>
@@ -98,10 +193,51 @@ const ChatComponent = () => {
                         type="text"
                         className="form-control"
                         placeholder="Search Keyword"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
                       />
                     </div>
                     <div className="chat-users p-4" data-simplebar="">
                       <h6 className="mb-3">All Messages</h6>
+                      {live
+                        ? filtered.map((row, index) => (
+                            <div
+                              key={row.id}
+                              className={`d-flex align-items-center justify-content-between rounded p-3 user-list mb-1${
+                                active?.id === row.id ? " active" : ""
+                              }`}
+                              role="button"
+                              onClick={() => setActiveId(row.id)}
+                            >
+                              <div className="d-flex align-items-center">
+                                <span className="avatar me-2 flex-shrink-0">
+                                  <ImageWithBasePath
+                                    src={`assets/img/users/${conversationAvatar(index)}`}
+                                    className="rounded-circle"
+                                    alt="user"
+                                  />
+                                </span>
+                                <div>
+                                  <h6 className="fs-14 mb-1">
+                                    {conversationParty(row)}
+                                  </h6>
+                                  <p className="mb-0 text-truncate">
+                                    {row.last_preview || liveChannelLabel(row.channel)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-end">
+                                <span className="text-dark d-block">
+                                  {formatChatTime(row.updated_at)}
+                                </span>
+                                <span className="d-block text-success">
+                                  {liveChannelLabel(row.channel)}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="d-flex align-items-center justify-content-between rounded p-3 user-list active mb-1">
                         <div className="d-flex align-items-center">
                           <Link href="#" className="avatar me-2 flex-shrink-0">
@@ -342,6 +478,7 @@ const ChatComponent = () => {
                           </span>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </OverlayScrollbarsComponent>
@@ -360,10 +497,12 @@ const ChatComponent = () => {
                         />
                       </span>
                       <div>
-                        <h6 className="fs-14 fw-semibold mb-1">Mark Smith</h6>
+                        <h6 className="fs-14 fw-semibold mb-1">
+                          {live && active ? conversationParty(active) : "Mark Smith"}
+                        </h6>
                         <p className="mb-0 d-inline-flex align-items-center custom-dot">
                           <i className="ti ti-point-filled text-success" />
-                          Online
+                          {live && active ? liveChannelLabel(active.channel) : "Online"}
                         </p>
                       </div>
                     </div>
@@ -408,6 +547,68 @@ const ChatComponent = () => {
                   </div>
                   <div className="card-body p-0">
                     <OverlayScrollbarsComponent className="message-body p-4">
+                      {live
+                        ? messages.map((msg) =>
+                            msg.direction === "out" ? (
+                              <div key={msg.id} className="chat-list ms-auto mb-3">
+                                <div className="d-flex align-items-start justify-content-end">
+                                  <div>
+                                    <div className="d-flex align-items-center justify-content-end mb-1">
+                                      <p className="mb-0 d-inline-flex align-items-center">
+                                        <i className="ti ti-checks text-success me-1" />
+                                        {formatChatTime(msg.created_at)}
+                                        <i className="ti ti-point-filled mx-2" />
+                                      </p>
+                                      <h6 className="fs-14 fw-semibold mb-0">You</h6>
+                                    </div>
+                                    <div className="d-flex align-items-center">
+                                      <div className="message-box sent-message p-3">
+                                        <p className="mb-0 fs-14">{msg.body}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span className="avatar ms-2 online flex-shrink-0">
+                                    <ImageWithBasePath
+                                      src="assets/img/users/avatar-2.jpg"
+                                      className="rounded-circle"
+                                      alt="user"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div key={msg.id} className="chat-list mb-3">
+                                <div className="d-flex align-items-start">
+                                  <span className="avatar online me-2 flex-shrink-0">
+                                    <ImageWithBasePath
+                                      src="assets/img/users/avatar-5.jpg"
+                                      className="rounded-circle"
+                                      alt="user"
+                                    />
+                                  </span>
+                                  <div>
+                                    <div className="d-flex align-items-center mb-1">
+                                      <h6 className="fs-14 mb-0">
+                                        {msg.author_name ||
+                                          (active ? conversationParty(active) : "")}
+                                      </h6>
+                                      <p className="mb-0 d-inline-flex align-items-center">
+                                        <i className="ti ti-point-filled mx-2" />
+                                        {formatChatTime(msg.created_at)}
+                                      </p>
+                                    </div>
+                                    <div className="d-flex align-items-center">
+                                      <div className="message-box receive-message p-3">
+                                        <p className="mb-0 fs-14">{msg.body}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          )
+                        : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="chat-list mb-3">
                         <div className="d-flex align-items-start">
                           <span className="avatar online me-2 flex-shrink-0">
@@ -1031,6 +1232,7 @@ const ChatComponent = () => {
                           </div>
                         </div>
                       </div>
+                    </div>
                     </OverlayScrollbarsComponent>
                     <div className="message-footer d-flex align-items-center border-top p-3">
                       <div className="flex-fill">
@@ -1038,6 +1240,14 @@ const ChatComponent = () => {
                           type="text"
                           className="form-control border-0"
                           placeholder="Type Something..."
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void sendDraft();
+                            }
+                          }}
                         />
                       </div>
                       <div className="d-flex align-items-center gap-2">
@@ -1099,6 +1309,10 @@ const ChatComponent = () => {
                           className="btn btn-icon btn-primary"
                           href="javascript:void(0);"
                           data-discover="true"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void sendDraft();
+                          }}
                         >
                           <i className="ti ti-send" />
                         </Link>

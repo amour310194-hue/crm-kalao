@@ -3,8 +3,15 @@
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PageHeader from "@/core/common/page-header/pageHeader";
+import {
+  createSocialPost,
+  fetchSocialPosts,
+  formatChatTime,
+  type SocialPostRow,
+} from "@/lib/inbox";
+import { useLiveRows } from "@/lib/useLiveRows";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
@@ -30,6 +37,11 @@ const galleryImages = [
 const SocialFeedComponent = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const loadPosts = useCallback(async () => fetchSocialPosts(), []);
+  const { rows: posts, live, reload } = useLiveRows(
+    [] as SocialPostRow[],
+    loadPosts
+  );
 
   return (
     <>
@@ -66,14 +78,18 @@ const SocialFeedComponent = () => {
                         />
                       </Link>
                       <h6 className="mb-1">
-                        <Link href="#">James Hong </Link>
+                        <Link href="#">
+                          {live ? "Groupe Kalao" : "James Hong "}
+                        </Link>
                       </h6>
-                      <p className="fs-12">@James Hong324</p>
+                      <p className="fs-12">
+                        {live ? "Mur interne" : "@James Hong324"}
+                      </p>
                     </div>
                     <div className="row g-2">
                       <div className="col-sm-6">
                         <div className="rounded bg-white text-center p-2">
-                          <h6 className="mb-1">89K</h6>
+                          <h6 className="mb-1">{live ? String(posts.length) : "89K"}</h6>
                           <p className="fs-12 mb-0">Followers</p>
                         </div>
                       </div>
@@ -260,13 +276,24 @@ const SocialFeedComponent = () => {
               <div>
                 <div className="card">
                   <div className="card-body">
-                    <form>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const data = new FormData(e.currentTarget);
+                        const body = String(data.get("post") ?? "").trim();
+                        if (!body) return;
+                        await createSocialPost(body);
+                        e.currentTarget.reset();
+                        await reload();
+                      }}
+                    >
                       <div className="mb-3">
                         <label className="form-label">Create Post</label>
                         <div className="position-relative">
                           <textarea
                             className="form-control"
                             rows={3}
+                            name="post"
                             placeholder="What's on your mind?"
                             defaultValue={""}
                           />
@@ -403,6 +430,47 @@ const SocialFeedComponent = () => {
                   {/* end card body */}
                 </div>
 
+                {live
+                  ? posts.map((post) => (
+                      <div className="card" key={post.id}>
+                        <div className="card-header border-0 pb-0">
+                          <div className="d-flex align-items-center justify-content-between border-bottom flex-wrap row-gap-3 pb-3">
+                            <div className="d-flex align-items-center">
+                              <span className="avatar avatar-lg avatar-rounded flex-shrink-0 me-2">
+                                <ImageWithBasePath
+                                  src="assets/img/users/user-02.jpg"
+                                  alt="Img"
+                                />
+                              </span>
+                              <div>
+                                <h6 className="fs-16 mb-1">
+                                  {post.author_label}{" "}
+                                  <i className="ti ti-circle-check-filled text-success" />
+                                </h6>
+                                <p className="d-flex align-items-center mb-0">
+                                  <span className="text-info">Mur interne</span>
+                                  <i className="ti ti-circle-filled fs-7 mx-2" />
+                                  Cameroun
+                                </p>
+                              </div>
+                            </div>
+                            <div className="d-flex align-items-center">
+                              <p className="mb-0 text-dark">
+                                {formatChatTime(post.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="card-body">
+                          <div className="mb-2">
+                            <p className="text-dark fw-medium">{post.body}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  : null}
+
+                <div className={live ? "d-none" : ""}>
                 <div className="card">
                   <div className="card-header border-0 pb-0">
                     <div className="d-flex align-items-center justify-content-between border-bottom flex-wrap row-gap-3 pb-3">
@@ -1212,6 +1280,7 @@ const SocialFeedComponent = () => {
                   {/* end card body */}
                 </div>
                 {/* end card */}
+                </div>
               </div>
             </div>
             {/* end col */}
