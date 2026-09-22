@@ -1225,7 +1225,13 @@ const KIND_STAGE: Record<string, string> = {
   design: "Design",
   develop: "Develop",
   done: "Completed",
+  cancelled: "Annulé",
 };
+
+/** Un dossier annulé est clos comme un dossier livré : il ne reste pas à traiter. */
+export function isDossierClosed(status: string) {
+  return status === "done" || status === "cancelled";
+}
 
 const KIND_IMAGES: Record<string, string> = {
   chantier: "kalao-chantier.jpg",
@@ -1410,7 +1416,7 @@ export function toProjectsListRow(row: DossierRow, index: number) {
     StartDate: formatDate(row.start_at),
     EndDate: formatDate(row.end_at),
     PipelineStage: KIND_STAGE[row.status] ?? row.status,
-    Status: row.status === "done" ? "Inactive" : "Active",
+    Status: isDossierClosed(row.status) ? "Inactive" : "Active",
     Kind: row.kind,
   };
 }

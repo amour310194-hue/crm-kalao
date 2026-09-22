@@ -12,6 +12,7 @@ import {
   fetchQuotes,
   formatDate,
   formatMoney,
+  isDossierClosed,
   type ActivityRow,
   type DealRow,
   type DossierKind,
@@ -326,7 +327,7 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
       (l) => Number(l.estimated_value ?? 0)
     ),
     leadsByPole: leadPoles(leads ?? []),
-    dossiersOpen: (dossiers ?? []).filter((d) => d.status !== "done").length,
+    dossiersOpen: (dossiers ?? []).filter((d) => !isDossierClosed(d.status)).length,
     dossiersByKind: groupBy(
       dossiers ?? [],
       (d) => d.kind,
