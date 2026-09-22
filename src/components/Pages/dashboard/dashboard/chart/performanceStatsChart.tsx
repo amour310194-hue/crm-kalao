@@ -5,19 +5,38 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
-const PerformanceStatsChart: React.FC = () => {
-  const series = [
-    {
-      name: "Revenue",
-      type: "column" as const,
-      data: [35, 20, 50, 50, 58, 40, 40, 10, 50, 30, 28, 20],
-    },
-    {
-      name: "Sales",
-      type: "area" as const,
-      data: [15, 20, 15, 20, 25, 40, 35, 30, 40, 32, 28, 30],
-    },
-  ];
+interface PerformanceStatsChartProps {
+  /** Libellés de mois ; absents, la maquette du template est conservée. */
+  categories?: string[];
+  /** Montants facturés, en milliers de FCFA. */
+  invoiced?: number[];
+  /** Montants encaissés, en milliers de FCFA. */
+  collected?: number[];
+}
+
+const PerformanceStatsChart: React.FC<PerformanceStatsChartProps> = ({
+  categories,
+  invoiced,
+  collected,
+}) => {
+  const isLive = Boolean(categories?.length && invoiced && collected);
+  const series = isLive
+    ? [
+        { name: "Facturé", type: "column" as const, data: invoiced as number[] },
+        { name: "Encaissé", type: "area" as const, data: collected as number[] },
+      ]
+    : [
+        {
+          name: "Revenue",
+          type: "column" as const,
+          data: [35, 20, 50, 50, 58, 40, 40, 10, 50, 30, 28, 20],
+        },
+        {
+          name: "Sales",
+          type: "area" as const,
+          data: [15, 20, 15, 20, 25, 40, 35, 30, 40, 32, 28, 30],
+        },
+      ];
 
   const options: ApexOptions = {
     chart: {
@@ -77,20 +96,22 @@ const PerformanceStatsChart: React.FC = () => {
     },
 
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: isLive
+        ? (categories as string[])
+        : [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ],
       axisBorder: {
         show: false,
         color: "rgba(119, 119, 142, 0.05)",
@@ -104,7 +125,7 @@ const PerformanceStatsChart: React.FC = () => {
         offsetY: 0,
       },
       labels: {
-        show: false,
+        show: isLive,
       },
     },
 
@@ -144,12 +165,12 @@ const PerformanceStatsChart: React.FC = () => {
 
     yaxis: {
       min: 0,
-      max: 60,
-      tickAmount: 6,
+      max: isLive ? undefined : 60,
+      tickAmount: isLive ? undefined : 6,
       labels: {
         offsetX: -10,
         formatter: (value: number) => {
-          return `${value}k FCFA`;
+          return `${Math.round(value)}k FCFA`;
         },
       },
     },

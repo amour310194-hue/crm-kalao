@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -40,18 +40,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -76,7 +76,7 @@ const Analytics = () => {
                         <tr className="odd">
                           <td>
                             <div className="d-flex align-items-center">
-                              <Link to={all_routes.contactDetails} className="avatar">
+                              <Link href={all_routes.contactDetails} className="avatar">
                                 <ImageWithBasePath
                                   className="img-fluid rounded-circle"
                                   src="assets/img/profiles/avatar-09.jpg"
@@ -86,7 +86,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-1">
                                   <Link
-                                    to={all_routes.contactDetails}
+                                    href={all_routes.contactDetails}
                                     className="d-flex flex-column fw-medium"
                                   >
                                     Elizabeth Morgan
@@ -104,7 +104,7 @@ const Analytics = () => {
                         <tr className="even">
                           <td>
                             <div className="d-flex align-items-center">
-                              <Link to={all_routes.contactDetails} className="avatar">
+                              <Link href={all_routes.contactDetails} className="avatar">
                                 <ImageWithBasePath
                                   className="img-fluid rounded-circle"
                                   src="assets/img/profiles/avatar-22.jpg"
@@ -114,7 +114,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-1">
                                   <Link
-                                    to={all_routes.contactDetails}
+                                    href={all_routes.contactDetails}
                                     className="d-flex flex-column fw-medium"
                                   >
                                     Katherine Brooks
@@ -132,7 +132,7 @@ const Analytics = () => {
                         <tr className="odd">
                           <td>
                             <div className="d-flex align-items-center">
-                              <Link to={all_routes.contactDetails} className="avatar">
+                              <Link href={all_routes.contactDetails} className="avatar">
                                 <ImageWithBasePath
                                   className="img-fluid rounded-circle"
                                   src="assets/img/profiles/avatar-08.jpg"
@@ -142,7 +142,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-1">
                                   <Link
-                                    to={all_routes.contactDetails}
+                                    href={all_routes.contactDetails}
                                     className="d-flex flex-column fw-medium"
                                   >
                                     Samantha Reed
@@ -160,7 +160,7 @@ const Analytics = () => {
                         <tr className="even">
                           <td>
                             <div className="d-flex align-items-center">
-                              <Link to={all_routes.contactDetails} className="avatar">
+                              <Link href={all_routes.contactDetails} className="avatar">
                                 <ImageWithBasePath
                                   className="img-fluid rounded-circle"
                                   src="assets/img/profiles/avatar-24.jpg"
@@ -170,7 +170,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-1">
                                   <Link
-                                    to={all_routes.contactDetails}
+                                    href={all_routes.contactDetails}
                                     className="d-flex flex-column fw-medium"
                                   >
                                     William Anderson
@@ -188,7 +188,7 @@ const Analytics = () => {
                         <tr className="odd">
                           <td>
                             <div className="d-flex align-items-center">
-                              <Link to={all_routes.contactDetails} className="avatar">
+                              <Link href={all_routes.contactDetails} className="avatar">
                                 <ImageWithBasePath
                                   className="img-fluid rounded-circle"
                                   src="assets/img/profiles/avatar-23.jpg"
@@ -198,7 +198,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-1">
                                   <Link
-                                    to={all_routes.contactDetails}
+                                    href={all_routes.contactDetails}
                                     className="d-flex flex-column fw-medium"
                                   >
                                     Jonathan Mitchell
@@ -229,24 +229,24 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Marketing Pipeline
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Marketing Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Sales Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Email
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Chats
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Operational
                           </Link>
                         </div>
@@ -255,18 +255,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -291,18 +291,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -328,7 +328,7 @@ const Analytics = () => {
                       <tbody>
                         <tr className="odd">
                           <td>
-                            <Link to={all_routes.dealsDetails}> Collins</Link>
+                            <Link href={all_routes.dealsDetails}> Collins</Link>
                           </td>
                           <td>Conversation</td>
                           <td>FCFA 04,51,000</td>
@@ -342,7 +342,7 @@ const Analytics = () => {
                         </tr>
                         <tr className="even">
                           <td>
-                            <Link to={all_routes.dealsDetails}> Konopelski</Link>
+                            <Link href={all_routes.dealsDetails}> Konopelski</Link>
                           </td>
                           <td>Pipeline</td>
                           <td>FCFA 04,14,800</td>
@@ -356,7 +356,7 @@ const Analytics = () => {
                         </tr>
                         <tr className="odd">
                           <td>
-                            <Link to={all_routes.dealsDetails}> Adams</Link>
+                            <Link href={all_routes.dealsDetails}> Adams</Link>
                           </td>
                           <td>Won</td>
                           <td>FCFA 04,14,800</td>
@@ -370,7 +370,7 @@ const Analytics = () => {
                         </tr>
                         <tr className="even">
                           <td>
-                            <Link to={all_routes.dealsDetails}> Schumm</Link>
+                            <Link href={all_routes.dealsDetails}> Schumm</Link>
                           </td>
                           <td>Lost</td>
                           <td>FCFA 9,14,400</td>
@@ -384,7 +384,7 @@ const Analytics = () => {
                         </tr>
                         <tr className="odd">
                           <td>
-                            <Link to={all_routes.dealsDetails}> Wisozk</Link>
+                            <Link href={all_routes.dealsDetails}> Wisozk</Link>
                           </td>
                           <td>Follow Up</td>
                           <td>FCFA 11,14,400</td>
@@ -412,24 +412,24 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Marketing Pipeline
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Marketing Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Sales Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Email
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Chats
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Operational
                           </Link>
                         </div>
@@ -438,18 +438,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -474,24 +474,24 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Sales Pipeline
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Marketing Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Sales Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Email
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Chats
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Operational
                           </Link>
                         </div>
@@ -500,18 +500,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -536,18 +536,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -573,7 +573,7 @@ const Analytics = () => {
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.companyDetails}
+                                href={all_routes.companyDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -584,7 +584,7 @@ const Analytics = () => {
                               </Link>
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
-                                  <Link to={all_routes.companyDetails}>
+                                  <Link href={all_routes.companyDetails}>
                                     NovaWaveLLC
                                   </Link>
                                 </h6>
@@ -598,7 +598,7 @@ const Analytics = () => {
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.companyDetails}
+                                href={all_routes.companyDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -609,7 +609,7 @@ const Analytics = () => {
                               </Link>
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
-                                  <Link to={all_routes.companyDetails}>
+                                  <Link href={all_routes.companyDetails}>
                                     BlueSky Industries
                                   </Link>
                                 </h6>
@@ -623,7 +623,7 @@ const Analytics = () => {
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.companyDetails}
+                                href={all_routes.companyDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -634,7 +634,7 @@ const Analytics = () => {
                               </Link>
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
-                                  <Link to={all_routes.companyDetails}>
+                                  <Link href={all_routes.companyDetails}>
                                     Silver Hawk
                                   </Link>
                                 </h6>
@@ -648,7 +648,7 @@ const Analytics = () => {
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.companyDetails}
+                                href={all_routes.companyDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -659,7 +659,7 @@ const Analytics = () => {
                               </Link>
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
-                                  <Link to={all_routes.companyDetails}>
+                                  <Link href={all_routes.companyDetails}>
                                     Summit Peak
                                   </Link>
                                 </h6>
@@ -673,7 +673,7 @@ const Analytics = () => {
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.companyDetails}
+                                href={all_routes.companyDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -684,7 +684,7 @@ const Analytics = () => {
                               </Link>
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
-                                  <Link to={all_routes.companyDetails}>
+                                  <Link href={all_routes.companyDetails}>
                                     RiverStone Ltd
                                   </Link>
                                 </h6>
@@ -698,7 +698,7 @@ const Analytics = () => {
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.companyDetails}
+                                href={all_routes.companyDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -709,7 +709,7 @@ const Analytics = () => {
                               </Link>
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
-                                  <Link to={all_routes.companyDetails}>
+                                  <Link href={all_routes.companyDetails}>
                                     Redwood Inc
                                   </Link>
                                 </h6>
@@ -738,24 +738,24 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Sales Pipeline
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Marketing Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Sales Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Email
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Chats
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Operational
                           </Link>
                         </div>
@@ -764,18 +764,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -800,18 +800,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -858,18 +858,18 @@ const Analytics = () => {
                               <Link
                                 className="dropdown-toggle btn btn-sm btn-outline-light shadow"
                                 data-bs-toggle="dropdown"
-                                to="#"
+                                href="#"
                               >
                                 Inprogress
                               </Link>
                               <div className="dropdown-menu dropdown-menu-end">
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Completed
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Inprogress
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Cancelled
                                 </Link>
                               </div>
@@ -921,18 +921,18 @@ const Analytics = () => {
                               <Link
                                 className="dropdown-toggle btn btn-sm btn-outline-light shadow"
                                 data-bs-toggle="dropdown"
-                                to="#"
+                                href="#"
                               >
                                 Inprogress
                               </Link>
                               <div className="dropdown-menu dropdown-menu-end">
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Completed
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Inprogress
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Cancelled
                                 </Link>
                               </div>
@@ -984,18 +984,18 @@ const Analytics = () => {
                               <Link
                                 className="dropdown-toggle btn btn-sm btn-outline-light shadow"
                                 data-bs-toggle="dropdown"
-                                to="#"
+                                href="#"
                               >
                                 Inprogress
                               </Link>
                               <div className="dropdown-menu dropdown-menu-end">
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Completed
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Inprogress
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Cancelled
                                 </Link>
                               </div>
@@ -1047,18 +1047,18 @@ const Analytics = () => {
                               <Link
                                 className="dropdown-toggle btn btn-sm btn-outline-light shadow"
                                 data-bs-toggle="dropdown"
-                                to="#"
+                                href="#"
                               >
                                 Inprogress
                               </Link>
                               <div className="dropdown-menu dropdown-menu-end">
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Completed
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Inprogress
                                 </Link>
-                                <Link to="#" className="dropdown-item">
+                                <Link href="#" className="dropdown-item">
                                   Cancelled
                                 </Link>
                               </div>
@@ -1083,24 +1083,24 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Marketing Pipeline
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Marketing Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Sales Pipeline
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Email
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Chats
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Operational
                           </Link>
                         </div>
@@ -1109,18 +1109,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -1145,18 +1145,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -1181,12 +1181,12 @@ const Analytics = () => {
                       <tbody>
                         <tr className="odd">
                           <td>
-                            <Link to={all_routes.leadsDetails}> Collins</Link>
+                            <Link href={all_routes.leadsDetails}> Collins</Link>
                           </td>
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.leadsDetails}
+                                href={all_routes.leadsDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -1198,7 +1198,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
                                   <Link
-                                    to={all_routes.leadsDetails}
+                                    href={all_routes.leadsDetails}
                                     className="d-flex flex-column"
                                   >
                                     NovaWaveLLC
@@ -1217,12 +1217,12 @@ const Analytics = () => {
                         </tr>
                         <tr className="even">
                           <td>
-                            <Link to={all_routes.leadsDetails}> Konopelski</Link>
+                            <Link href={all_routes.leadsDetails}> Konopelski</Link>
                           </td>
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.leadsDetails}
+                                href={all_routes.leadsDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -1234,7 +1234,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
                                   <Link
-                                    to={all_routes.leadsDetails}
+                                    href={all_routes.leadsDetails}
                                     className="d-flex flex-column"
                                   >
                                     BlueSky
@@ -1253,12 +1253,12 @@ const Analytics = () => {
                         </tr>
                         <tr className="odd">
                           <td>
-                            <Link to={all_routes.leadsDetails}> Adams</Link>
+                            <Link href={all_routes.leadsDetails}> Adams</Link>
                           </td>
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.leadsDetails}
+                                href={all_routes.leadsDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -1270,7 +1270,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
                                   <Link
-                                    to={all_routes.leadsDetails}
+                                    href={all_routes.leadsDetails}
                                     className="d-flex flex-column"
                                   >
                                     Silver Hawk
@@ -1289,12 +1289,12 @@ const Analytics = () => {
                         </tr>
                         <tr className="even">
                           <td>
-                            <Link to={all_routes.leadsDetails}> Schumm</Link>
+                            <Link href={all_routes.leadsDetails}> Schumm</Link>
                           </td>
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.leadsDetails}
+                                href={all_routes.leadsDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -1306,7 +1306,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
                                   <Link
-                                    to={all_routes.leadsDetails}
+                                    href={all_routes.leadsDetails}
                                     className="d-flex flex-column"
                                   >
                                     Summit Peak
@@ -1325,12 +1325,12 @@ const Analytics = () => {
                         </tr>
                         <tr className="odd">
                           <td>
-                            <Link to={all_routes.leadsDetails}> Wisozk</Link>
+                            <Link href={all_routes.leadsDetails}> Wisozk</Link>
                           </td>
                           <td>
                             <div className="d-flex align-items-center">
                               <Link
-                                to={all_routes.leadsDetails}
+                                href={all_routes.leadsDetails}
                                 className="avatar avatar-rounded border"
                               >
                                 <ImageWithBasePath
@@ -1342,7 +1342,7 @@ const Analytics = () => {
                               <div className="ms-2">
                                 <h6 className="fs-14 fw-medium mb-0">
                                   <Link
-                                    to={all_routes.leadsDetails}
+                                    href={all_routes.leadsDetails}
                                     className="d-flex flex-column"
                                   >
                                     RiverStone Ltd
@@ -1375,18 +1375,18 @@ const Analytics = () => {
                         <Link
                           className="dropdown-toggle btn btn-outline-white shadow"
                           data-bs-toggle="dropdown"
-                          to="#"
+                          href="#"
                         >
                           Last 30 Days
                         </Link>
                         <div className="dropdown-menu dropdown-menu-end">
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 30 Days
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 3 Months
                           </Link>
-                          <Link to="#" className="dropdown-item">
+                          <Link href="#" className="dropdown-item">
                             Last 6 Months
                           </Link>
                         </div>
@@ -1450,28 +1450,28 @@ const Analytics = () => {
                             <p className="fs-13 mb-0">Due Date : 25 Sep 2025</p>
                           </div>
                           <div className="avatar-list-stacked avatar-group-sm">
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-14.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-15.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-16.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-17.jpg"
                                 className="border border-white"
@@ -1479,7 +1479,7 @@ const Analytics = () => {
                               />
                             </Link>
                             <Link
-                              to="#"
+                              href="#"
                               className="avatar avatar-rounded bg-light text-dark fs-10 fw-medium"
                             >
                               +8
@@ -1542,28 +1542,28 @@ const Analytics = () => {
                             <p className="fs-13 mb-0">Due Date : 28 Sep 2025</p>
                           </div>
                           <div className="avatar-list-stacked avatar-group-sm">
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-11.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-12.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-13.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-14.jpg"
                                 className="border border-white"
@@ -1571,7 +1571,7 @@ const Analytics = () => {
                               />
                             </Link>
                             <Link
-                              to="#"
+                              href="#"
                               className="avatar avatar-rounded bg-light text-dark fs-10 fw-medium"
                             >
                               +2
@@ -1636,28 +1636,28 @@ const Analytics = () => {
                             <p className="fs-13 mb-0">Due Date : 14 Sep 2025</p>
                           </div>
                           <div className="avatar-list-stacked avatar-group-sm">
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-02.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-04.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-06.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-08.jpg"
                                 className="border border-white"
@@ -1665,7 +1665,7 @@ const Analytics = () => {
                               />
                             </Link>
                             <Link
-                              to="#"
+                              href="#"
                               className="avatar avatar-rounded bg-light text-dark fs-10 fw-medium"
                             >
                               +4
@@ -1730,28 +1730,28 @@ const Analytics = () => {
                             <p className="fs-13 mb-0">Due Date : 25 Sep 2023</p>
                           </div>
                           <div className="avatar-list-stacked avatar-group-sm">
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-01.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-03.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-05.jpg"
                                 className="border border-white"
                                 alt="img"
                               />
                             </Link>
-                            <Link to="#" className="avatar avatar-rounded">
+                            <Link href="#" className="avatar avatar-rounded">
                               <ImageWithBasePath
                                 src="assets/img/profiles/avatar-07.jpg"
                                 className="border border-white"
@@ -1759,7 +1759,7 @@ const Analytics = () => {
                               />
                             </Link>
                             <Link
-                              to="#"
+                              href="#"
                               className="avatar avatar-rounded bg-light text-dark fs-10 fw-medium"
                             >
                               +5

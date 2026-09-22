@@ -9,7 +9,16 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { fetchLeads, leadAffiliationNames } from "@/lib/crm";
+import { fetchLeads, formatMoney, leadAffiliationNames } from "@/lib/crm";
+
+// Colonne du kanban correspondant à chaque statut de lead en base.
+const STATUS_COLUMN: Record<string, string> = {
+  new: "not_contacted",
+  contacted: "contacted",
+  qualified: "closed",
+  converted: "closed",
+  unqualified: "lost",
+};
 
 
 const LeadsComponent = () => {
@@ -181,23 +190,33 @@ function LeadsKanbanBoard() {
     void fetchLeads().then((rows) => {
       if (!rows?.length) return;
       setColumns((prev) =>
-        prev.map((col, index) =>
-          index === 0
-            ? {
-                ...col,
-                cards: rows.map((lead) => ({
-                  id: lead.id,
-                  avatar: { text: lead.title.slice(0, 2).toUpperCase(), color: "info" },
-                  name: lead.title,
-                  amount: String(lead.estimated_value ?? 0),
-                  email: "",
-                  phone: lead.contacts?.phone ?? "",
-                  location: leadAffiliationNames(lead),
-                  companyIcon: "assets/img/icons/company-icon-01.svg",
-                })),
-              }
-            : col
-        )
+        prev.map((col) => {
+          const colLeads = rows.filter(
+            (lead) => STATUS_COLUMN[lead.status] === col.id
+          );
+          const total = colLeads.reduce(
+            (sum, lead) => sum + Number(lead.estimated_value ?? 0),
+            0
+          );
+          return {
+            ...col,
+            leads: colLeads.length,
+            amount: formatMoney(total),
+            cards: colLeads.map((lead) => ({
+              id: lead.id,
+              avatar: {
+                text: lead.title.slice(0, 2).toUpperCase(),
+                color: "info",
+              },
+              name: lead.title,
+              amount: formatMoney(lead.estimated_value ?? 0),
+              email: "",
+              phone: lead.contacts?.phone ?? "",
+              location: leadAffiliationNames(lead),
+              companyIcon: "assets/img/icons/company-icon-01.svg",
+            })),
+          };
+        })
       );
     });
   };

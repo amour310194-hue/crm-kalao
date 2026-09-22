@@ -26,7 +26,7 @@ const handleClick = (key: string) => {
     const rows = await fetchDeals();
     return rows ? rows.map(toDealsListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(DealsListData, loadDeals);
+  const { rows: data, live, reload } = useLiveRows(DealsListData, loadDeals);
   const columns = [
   {
     title: "",
@@ -46,11 +46,15 @@ const handleClick = (key: string) => {
     {
       title: "Deal Name",
       dataIndex: "DealName",
-      render: (text: string) => (
-        <Link href={all_routes.dealsDetails} className="title-name">
-          {text}
-        </Link>
-      ),
+      // La fiche deal reste une maquette : sur données réelles, pas de lien.
+      render: (text: string) =>
+        live ? (
+          <span className="title-name">{text}</span>
+        ) : (
+          <Link href={all_routes.dealsDetails} className="title-name">
+            {text}
+          </Link>
+        ),
       sorter: (a: any, b: any) => a.DealName.length - b.DealName.length,
     },
     {
@@ -145,9 +149,11 @@ const handleClick = (key: string) => {
             >
               <i className="ti ti-trash" /> Delete
             </Link>
-            <Link className="dropdown-item" href={all_routes.dealsDetails}>
-              <i className="ti ti-eye text-blue-light" /> Preview
-            </Link>
+            {live ? null : (
+              <Link className="dropdown-item" href={all_routes.dealsDetails}>
+                <i className="ti ti-eye text-blue-light" /> Preview
+              </Link>
+            )}
           </div>
         </div>
       ),

@@ -253,19 +253,19 @@ export interface StockLocation {
 }
 
 const LEAD_STATUS_LABEL: Record<string, string> = {
-  new: "Not Contacted",
-  contacted: "Contacted",
-  qualified: "Closed",
-  unqualified: "Closed",
-  converted: "Closed",
+  new: "Nouveau",
+  contacted: "Contacté",
+  qualified: "Qualifié",
+  unqualified: "Non qualifié",
+  converted: "Converti",
 };
 
 const DEAL_STAGE_LABEL: Record<string, string> = {
-  qualification: "Qualify To Buy",
-  proposal: "Proposal Made",
-  negotiation: "Contact Made",
-  won: "Qualify To Buy",
-  lost: "Proposal Made",
+  qualification: "Qualification",
+  proposal: "Proposition",
+  negotiation: "Négociation",
+  won: "Gagné",
+  lost: "Perdu",
 };
 
 const ACTIVITY_TYPE_LABEL: Record<string, string> = {
@@ -561,7 +561,7 @@ export function toDealsListRow(row: DealRow) {
     Tags: "Collab",
     ExpectedCloseDate: formatDate(row.expected_close_date),
     Probability: `${row.probability}%`,
-    Status: row.stage === "won" ? "Won" : row.stage === "lost" ? "Lost" : "Won",
+    Status: row.stage === "won" ? "Won" : row.stage === "lost" ? "Lost" : "Open",
   };
 }
 
@@ -1415,17 +1415,18 @@ export function toProjectsListRow(row: DossierRow, index: number) {
   };
 }
 
+/** Les colonnes de progression du template n'ont pas de source : on les vide. */
 export function toCampaignListRow(row: DossierRow) {
   const members = row.dossier_members?.length ?? 0;
   return {
     key: row.id,
     Name: row.title,
     Type: row.notes || "Événement",
-    Progress1: "40.5% ",
-    Progress2: "20.5%",
-    Progress3: "30.5%",
-    Progress4: "70.5%",
-    Progress5: "35.0%",
+    Progress1: "—",
+    Progress2: "—",
+    Progress3: "—",
+    Progress4: "—",
+    Progress5: "—",
     Members: members ? `${members}` : "1+",
     Status: row.status === "done" ? "Success" : "Running",
   };

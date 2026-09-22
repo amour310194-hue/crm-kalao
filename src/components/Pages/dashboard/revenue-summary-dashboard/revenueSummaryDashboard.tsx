@@ -57,7 +57,7 @@ const RevenueSummaryDashboardComponent = () => {
           {/* End Page Header */}
           {/* start row */}
           <div className="row">
-            <div className="col-xxl-7 d-flex">
+            <div className={live ? "col-12 d-flex" : "col-xxl-7 d-flex"}>
               <div className="row">
                 <div className="col-md-12 d-flex">
                   <div className="card flex-fill">
@@ -166,7 +166,7 @@ const RevenueSummaryDashboardComponent = () => {
                 {/* end col */}
                 <div className="col-md-12">
                   <div className="row">
-                    <div className="col-md-5 d-flex">
+                    <div className={live ? "col-12 d-flex" : "col-md-5 d-flex"}>
                       <div className="card flex-fill">
                         <div className="card-body">
                           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
@@ -203,7 +203,10 @@ const RevenueSummaryDashboardComponent = () => {
                                 </h5>
                               </div>
                             </div>
-                            <div id="deal-value-chart">
+                            <div
+                              id="deal-value-chart"
+                              className={live ? "d-none" : ""}
+                            >
                               <DealValueChart />
                             </div>
                           </div>
@@ -225,7 +228,7 @@ const RevenueSummaryDashboardComponent = () => {
                       </div>
                     </div>{" "}
                     {/* end col */}
-                    <div className="col-md-7 d-flex">
+                    <div className={live ? "d-none" : "col-md-7 d-flex"}>
                       <div className="card flex-fill">
                         <div className="card-body">
                           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
@@ -265,7 +268,7 @@ const RevenueSummaryDashboardComponent = () => {
               </div>
             </div>{" "}
             {/* end col */}
-            <div className="col-xxl-5 d-flex flex-column">
+            <div className={live ? "d-none" : "col-xxl-5 d-flex flex-column"}>
               <div className="row flex-fill">
                 <div className="col-md-12 d-flex">
                   <div className="card flex-fill">
@@ -361,7 +364,7 @@ const RevenueSummaryDashboardComponent = () => {
           {/* end row */}
           {/* start row */}
           <div className="row">
-            <div className="col-12">
+            <div className={live ? "d-none" : "col-12"}>
               <div className="card">
                 <div className="card-header border-0 d-flex align-items-center justify-content-between">
                   <div className="mb-0 fs-18 fw-bold text-dark d-flex align-items-center gap-2">
@@ -446,7 +449,7 @@ const RevenueSummaryDashboardComponent = () => {
           </div>
           {/* end row */}
           <div className="row">
-            <div className="col-xl-6 d-flex">
+            <div className={live ? "d-none" : "col-xl-6 d-flex"}>
               <div className="card flex-fill">
                 <div className="card-header border-0 d-flex align-items-center justify-content-between">
                   <div className="mb-0 fs-18 fw-bold text-dark">
@@ -481,7 +484,7 @@ const RevenueSummaryDashboardComponent = () => {
                 </div>
               </div>
             </div>
-            <div className="col-xl-6 d-flex">
+            <div className={live ? "d-none" : "col-xl-6 d-flex"}>
               <div className="card flex-fill">
                 <div className="card-header border-0 d-flex align-items-center justify-content-between">
                   <div className="mb-0 fs-18 fw-bold text-dark">Comparison</div>

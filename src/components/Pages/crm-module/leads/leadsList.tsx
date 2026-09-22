@@ -35,7 +35,7 @@ const LeadsListComponent = () => {
     const rows = await fetchLeads();
     return rows ? rows.map(toLeadsListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(LeadsListData, loadLeads);
+  const { rows: data, live, reload } = useLiveRows(LeadsListData, loadLeads);
   const columns = [
     {
       title: "",
@@ -55,18 +55,33 @@ const LeadsListComponent = () => {
     {
       title: "Lead Name",
       dataIndex: "LeadName",
+      // La fiche lead reste une maquette : sur données réelles, pas de lien.
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
-          <Link href={all_routes.leadsDetails} className="avatar me-2">
-            <ImageWithBasePath
-              className="img-fluid rounded-circle"
-              src={`assets/img/profiles/${render.LeadImage}`}
-              alt="User Image"
-            />
-          </Link>
-          <Link href={all_routes.leadsDetails} className="d-flex flex-column">
-            {text}{" "}
-          </Link>
+          {live ? (
+            <span className="avatar me-2">
+              <ImageWithBasePath
+                className="img-fluid rounded-circle"
+                src={`assets/img/profiles/${render.LeadImage}`}
+                alt="User Image"
+              />
+            </span>
+          ) : (
+            <Link href={all_routes.leadsDetails} className="avatar me-2">
+              <ImageWithBasePath
+                className="img-fluid rounded-circle"
+                src={`assets/img/profiles/${render.LeadImage}`}
+                alt="User Image"
+              />
+            </Link>
+          )}
+          {live ? (
+            <span className="d-flex flex-column">{text}</span>
+          ) : (
+            <Link href={all_routes.leadsDetails} className="d-flex flex-column">
+              {text}{" "}
+            </Link>
+          )}
         </h6>
       ),
       sorter: (a: any, b: any) => a.LeadName.length - b.LeadName.length,
@@ -86,7 +101,7 @@ const LeadsListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.companyDetails} className="d-flex flex-column">
+          <Link href={all_routes.companiesDetails} className="d-flex flex-column">
             {text}
             <span className="text-body fs-13 mt-1 fw-normal">
               {render.Location}
@@ -107,11 +122,11 @@ const LeadsListComponent = () => {
       render: (text: any) => (
         <span
           className={`badge badge-pill badge-status ${
-            text === "Closed"
+            text === "Closed" || text === "Converti" || text === "Qualifié"
               ? "bg-success"
-              : text === "Contacted"
+              : text === "Contacted" || text === "Contacté"
               ? "bg-warning"
-              : text === "Not Contacted"
+              : text === "Not Contacted" || text === "Nouveau"
               ? "bg-info"
               : "bg-danger"
           } `}

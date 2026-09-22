@@ -1678,6 +1678,8 @@ const SidebarDataAll = [
   },
 ];
 
+// Le menu n'expose que les écrans alimentés par Supabase. Aucune route n'est
+// supprimée : une page masquée répond toujours si on saisit son URL.
 const HIDDEN_SECTIONS = new Set([
   "AI CRM",
   "Automation",
@@ -1685,9 +1687,50 @@ const HIDDEN_SECTIONS = new Set([
   "Membership",
   "UI Interface",
   "Help",
+  "HRM",
+  "CRM Settings",
+  "Content",
+  "Support",
+  "Settings",
+  "Pages",
 ]);
-const HIDDEN_MAIN_ITEMS = new Set(["Super Admin"]);
-const HIDDEN_APP_ITEMS = new Set(["Calls", "Kanban", "Invoices"]);
+const HIDDEN_MAIN_ITEMS = new Set([
+  "Super Admin",
+  "Layouts",
+  "Account 360",
+  "Relationship Map",
+  "Proposals",
+  "Estimations",
+  "Analytics",
+  "Tasks",
+  "Milestones",
+  "Opportunities",
+  "Sales Targets",
+  "Sales Orders",
+  "Email Marketing",
+  "Email Engagement",
+  "Manage Users",
+  "Roles & Permissions",
+  "Delete Request",
+  "Teams",
+  "Invitations",
+  "User Activity Logs",
+  "Login History",
+  "Device Management",
+]);
+// Les libellés de sous-entrées se répètent d'une section à l'autre : on masque
+// par entrée parente pour ne pas retirer une entrée homonyme encore utile.
+const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
+  Dashboard: new Set(["Executive Dashboard", "Growth Dashboard"]),
+  Applications: new Set(["Calls", "Kanban", "Invoices"]),
+  Catalogue: new Set(["Fiche catalogue"]),
+  Campaigns: new Set([
+    "Email Campaigns",
+    "SMS Campaigns",
+    "Social Campaigns",
+    "WhatsApp Campaigns",
+  ]),
+};
 
 export const SidebarData = SidebarDataAll.filter(
   (section) => !HIDDEN_SECTIONS.has(section.tittle)
@@ -1695,14 +1738,14 @@ export const SidebarData = SidebarDataAll.filter(
   ...section,
   submenuItems: section.submenuItems
     .filter((item) => !HIDDEN_MAIN_ITEMS.has(item.label))
-    .map((item) =>
-      item.label === "Applications"
-        ? {
-            ...item,
-            submenuItems: (item.submenuItems ?? []).filter(
-              (sub) => !HIDDEN_APP_ITEMS.has(sub.label)
-            ),
-          }
-        : item
-    ),
+    .map((item) => {
+      const hiddenSubs = HIDDEN_SUB_ITEMS[item.label];
+      if (!hiddenSubs) return item;
+      return {
+        ...item,
+        submenuItems: (item.submenuItems ?? []).filter(
+          (sub) => !hiddenSubs.has(sub.label)
+        ),
+      };
+    }),
 }));

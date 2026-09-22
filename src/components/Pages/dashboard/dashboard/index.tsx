@@ -14,6 +14,11 @@ import { formatMoney, useKalaoKpis } from "@/lib/kpi";
 
 const MainDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
+  const months = kpis?.months ?? [];
+  const collectedWindow = months.reduce((sum, month) => sum + month.collected, 0);
+  // Répartition de la barre « Deals Overview » : part réelle de chaque état.
+  const dealsShare = (count: number) =>
+    kpis?.dealsTotal ? `${Math.round((count / kpis.dealsTotal) * 100)}%` : "0%";
   return (
     <>
       {/* ========================
@@ -103,15 +108,21 @@ const MainDashboardComponent = () => {
           {/* End Page Header */}
           {/* start row */}
           <div className="row">
-            <div className="col-xxl-8 col-xl-7 d-flex">
+            <div
+              className={`${live ? "col-12" : "col-xxl-8 col-xl-7"} d-flex`}
+            >
               <div className="card flex-fill">
                 <div className="card-body pb-0">
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                     <h5 className="mb-0 fs-16 fw-bold d-inline-flex items-center">
                       <span className="line-title d-block me-2" />
-                      Revenue Analytics
+                      {live ? "Facturé et encaissé" : "Revenue Analytics"}
                     </h5>
-                    <ul className="nav nav-tabs nav-solid-danger border rounded gap-2 p-1">
+                    <ul
+                      className={`nav nav-tabs nav-solid-danger border rounded gap-2 p-1${
+                        live ? " d-none" : ""
+                      }`}
+                    >
                       <li className="nav-item">
                         <Link
                           className="nav-link py-1 px-2 rounded active"
@@ -143,33 +154,51 @@ const MainDashboardComponent = () => {
                   </div>
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <div className="d-flex align-items-center flex-wrap gap-2">
-                      <h4 className="mb-0">495K</h4>
-                      <p className="mb-0">Revenue with Sales (FCFA)</p>
+                      <h4 className="mb-0">
+                        {live ? formatMoney(collectedWindow) : "495K"}
+                      </h4>
+                      <p className="mb-0">
+                        {live
+                          ? "Encaissé sur les 6 derniers mois"
+                          : "Revenue with Sales (FCFA)"}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center flex-wrap gap-2">
                       <div className="d-flex align-items-center border rounded px-2 py-1">
                         <p className="d-flex align-items-center mb-0">
                           <i className="ti ti-circle-filled fs-8 text-primary me-1" />
-                          Revenue
+                          {live ? "Facturé" : "Revenue"}
                         </p>
                       </div>
                       <div className="d-flex align-items-center border rounded px-2 py-1">
                         <p className="d-flex align-items-center mb-0">
                           <i className="ti ti-circle-filled fs-8 text-light-500 me-1" />
-                          Sales
+                          {live ? "Encaissé" : "Sales"}
                         </p>
                       </div>
                     </div>
                   </div>
                   <div id="performance-stats">
-                    <PerformanceStatsChart />
+                    {live && months.length ? (
+                      <PerformanceStatsChart
+                        categories={months.map((month) => month.label)}
+                        invoiced={months.map((month) =>
+                          Math.round(month.invoiced / 1000)
+                        )}
+                        collected={months.map((month) =>
+                          Math.round(month.collected / 1000)
+                        )}
+                      />
+                    ) : (
+                      <PerformanceStatsChart />
+                    )}
                   </div>
                 </div>
               </div>{" "}
               {/* end card */}
             </div>{" "}
             {/* end col */}
-            <div className="col-xxl-4 col-xl-5 d-flex">
+            <div className={live ? "d-none" : "col-xxl-4 col-xl-5 d-flex"}>
               <div className="card flex-fill">
                 <div className="card-body">
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0">
@@ -346,12 +375,16 @@ const MainDashboardComponent = () => {
                       </div>
                       <p className="fw-medium mb-1">Total Contacts</p>
                     </div>
-                    <div id="contact-chart">
+                    <div id="contact-chart" className={live ? "d-none" : ""}>
                       <ContactChart />
                     </div>
                   </div>
                   <div className="d-flex alig-items-center gap-2">
-                    <div className="avatar-list-stacked avatar-group-sm">
+                    <div
+                      className={
+                        live ? "d-none" : "avatar-list-stacked avatar-group-sm"
+                      }
+                    >
                       <span className="avatar avatar-rounded">
                         <ImageWithBasePath
                           className="border border-white"
@@ -678,12 +711,12 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                   </div>
-                  <div id="pipelineChart">
+                  <div id="pipelineChart" className={live ? "d-none" : ""}>
                     <PipelineChart />
                   </div>
                 </div>
               </div>
-              <div className="card flex-fill">
+              <div className={live ? "d-none" : "card flex-fill"}>
                 <div className="card-body">
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                     <h5 className="mb-0 fw-bold d-inline-flex align-items-center gap-1">
@@ -740,32 +773,40 @@ const MainDashboardComponent = () => {
                     <div
                       className="progress-bar bg-success rounded overflow-hidden"
                       role="progressbar"
-                      style={{ width: "30%" }}
-                      aria-valuenow={10}
+                      style={{
+                        width:
+                          live && kpis ? dealsShare(kpis.dealsWon) : "30%",
+                      }}
                       aria-valuemin={0}
                       aria-valuemax={100}
                     />
                     <div
                       className="progress-bar bg-secondary rounded overflow-hidden"
                       role="progressbar"
-                      style={{ width: "35%" }}
-                      aria-valuenow={15}
+                      style={{
+                        width:
+                          live && kpis ? dealsShare(kpis.dealsActive) : "35%",
+                      }}
                       aria-valuemin={0}
                       aria-valuemax={100}
                     />
                     <div
                       className="progress-bar bg-purple rounded overflow-hidden"
                       role="progressbar"
-                      style={{ width: "25%" }}
-                      aria-valuenow={15}
+                      style={{
+                        width:
+                          live && kpis ? dealsShare(kpis.dealsLost) : "25%",
+                      }}
                       aria-valuemin={0}
                       aria-valuemax={100}
                     />
                     <div
                       className="progress-bar bg-danger rounded overflow-hidden"
                       role="progressbar"
-                      style={{ width: "10%" }}
-                      aria-valuenow={20}
+                      style={{
+                        width:
+                          live && kpis ? dealsShare(kpis.dealsUpcoming) : "10%",
+                      }}
                       aria-valuemin={0}
                       aria-valuemax={100}
                     />

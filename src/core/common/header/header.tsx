@@ -29,6 +29,27 @@ const Header = () => {
     dispatch(setMobileSidebar(!mobileSidebar));
   };
 
+  // Identité du compte connecté : le template affiche sinon un utilisateur fictif.
+  const [account, setAccount] = useState<{ name: string; email: string } | null>(
+    null
+  );
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    void supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const meta = user.user_metadata ?? {};
+      const name =
+        (meta.full_name as string) ||
+        (meta.name as string) ||
+        user.email?.split("@")[0] ||
+        "Compte Kalao";
+      setAccount({ name, email: user.email ?? "" });
+    });
+  }, []);
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const toggleFullscreen = () => {
     if (!isFullscreen) {
@@ -527,8 +548,12 @@ const Header = () => {
                     alt=""
                   />
                   <div className="ms-2">
-                    <p className="fw-medium text-dark mb-0">Katherine Brooks</p>
-                    <span className="d-block fs-13">Installer</span>
+                    <p className="fw-medium text-dark mb-0">
+                      {account ? account.name : "Katherine Brooks"}
+                    </p>
+                    <span className="d-block fs-13">
+                      {account ? account.email : "Installer"}
+                    </span>
                   </div>
                 </div>
                 {/* Item*/}
