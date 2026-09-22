@@ -64,8 +64,7 @@ const ChatComponent = () => {
   const sendDraft = async () => {
     const body = draft.trim();
     if (!body) return;
-    let thread = active;
-    if (!thread) thread = await ensureInternalThread();
+    const thread = active ?? (await ensureInternalThread());
     if (!thread) return;
     await sendChatMessage({ conversationId: thread.id, body });
     setDraft("");
