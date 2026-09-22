@@ -314,17 +314,10 @@ export async function deleteCompany(id: string) {
 }
 
 export function toCompaniesListRow(row: CompanyRow, index: number) {
-  const icons = [
-    "company-icon-01.svg",
-    "company-icon-02.svg",
-    "company-icon-03.svg",
-    "company-icon-04.svg",
-    "company-icon-05.svg",
-  ];
   return {
     key: row.id,
     kye: row.id,
-    Image: icons[index % icons.length],
+    Image: companyImageName(row, index),
     Name: row.name,
     Email: row.email ?? "—",
     Tags: row.industry || "Collab",
@@ -1212,13 +1205,39 @@ const KIND_STAGE: Record<string, string> = {
   done: "Completed",
 };
 
-const PROJECT_IMAGES = [
-  "project-01.svg",
-  "project-02.svg",
-  "project-03.svg",
-  "project-04.svg",
-  "project-05.svg",
-];
+const KIND_IMAGES: Record<string, string> = {
+  chantier: "kalao-chantier.jpg",
+  plantation: "kalao-plantation.jpg",
+  voyage: "kalao-voyage.jpg",
+  visa: "kalao-visa.jpg",
+  evenement: "kalao-evenement.jpg",
+  bien: "kalao-bien.jpg",
+};
+
+function dossierImage(kind?: string | null): string {
+  return KIND_IMAGES[kind || ""] ?? KIND_IMAGES.chantier;
+}
+
+function companyImageName(row: CompanyRow, index: number): string {
+  const v = `${row.industry ?? ""} ${row.name ?? ""}`.toLowerCase();
+  if (v.includes("plant") || v.includes("cacao") || v.includes("agro")) return "kalao-plantation.jpg";
+  if (v.includes("voyag") || v.includes("touris") || v.includes("kribi")) return "kalao-voyage.jpg";
+  if (v.includes("visa") || v.includes("immig")) return "kalao-visa.jpg";
+  if (v.includes("even") || v.includes("mariage") || v.includes("event")) return "kalao-evenement.jpg";
+  if (v.includes("immo") || v.includes("bail") || v.includes("bien")) return "kalao-bien.jpg";
+  if (v.includes("btp") || v.includes("chant") || v.includes("construct")) return "kalao-chantier.jpg";
+  if (v.includes("march") || v.includes("commerce") || v.includes("négoce") || v.includes("negoce")) {
+    return "kalao-marche.jpg";
+  }
+  const cycle = [
+    "kalao-entreprise.jpg",
+    "kalao-chantier.jpg",
+    "kalao-plantation.jpg",
+    "kalao-voyage.jpg",
+    "kalao-marche.jpg",
+  ];
+  return cycle[index % cycle.length];
+}
 
 function parseKind(raw?: string | null): DossierKind {
   const v = (raw || "").toLowerCase().trim();
@@ -1362,9 +1381,9 @@ export function toProjectsListRow(row: DossierRow, index: number) {
   return {
     key: row.id,
     Name: row.title,
-    Image: PROJECT_IMAGES[index % PROJECT_IMAGES.length],
+    Image: dossierImage(row.kind),
     Client: row.companies?.name ?? "Kalao",
-    ClientImage: "company-01.svg",
+    ClientImage: "kalao-entreprise.jpg",
     Priority: KIND_PRIORITY[row.kind] ?? "Medium",
     StartDate: formatDate(row.start_at),
     EndDate: formatDate(row.end_at),
@@ -1396,7 +1415,7 @@ export function toContractsListRow(row: DossierRow) {
     ContractID: `#${row.id.slice(0, 8).toUpperCase()}`,
     Subject: row.title,
     Customer: row.companies?.name ?? "Kalao",
-    Image: "company-icon-01.svg",
+    Image: "kalao-bien.jpg",
     ContractType: row.notes || "Bail",
     StartDate: formatDate(row.start_at),
     EndDate: formatDate(row.end_at),
