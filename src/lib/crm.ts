@@ -1,5 +1,6 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
+import { KALAO_CONTACT_EMAIL, ROLE_LABEL } from "@/lib/org";
 
 export type EntityType =
   | "company"
@@ -156,7 +157,7 @@ export interface QuoteRow {
   valid_until: string | null;
   notes: string | null;
   created_at: string;
-  companies?: { name: string | null } | null;
+  companies?: { name: string | null; email?: string | null } | null;
   quote_lines?: {
     id: string;
     catalog_item_id: string | null;
@@ -222,8 +223,15 @@ export interface DepartmentRow {
   status: string;
 }
 
+export interface ProfileRow {
+  id: string;
+  full_name: string | null;
+  role: string;
+}
+
 export interface EmployeeRow {
   id: string;
+  profile_id?: string | null;
   full_name: string;
   email: string | null;
   phone: string | null;
@@ -667,12 +675,12 @@ export async function fetchQuotes(): Promise<QuoteRow[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("quotes")
-    .select("*, companies(name), quote_lines(id, catalog_item_id, kind, label, quantity, unit_price, tax_rate)")
+    .select("*, companies(name, email), quote_lines(id, catalog_item_id, kind, label, quantity, unit_price, tax_rate)")
     .order("created_at", { ascending: false });
   if (error) {
     const retry = await supabase
       .from("quotes")
-      .select("*, companies(name)")
+      .select("*, companies(name, email)")
       .order("created_at", { ascending: false });
     throwIf(retry.error);
     return (retry.data ?? []) as QuoteRow[];
@@ -730,7 +738,7 @@ export async function acceptQuote(quoteId: string) {
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { data, error } = await supabase
     .from("quotes")
-    .select("*, quote_lines(*), companies(name)")
+    .select("*, quote_lines(*), companies(name, email)")
     .eq("id", quoteId)
     .single();
   throwIf(error);
@@ -775,6 +783,33 @@ export async function acceptQuote(quoteId: string) {
       qty: -Number(line.quantity),
       reason: `Devis ${quote.number} accepté`,
     });
+  }
+  await notifyQuoteAccepted(quote, final);
+}
+
+async function notifyQuoteAccepted(quote: QuoteRow, amount: number) {
+  const to = quote.companies?.email?.trim();
+  if (!to) return;
+  try {
+    await fetch("/api/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to,
+        subject: `Devis ${quote.number ?? ""} accepté — Groupe Kalao`,
+        body: [
+          "Bonjour,",
+          "",
+          `Le devis ${quote.number ?? ""} (${quote.companies?.name ?? ""}) a été accepté.`,
+          `Montant : ${formatMoney(amount)}.`,
+          "",
+          "Groupe Kalao",
+          KALAO_CONTACT_EMAIL,
+        ].join("\n"),
+      }),
+    });
+  } catch {
+    /* la notification ne doit pas bloquer l'acceptation */
   }
 }
 
@@ -1087,6 +1122,71 @@ export async function deleteEmployee(id: string) {
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("employees").delete().eq("id", id);
   throwIf(error);
+}
+
+export async function fetchProfiles(): Promise<ProfileRow[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .order("full_name");
+  throwIf(error);
+  return (data ?? []) as ProfileRow[];
+}
+
+export async function fetchMyProfile(): Promise<ProfileRow | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("id", auth.user.id)
+    .maybeSingle();
+  throwIf(error);
+  return (data as ProfileRow) ?? null;
+}
+
+export async function fetchManageUserRows() {
+  const [profiles, employees] = await Promise.all([fetchProfiles(), fetchEmployees()]);
+  if (!profiles) return null;
+  const byProfile = new Map(
+    (employees ?? [])
+      .filter((e) => e.profile_id)
+      .map((e) => [e.profile_id as string, e])
+  );
+  const avatars = ["avatar-19.jpg", "avatar-20.jpg", "avatar-21.jpg", "avatar-23.jpg"];
+  const rows = profiles.map((p, i) => {
+    const emp = byProfile.get(p.id);
+    return {
+      key: p.id,
+      Name: emp?.full_name ?? p.full_name ?? "Compte",
+      Role: emp?.job_title ?? ROLE_LABEL[p.role] ?? p.role,
+      Image: avatars[i % avatars.length],
+      Phone: emp?.phone ?? "—",
+      Email: emp?.email ?? "—",
+      LastActivity: "—",
+      Created: "—",
+      Status: emp?.status === "inactive" ? "Inactive" : "Active",
+    };
+  });
+  for (const e of employees ?? []) {
+    if (e.profile_id) continue;
+    rows.push({
+      key: e.id,
+      Name: e.full_name,
+      Role: e.job_title ?? "Collaborateur",
+      Image: "avatar-15.jpg",
+      Phone: e.phone ?? "—",
+      Email: e.email ?? "—",
+      LastActivity: "—",
+      Created: "—",
+      Status: e.status === "active" ? "Active" : "Inactive",
+    });
+  }
+  return rows;
 }
 
 export function toStaffListRow(row: EmployeeRow, index: number) {

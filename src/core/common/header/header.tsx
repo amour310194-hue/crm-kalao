@@ -13,6 +13,8 @@ import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
+import { fetchMyProfile } from "@/lib/crm";
+import { ROLE_LABEL } from "@/lib/org";
 
 /**
  * Aucune source de notifications n'existe encore côté base : les quatre entrées
@@ -36,14 +38,17 @@ const Header = () => {
   };
 
   // Identité du compte connecté : le template affiche sinon un utilisateur fictif.
-  const [account, setAccount] = useState<{ name: string; email: string } | null>(
-    null
-  );
+  const [account, setAccount] = useState<{
+    name: string;
+    email: string;
+    role: string;
+  } | null>(null);
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
-    void supabase.auth.getUser().then(({ data }) => {
+    void (async () => {
+      const { data } = await supabase.auth.getUser();
       const user = data.user;
       if (!user) return;
       const meta = user.user_metadata ?? {};
@@ -52,8 +57,15 @@ const Header = () => {
         (meta.name as string) ||
         user.email?.split("@")[0] ||
         "Compte Kalao";
-      setAccount({ name, email: user.email ?? "" });
-    });
+      let role = "";
+      try {
+        const profile = await fetchMyProfile();
+        role = profile ? ROLE_LABEL[profile.role] ?? profile.role : "";
+      } catch {
+        role = "";
+      }
+      setAccount({ name, email: user.email ?? "", role });
+    })();
   }, []);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -571,12 +583,17 @@ const Header = () => {
                     alt=""
                   />
                   <div className="ms-2">
-                    <p className="fw-medium text-dark mb-0">
-                      {account ? account.name : "Katherine Brooks"}
-                    </p>
-                    <span className="d-block fs-13">
-                      {account ? account.email : "Installer"}
-                    </span>
+                    <p className="fw-medium text-dark mb-0">Katherine Brooks</p>
+                    {account ? (
+                      <p className="fw-medium text-dark mb-0">{account.name}</p>
+                    ) : null}
+                    <span className="d-block fs-13">Installer</span>
+                    {account ? (
+                      <span className="d-block fs-13">
+                        {account.email}
+                        {account.role ? ` · ${account.role}` : ""}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
                 {/* Item*/}

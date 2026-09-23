@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { KALAO_NOREPLY_FROM } from "@/lib/org";
 
 export async function POST(request: NextRequest) {
   const key = process.env.RESEND_API_KEY;
@@ -20,8 +21,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ ok: true, dispatched: false });
   }
 
-  const from =
-    process.env.RESEND_FROM || "CRM Kalao <noreply@groupe-kalao.com>";
+  const from = process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
 import { ManageuserListData } from "../../../../core/json/manageUserListData";
@@ -11,10 +11,13 @@ import ModalUserManagement from "./modal/modalUserManagement";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
+import { useLiveRows } from "@/lib/useLiveRows";
+import { fetchManageUserRows } from "@/lib/crm";
 
 
 const ManageUsersComponent = () => {
-  const data = ManageuserListData;
+  const loadUsers = useCallback(() => fetchManageUserRows(), []);
+  const { rows: data } = useLiveRows(ManageuserListData, loadUsers);
   const columns = [
     {
       title: "Name",

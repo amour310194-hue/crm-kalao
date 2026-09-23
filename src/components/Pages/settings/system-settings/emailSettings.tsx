@@ -5,9 +5,35 @@ import SettingsTopbar from "../settings-topbar/settingsTopbar"
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import { FormEvent, useState } from "react";
+import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_EMAIL } from "@/lib/org";
 
 
 const EmailSettingsComponent = () => {
+  const [testTo, setTestTo] = useState("");
+  const [testStatus, setTestStatus] = useState<"idle" | "sending" | "ok" | "err">(
+    "idle"
+  );
+
+  const onTestMail = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setTestStatus("sending");
+    try {
+      const res = await fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: testTo,
+          subject: "Test CRM Kalao",
+          body: `Ceci est un e-mail de test envoyé depuis ${KALAO_NOREPLY_EMAIL}.`,
+        }),
+      });
+      const json = (await res.json()) as { ok?: boolean; dispatched?: boolean };
+      setTestStatus(json.ok && json.dispatched ? "ok" : "err");
+    } catch {
+      setTestStatus("err");
+    }
+  };
   return (
   <>
   {/* ========================
@@ -58,7 +84,12 @@ const EmailSettingsComponent = () => {
           <div className="card mb-0">
             <div className="card-body">
               <div className="border-bottom mb-3 pb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <h5 className="mb-0 fs-17">Email Settings</h5>
+                <div>
+                  <h5 className="mb-0 fs-17">Email Settings</h5>
+                  <p className="mb-0 text-muted fs-13">
+                    Contact : {KALAO_CONTACT_EMAIL} · Expéditeur : {KALAO_NOREPLY_EMAIL}
+                  </p>
+                </div>
                 <Link
                   href="#"
                   className="btn btn-primary btn-sm"
@@ -393,13 +424,29 @@ const EmailSettingsComponent = () => {
             aria-label="Close"
           />
         </div>
-        <form>
+        <form onSubmit={onTestMail}>
           <div className="modal-body">
             <div className="mb-0">
               <label className="form-label">
                 Enter Email Address <span className="text-danger">*</span>
               </label>
-              <input type="text" className="form-control" />
+              <input
+                type="text"
+                name="to"
+                className="form-control"
+                value={testTo}
+                onChange={(e) => setTestTo(e.target.value)}
+              />
+              {testStatus === "ok" ? (
+                <p className="mb-0 mt-2 text-success fs-13">
+                  Envoyé depuis {KALAO_NOREPLY_EMAIL}
+                </p>
+              ) : null}
+              {testStatus === "err" ? (
+                <p className="mb-0 mt-2 text-danger fs-13">
+                  Envoi impossible. Vérifier l’adresse et Resend.
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="modal-footer">
@@ -411,8 +458,8 @@ const EmailSettingsComponent = () => {
               >
                 Cancel
               </Link>
-              <button type="submit" className="btn btn-primary">
-                Submit
+              <button type="submit" className="btn btn-primary" disabled={testStatus === "sending"}>
+                {testStatus === "sending" ? "Envoi…" : "Submit"}
               </button>
             </div>
           </div>
