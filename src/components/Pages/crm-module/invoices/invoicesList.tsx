@@ -17,7 +17,7 @@ import {
   markInvoicePaid,
   toInvoicesListRow,
 } from "@/lib/crm";
-import { docHref, isLiveId, rowLiveId } from "@/lib/docs";
+import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const InvoicesListComponent = () => {
@@ -52,7 +52,7 @@ const InvoicesListComponent = () => {
       render: (text: any, render: any) => (
         <h6 className="d-flex align-items-center fs-14 mb-0 fw-medium">
           <Link
-            href={all_routes.companyDetails}
+            href={liveHref(all_routes.companyDetails, render.companyId)}
             className="avatar rounded-circle border me-2"
           >
             <ImageWithBasePath
@@ -61,7 +61,7 @@ const InvoicesListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.companyDetails} className="d-flex flex-column">
+          <Link href={liveHref(all_routes.companyDetails, render.companyId)} className="d-flex flex-column">
             {text}
           </Link>
         </h6>
@@ -74,7 +74,7 @@ const InvoicesListComponent = () => {
       render: (text: any, render: any) => (
         <h6 className="d-flex align-items-center fs-14 mb-0 fw-medium">
           <Link
-            href={all_routes.projectDetails}
+            href={liveHref(all_routes.projectDetails, render.dossierId)}
             className="avatar avatar-rounded border me-2"
           >
             <ImageWithBasePath
@@ -83,7 +83,7 @@ const InvoicesListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.projectDetails} className="d-flex flex-column">
+          <Link href={liveHref(all_routes.projectDetails, render.dossierId)} className="d-flex flex-column">
             {text}
           </Link>
         </h6>
@@ -211,7 +211,11 @@ const InvoicesListComponent = () => {
             <Link className="dropdown-item" href="#">
               <i className="ti ti-sticker me-1" /> Mark ad Unpaid
             </Link>
-            <Link className="dropdown-item" href="#">
+            <Link
+              className="dropdown-item"
+              href={isLiveId(record.key) ? docHref("invoice", record.key) : "#"}
+              target={isLiveId(record.key) ? "_blank" : undefined}
+            >
               <i className="ti ti-printer me-1" /> Print
             </Link>
           </div>

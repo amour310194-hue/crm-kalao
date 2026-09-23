@@ -13,6 +13,7 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { deleteContact, fetchContacts, toContactsListRow } from "@/lib/crm";
+import { liveHref } from "@/lib/docs";
 
 const ContactsListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
@@ -96,7 +97,7 @@ const ContactsListComponent = () => {
       render: (text: any, render: any) => (
         <div className="d-flex align-items-center mb-0">
           <Link
-            href={all_routes.contactDetails}
+            href={liveHref(all_routes.contactDetails, render.key)}
             className="avatar avatar-xss me-2"
           >
             <ImageWithBasePath

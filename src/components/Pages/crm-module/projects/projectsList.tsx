@@ -14,7 +14,7 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { docHref, isLiveId, rowLiveId } from "@/lib/docs";
+import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import {
   fetchDossiers,
@@ -87,7 +87,7 @@ const ProjectsListComponent = () => {
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium">
           <Link
-            href={all_routes.companiesDetails}
+            href={liveHref(all_routes.companiesDetails, render.companyId)}
             className="avatar avatar-sm border rounded-circle me-2"
           >
             <ImageWithBasePath
@@ -96,7 +96,7 @@ const ProjectsListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.companyDetails}>{text}</Link>
+          <Link href={liveHref(all_routes.companyDetails, render.companyId)}>{text}</Link>
         </h6>
       ),
       sorter: (a: any, b: any) => a.Client.length - b.Client.length,

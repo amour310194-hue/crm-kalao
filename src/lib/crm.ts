@@ -200,6 +200,7 @@ export interface PaymentRow {
   invoices?: {
     number: string | null;
     due_date: string | null;
+    company_id?: string | null;
     companies?: { name: string | null } | null;
   } | null;
 }
@@ -422,6 +423,7 @@ export function toContactsListRow(row: ContactRow, index: number) {
     Flags: "cm.svg",
     Status: "Active",
     Email: row.email ?? "—",
+    companyId: row.company_id,
   };
 }
 
@@ -588,6 +590,7 @@ export function toLeadsListRow(row: LeadRow, index: number) {
     LeadOwner: "Kalao",
     OwnerImage: "avatar-13.jpg",
     CreatedDate: formatDate(row.created_at),
+    companyId: row.company_id,
   };
 }
 
@@ -658,6 +661,7 @@ export function toDealsListRow(row: DealRow) {
     ExpectedCloseDate: formatDate(row.expected_close_date),
     Probability: `${row.probability}%`,
     Status: row.stage === "won" ? "Won" : row.stage === "lost" ? "Lost" : "Open",
+    companyId: row.company_id,
   };
 }
 
@@ -852,6 +856,7 @@ export function toQuotationsListRow(row: QuoteRow) {
     totalAmount: formatMoney(total),
     discount: row.status === "accepted" ? "Accepté" : "0%",
     finalAmount: formatMoney(final),
+    companyId: row.company_id,
   };
 }
 
@@ -961,6 +966,8 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Status: statusMap[row.status] ?? row.status,
     amountValue: Number(row.amount),
     paidValue: Number(row.paid_amount),
+    companyId: row.company_id,
+    dossierId: row.dossier_id,
   };
 }
 
@@ -969,7 +976,7 @@ export async function fetchPayments(): Promise<PaymentRow[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("payments")
-    .select("*, invoices(number, due_date, companies(name))")
+    .select("*, invoices(number, due_date, company_id, companies(name))")
     .order("created_at", { ascending: false });
   throwIf(error);
   return (data ?? []) as PaymentRow[];
@@ -986,6 +993,8 @@ export function toPaymentsListRow(row: PaymentRow) {
     Due_Date: formatDate(row.invoices?.due_date),
     PaymentMethod: row.method === "cash" ? "Cash" : "Credit",
     TransactionID: row.transaction_id ?? "—",
+    companyId: row.invoices?.company_id ?? null,
+    invoiceId: row.invoice_id,
   };
 }
 
@@ -1819,6 +1828,7 @@ export function toProjectsListRow(row: DossierRow, index: number) {
     PipelineStage: KIND_STAGE[row.status] ?? row.status,
     Status: isDossierClosed(row.status) ? "Inactive" : "Active",
     Kind: row.kind,
+    companyId: row.company_id,
   };
 }
 

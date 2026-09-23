@@ -12,7 +12,7 @@ import ModalCompanies from "./modal/modalCompanies";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { isLiveId, rowLiveId } from "@/lib/docs";
+import { isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import { deleteCompany, fetchCompanies, toCompaniesListRow } from "@/lib/crm";
 
@@ -186,7 +186,7 @@ const CompaniesListComponent = () => {
             >
               <i className="ti ti-trash" /> Delete
             </Link>
-            <Link className="dropdown-item" href={all_routes.companiesDetails}>
+            <Link className="dropdown-item" href={liveHref(all_routes.companiesDetails, record.key)}>
               <i className="ti ti-eye text-blue-light" /> Preview
             </Link>
           </div>

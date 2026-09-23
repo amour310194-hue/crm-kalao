@@ -14,6 +14,7 @@ import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchLeads, toLeadsListRow } from "@/lib/crm";
+import { liveHref } from "@/lib/docs";
 
 const LeadsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -84,7 +85,7 @@ const LeadsListComponent = () => {
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
           <Link
-            href={all_routes.companiesDetails}
+            href={liveHref(all_routes.companiesDetails, render.companyId)}
             className="avatar border rounded p-1 me-2 rounded-circle"
           >
             <ImageWithBasePath
@@ -93,7 +94,7 @@ const LeadsListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.companiesDetails} className="d-flex flex-column">
+          <Link href={liveHref(all_routes.companiesDetails, render.companyId)} className="d-flex flex-column">
             {text}
             <span className="text-body fs-13 mt-1 fw-normal">
               {render.Location}

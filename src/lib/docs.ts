@@ -59,6 +59,11 @@ export function docHref(kind: DocKind, id: string): string {
   return `/docs/${kind}/${id}`;
 }
 
+/** Fiche live si UUID, sinon la route dummy du template. */
+export function liveHref(base: string, id?: string | null): string {
+  return isLiveId(id) ? `${base}?id=${id}` : base;
+}
+
 export type DocParty = {
   name: string;
   address: string;

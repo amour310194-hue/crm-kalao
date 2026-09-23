@@ -8,6 +8,7 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import ModalInvoice from "./modal/modalInvoice";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchInvoices, markInvoicePaid, toInvoicesListRow } from "@/lib/crm";
+import { docHref, isLiveId, liveHref } from "@/lib/docs";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
 
 const InvoicesGrid = () => {
@@ -334,10 +335,23 @@ const InvoicesGrid = () => {
                           <div className="dropdown-menu dropdown-menu-right">
                             <Link
                               className="dropdown-item d-inline-flex align-items-center"
-                              href={all_routes.invoice_details}
+                              href={liveHref(all_routes.invoice_details, invoice.key || invoice.Key)}
                             >
                               <i className="ti ti-clipboard-copy me-1" /> View
                               Invoices
+                            </Link>
+                            <Link
+                              className="dropdown-item d-inline-flex align-items-center"
+                              href={
+                                isLiveId(invoice.key || invoice.Key)
+                                  ? docHref("invoice", invoice.key || invoice.Key)
+                                  : "#"
+                              }
+                              target={
+                                isLiveId(invoice.key || invoice.Key) ? "_blank" : undefined
+                              }
+                            >
+                              <i className="ti ti-printer me-1" /> Print
                             </Link>
                             <Link
                               className="dropdown-item d-inline-flex align-items-center"
@@ -373,7 +387,7 @@ const InvoicesGrid = () => {
                           </span>
                           <div>
                             <h6 className="fs-14 fw-medium mb-0">
-                              <Link href={all_routes.projectDetails}>
+                              <Link href={liveHref(all_routes.projectDetails, invoice.dossierId)}>
                                 {invoice.Project}
                               </Link>
                             </h6>
@@ -417,7 +431,7 @@ const InvoicesGrid = () => {
                     </div>
                     <div className="d-flex align-items-center">
                       <Link
-                        href={all_routes.companiesDetails}
+                        href={liveHref(all_routes.companiesDetails, invoice.companyId)}
                         className="avatar avatar-rounded border me-2"
                       >
                         <ImageWithBasePath
@@ -428,7 +442,7 @@ const InvoicesGrid = () => {
                       </Link>
                       <div className="d-flex flex-column">
                         <h6 className="fs-14 fw-medium mb-1">
-                          <Link href={all_routes.companiesDetails}>
+                          <Link href={liveHref(all_routes.companiesDetails, invoice.companyId)}>
                             {invoice.Client}
                           </Link>
                         </h6>

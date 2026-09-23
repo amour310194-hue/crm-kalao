@@ -16,7 +16,7 @@ import { all_routes } from "@/router/all_routes";
 import ModalQuotations from "./modal/modalQuotations";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { acceptQuote, fetchQuotes, toQuotationsListRow } from "@/lib/crm";
-import { docHref, isLiveId, rowLiveId } from "@/lib/docs";
+import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const QuotationsListComponent = () => {
@@ -54,7 +54,7 @@ const QuotationsListComponent = () => {
       render: (text: string, record: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium">
           <Link
-            href={route.companiesDetails}
+            href={liveHref(route.companiesDetails, record.companyId)}
             className="avatar avatar-sm border rounded-circle me-2"
           >
             <ImageWithBasePath
@@ -63,7 +63,7 @@ const QuotationsListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={route.companiesDetails}>{text}</Link>
+          <Link href={liveHref(route.companiesDetails, record.companyId)}>{text}</Link>
         </h6>
       ),
       sorter: (a: any, b: any) => a.client.length - b.client.length,

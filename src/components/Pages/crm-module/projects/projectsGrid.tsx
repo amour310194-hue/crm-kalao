@@ -17,6 +17,7 @@ import {
   toProjectsListRow,
   type DossierRow,
 } from "@/lib/crm";
+import { liveHref } from "@/lib/docs";
 
 const ProjectsGridComponent = () => {
   const searchParams = useSearchParams();
@@ -798,7 +799,11 @@ const ProjectsGridComponent = () => {
                         </div>
                       </div>
                       <div className="d-block">
-                        <p className="mb-3">{project.Client}</p>
+                        <p className="mb-3">
+                          <Link href={liveHref(all_routes.companyDetails, project.companyId)}>
+                            {project.Client}
+                          </Link>
+                        </p>
                         <div className="mb-3">
                           <p className="d-flex align-items-center mb-2">
                             <i className="ti ti-forbid-2 me-2" />
