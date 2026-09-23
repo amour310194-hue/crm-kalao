@@ -463,7 +463,7 @@ const FileManagerComponent = () => {
                   {/* end card body */}
                 </div>
                 {/* end card */}
-                <div className="card mb-3 mb-xl-0">
+                <div className={live ? "d-none" : "card mb-3 mb-xl-0"}>
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-2">
                       <h6 className="mb-2">Storage Details</h6>
