@@ -2,21 +2,25 @@
 /* eslint-disable @next/next/no-img-element */
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
+import { composeEmail, formatChatTime, remindDueVisaActivities } from "@/lib/inbox";
 import {
-  composeEmail,
-  conversationParty,
-  fetchConversations,
-  formatChatTime,
-  liveChannelLabel,
-  remindDueVisaActivities,
-  type ConversationRow,
-} from "@/lib/inbox";
+  emailParty,
+  fetchCrmEmails,
+  fetchSessionMail,
+  filterEmails,
+  folderLabel,
+  type CrmEmailRow,
+  type MailFolder,
+  type MailboxKey,
+  type SessionMail,
+} from "@/lib/mail";
+import { liveHref } from "@/lib/docs";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import "overlayscrollbars/overlayscrollbars.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 
 
@@ -26,11 +30,15 @@ const EmailComponent = () => {
   const [showMore3, setShowMore3] = useState(false);
   const [show, setShow] = useState<boolean>(false);
   const [tags, setTags] = useState<string[]>([]);
-  const loadEmails = useCallback(async () => fetchConversations("email"), []);
+  const [mailbox, setMailbox] = useState<MailboxKey>("contact");
+  const [session, setSession] = useState<SessionMail | null>(null);
+  const [folder, setFolder] = useState<MailFolder>("inbox");
+  const loadEmails = useCallback(async () => fetchCrmEmails(), []);
   const { rows: emails, live, reload } = useLiveRows(
-    [] as ConversationRow[],
+    [] as CrmEmailRow[],
     loadEmails
   );
+  const visible = useMemo(() => filterEmails(emails, folder), [emails, folder]);
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
   };
@@ -38,6 +46,9 @@ const EmailComponent = () => {
   useEffect(() => {
     if (!live) return;
     void remindDueVisaActivities();
+    void fetchSessionMail().then(setSession);
+    const box = new URLSearchParams(window.location.search).get("box") as MailFolder | null;
+    if (box) setFolder(box);
   }, [live]);
 
 
@@ -80,10 +91,10 @@ const EmailComponent = () => {
                     </Link>
                     <div>
                       <h6 className="mb-1 fs-16 fw-medium">
-                        <Link href="#">{live ? "Kalao" : "James Hong"}</Link>
+                        <Link href="#">{live ? session?.fullName || "Kalao" : "James Hong"}</Link>
                       </h6>
                       <p className="fs-14 mb-0">
-                        {live ? "yuki.t@example.com" : "james@example.com"}
+                        {live ? session?.workEmail || "yuki.t@example.com" : "james@example.com"}
                       </p>
                     </div>
                   </div>
@@ -104,6 +115,36 @@ const EmailComponent = () => {
                   <i className="ti ti-sparkles me-2" />
                   AI Compose
                 </Link>
+                {live ? (
+                  <div className="mt-3">
+                    <h5 className="mb-2">Boîtes Kalao</h5>
+                    <div className="d-block mb-3 pb-3 border-bottom">
+                      {(
+                        [
+                          ["inbox", "Reçus"],
+                          ["sent", "Envoyés"],
+                          ["contact", "Contact (partagée)"],
+                          ["noreply", "No-reply (partagée)"],
+                          ["personal", "Ma boîte (privée)"],
+                        ] as [MailFolder, string][]
+                      ).map(([key, label]) => (
+                        <Link
+                          key={key}
+                          href={`${all_routes.email}?box=${key}`}
+                          className={`d-flex align-items-center justify-content-between p-2 rounded ${
+                            folder === key ? "bg-light active" : ""
+                          }`}
+                          onClick={() => setFolder(key)}
+                        >
+                          <span className="d-flex align-items-center fw-medium">{label}</span>
+                          <span className="badge bg-dark rounded-pill badge-xs">
+                            {filterEmails(emails, key).length}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="mt-3">
                   <h5 className="mb-2">Emails</h5>
                   <div className="d-block mb-3 pb-3 border-bottom">
@@ -116,7 +157,7 @@ const EmailComponent = () => {
                         Inbox
                       </span>
                       <span className="badge bg-danger bg-danger rounded-pill badge-xs">
-                        {live ? emails.length : 56}
+                        {live ? visible.length : 56}
                       </span>
                     </Link>
                     <Link
@@ -345,11 +386,15 @@ const EmailComponent = () => {
                   <div className="p-3 border-bottom">
                     <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                       <div>
-                        <h5 className="mb-1">Inbox</h5>
+                        <h5 className="mb-1">{live ? folderLabel(folder) : "Inbox"}</h5>
                         <div className="d-flex align-items-center">
-                          <span>2345 Emails</span>
-                          <i className="ti ti-point-filled text-primary mx-1" />
-                          <span>56 Unread</span>
+                          <span>{live ? `${visible.length} courriers` : "2345 Emails"}</span>
+                          {live ? null : (
+                            <>
+                              <i className="ti ti-point-filled text-primary mx-1" />
+                              <span>56 Unread</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="d-flex align-items-center">
@@ -389,7 +434,7 @@ const EmailComponent = () => {
                   </div>
                   <div className="list-group list-group-flush mails-list">
                     {live
-                      ? emails.map((row) => (
+                      ? visible.map((row) => (
                           <div className="list-group-item p-3" key={row.id}>
                             <div className="d-flex align-items-center mb-2">
                               <div className="form-check form-check-md d-flex align-items-center flex-shrink-0 me-2">
@@ -397,40 +442,38 @@ const EmailComponent = () => {
                               </div>
                               <div className="d-flex align-items-center flex-wrap row-gap-2 flex-fill">
                                 <Link
-                                  href={all_routes.emailReply}
+                                  href={liveHref(all_routes.emailReply, row.id)}
                                   className="avatar bg-primary avatar-rounded me-2"
                                 >
                                   <span className="avatar-title">
-                                    {conversationParty(row).slice(0, 2).toUpperCase()}
+                                    {emailParty(row).slice(0, 2).toUpperCase()}
                                   </span>
                                 </Link>
                                 <div className="flex-fill">
                                   <div className="d-flex align-items-start justify-content-between">
                                     <div>
                                       <h6 className="fs-16 mb-1">
-                                        <Link href={all_routes.emailReply}>
-                                          {conversationParty(row)}
+                                        <Link href={liveHref(all_routes.emailReply, row.id)}>
+                                          {emailParty(row)}
                                         </Link>
                                       </h6>
-                                      <span className="fw-semibold">{row.title}</span>
+                                      <span className="fw-semibold">{row.subject}</span>
                                     </div>
                                     <div className="d-flex align-items-center">
                                       <span className="d-inline-flex align-items-center">
                                         <i className="ti ti-point-filled text-success" />
-                                        {formatChatTime(row.updated_at)}
+                                        {formatChatTime(row.created_at)}
                                       </span>
                                     </div>
                                   </div>
-                                  <p className="mb-0">
-                                    {row.last_preview || liveChannelLabel(row.channel)}
-                                  </p>
+                                  <p className="mb-0">{row.body.slice(0, 120)}</p>
                                 </div>
                               </div>
                             </div>
                             <div className="d-flex align-items-center justify-content-between">
                               <span className="badge badge-soft-info d-inline-flex align-items-center p-1">
                                 <i className="ti ti-square me-1" />
-                                {liveChannelLabel(row.channel)}
+                                {row.direction === "out" ? "Envoyé" : "Reçu"} · {row.mailbox}
                               </span>
                             </div>
                           </div>
@@ -1772,7 +1815,7 @@ const EmailComponent = () => {
               const data = new FormData(e.currentTarget);
               const subject = String(data.get("subject") ?? "");
               const body = String(data.get("body") ?? "");
-              await composeEmail({ tags, subject, body });
+              await composeEmail({ tags, subject, body, mailbox });
               e.currentTarget.reset();
               setTags([]);
               setShow(false);
@@ -1800,6 +1843,19 @@ const EmailComponent = () => {
               </div>
             </div>
             <div className="p-3 border-bottom">
+              <div className="mb-3">
+                <select
+                  className="form-select"
+                  value={mailbox}
+                  onChange={(e) => setMailbox(e.target.value as MailboxKey)}
+                >
+                  <option value="contact">Depuis Contact (partagée)</option>
+                  <option value="noreply">Depuis No-reply (partagée)</option>
+                  <option value="personal">
+                    Depuis ma boîte{session ? ` (${session.workEmail})` : ""} — privé
+                  </option>
+                </select>
+              </div>
               <div className="mb-3">
                 <input
                   type="text"

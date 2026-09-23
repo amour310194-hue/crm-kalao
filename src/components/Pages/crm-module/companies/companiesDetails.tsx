@@ -39,6 +39,7 @@ import {
   LiveActivityCards,
 } from "../ficheLiveTabs";
 import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
+import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
 
 const CompaniesDetailsComponent = () => {
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
@@ -211,6 +212,16 @@ const CompaniesDetailsComponent = () => {
                         </div>
                       </div>
                     </div>
+                    {live && company ? (
+                      <div className="mb-2">
+                        <KalaoComposeMail
+                          to={company.email || contact?.email}
+                          companyId={company.id}
+                          contactId={contact?.id}
+                          partyName={company.name}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>

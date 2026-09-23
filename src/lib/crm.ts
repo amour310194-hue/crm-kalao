@@ -988,38 +988,33 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
   const to = invoice.companies?.email?.trim() || "";
   if (!to) return { dispatched: false, to: null, reason: "missing_to" };
   const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
-  const res = await fetch("/api/email/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      to,
-      subject: `Relance — facture ${invoice.number ?? ""} — Groupe Kalao`,
-      body: [
-        "Bonjour,",
-        "",
-        `Facture ${invoice.number ?? invoice.id} — ${invoice.companies?.name ?? "Client"}.`,
-        `Montant : ${formatMoney(invoice.amount)}.`,
-        `Déjà encaissé : ${formatMoney(invoice.paid_amount)}.`,
-        `Reste dû : ${formatMoney(remaining)}.`,
-        invoice.due_date ? `Échéance : ${formatDate(invoice.due_date)}.` : "",
-        "",
-        "Groupe Kalao",
-        KALAO_CONTACT_EMAIL,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    }),
-  });
-  const json = (await res.json()) as {
-    dispatched?: boolean;
-    reason?: string;
-    detail?: string;
-  };
-  return {
-    dispatched: Boolean(json.dispatched),
+  const { sendCrmEmail } = await import("@/lib/mail");
+  const result = await sendCrmEmail({
+    mailbox: "noreply",
     to,
-    reason: json.reason ?? (json.dispatched ? "sent" : "resend_error"),
-    detail: json.detail,
+    subject: `Relance — facture ${invoice.number ?? ""} — Groupe Kalao`,
+    body: [
+      "Bonjour,",
+      "",
+      `Facture ${invoice.number ?? invoice.id} — ${invoice.companies?.name ?? "Client"}.`,
+      `Montant : ${formatMoney(invoice.amount)}.`,
+      `Déjà encaissé : ${formatMoney(invoice.paid_amount)}.`,
+      `Reste dû : ${formatMoney(remaining)}.`,
+      invoice.due_date ? `Échéance : ${formatDate(invoice.due_date)}.` : "",
+      "",
+      "Groupe Kalao",
+      KALAO_CONTACT_EMAIL,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    companyId: invoice.company_id,
+    invoiceId: invoice.id,
+  });
+  return {
+    dispatched: result.dispatched,
+    to: result.to,
+    reason: result.reason,
+    detail: result.detail,
   };
 }
 

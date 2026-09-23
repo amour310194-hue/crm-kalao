@@ -33,6 +33,7 @@ import {
   FicheSuiviTab,
   LiveActivityCards,
 } from "../ficheLiveTabs";
+import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
 
 
 const ContactsDetailsComponent = () => {
@@ -278,6 +279,16 @@ const ContactsDetailsComponent = () => {
                         </div>
                       </div>
                     </div>
+                    {live && contact ? (
+                      <div className="mb-2">
+                        <KalaoComposeMail
+                          to={contact.email}
+                          contactId={contact.id}
+                          companyId={contact.company_id}
+                          partyName={contactName}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>

@@ -296,6 +296,7 @@ export async function composeEmail(input: {
   tags: string[];
   subject: string;
   body: string;
+  mailbox?: "noreply" | "contact" | "personal";
 }): Promise<{ stored: boolean; dispatched: boolean }> {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -335,19 +336,23 @@ export async function composeEmail(input: {
     .select("*")
     .single();
   throwIf(error);
-  const dispatched = await dispatchEmail({
+  const { sendCrmEmail } = await import("@/lib/mail");
+  const mail = await sendCrmEmail({
+    mailbox: input.mailbox ?? "contact",
     to: recipient.email,
     subject,
     body,
+    companyId: recipient.company?.id,
+    contactId: recipient.contact?.id,
   });
-  if (dispatched && data?.id) {
+  if (mail.dispatched && data?.id) {
     await supabase.from("messages").update({ status: "sent" }).eq("id", data.id);
   }
   await supabase
     .from("conversations")
     .update({ last_preview: body.slice(0, 80), title: subject })
     .eq("id", conv.id);
-  return { stored: true, dispatched };
+  return { stored: true, dispatched: mail.dispatched };
 }
 
 export async function remindDueVisaActivities(): Promise<void> {

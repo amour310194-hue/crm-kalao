@@ -1,5 +1,18 @@
 import { NextRequest } from "next/server";
-import { KALAO_NOREPLY_FROM } from "@/lib/org";
+import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
+
+type MailboxKey = "noreply" | "contact" | "personal";
+
+function resolveFrom(mailbox: MailboxKey | undefined, requested?: string) {
+  if (mailbox === "contact") return `Contact Kalao <${KALAO_CONTACT_EMAIL}>`;
+  if (mailbox === "personal") {
+    const raw = String(requested ?? "").trim();
+    if (/@groupe-kalao\.com>/i.test(raw) || /@groupe-kalao\.com$/i.test(raw)) {
+      return raw;
+    }
+  }
+  return process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
+}
 
 export async function POST(request: NextRequest) {
   const key = process.env.RESEND_API_KEY;
@@ -7,7 +20,13 @@ export async function POST(request: NextRequest) {
     return Response.json({ ok: true, dispatched: false, reason: "resend_missing" });
   }
 
-  let payload: { to?: string; subject?: string; body?: string } = {};
+  let payload: {
+    to?: string;
+    subject?: string;
+    body?: string;
+    mailbox?: MailboxKey;
+    from?: string;
+  } = {};
   try {
     payload = (await request.json()) as typeof payload;
   } catch {
@@ -24,7 +43,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ ok: true, dispatched: false, reason: "missing_to" });
   }
 
-  const from = process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
+  const from = resolveFrom(payload.mailbox, payload.from);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -32,18 +51,20 @@ export async function POST(request: NextRequest) {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from, to: [to], subject, text }),
+    body: JSON.stringify({ from, to: [to], subject, text, reply_to: from }),
   });
 
   let detail: string | undefined;
-  if (!res.ok) {
-    const raw = await res.text();
-    try {
-      const parsed = JSON.parse(raw) as { message?: string; name?: string };
+  let id: string | undefined;
+  const raw = await res.text();
+  try {
+    const parsed = JSON.parse(raw) as { message?: string; name?: string; id?: string };
+    id = parsed.id;
+    if (!res.ok) {
       detail = [parsed.name, parsed.message].filter(Boolean).join(": ") || raw.slice(0, 280);
-    } catch {
-      detail = raw.slice(0, 280);
     }
+  } catch {
+    if (!res.ok) detail = raw.slice(0, 280);
   }
 
   return Response.json({
@@ -51,5 +72,6 @@ export async function POST(request: NextRequest) {
     dispatched: res.ok,
     reason: res.ok ? "sent" : "resend_error",
     detail,
+    id,
   });
 }

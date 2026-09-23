@@ -8,6 +8,7 @@ import "overlayscrollbars/overlayscrollbars.css";
 import { useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import KalaoMailReader from "@/components/docs/KalaoMailReader";
 
 const EmailReplyComponent = () => {
   const [showMore, setShowMore] = useState(false);
@@ -39,6 +40,7 @@ const EmailReplyComponent = () => {
       <div className="page-wrapper">
         {/* Start Content */}
         <div className="content p-0">
+          <KalaoMailReader />
           <div className="d-md-flex">
             {/* Email Sidenav Start */}
             <OverlayScrollbarsComponent
