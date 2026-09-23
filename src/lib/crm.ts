@@ -1,6 +1,6 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
-import { KALAO_CONTACT_EMAIL, ROLE_LABEL } from "@/lib/org";
+import { canadaSchedule, isCanadaProcedure, KALAO_CONTACT_EMAIL, ROLE_LABEL } from "@/lib/org";
 
 export type EntityType =
   | "company"
@@ -115,6 +115,10 @@ export interface ContactRow {
   phone: string | null;
   job_title: string | null;
   notes: string | null;
+  nationality?: string | null;
+  birth_date?: string | null;
+  birth_place?: string | null;
+  passport_no?: string | null;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
 }
 
@@ -182,7 +186,7 @@ export interface InvoiceRow {
   paid_amount: number;
   status: string;
   created_at: string;
-  companies?: { name: string | null } | null;
+  companies?: { name: string | null; email?: string | null; phone?: string | null; address?: string | null; city?: string | null; country?: string | null } | null;
 }
 
 export interface PaymentRow {
@@ -190,6 +194,7 @@ export interface PaymentRow {
   invoice_id: string;
   amount: number;
   paid_at: string;
+  created_at?: string;
   method: string;
   transaction_id: string | null;
   invoices?: {
@@ -238,6 +243,20 @@ export interface EmployeeRow {
   phone: string | null;
   job_title: string | null;
   status: string;
+  salary_base?: number;
+  bonus_performance?: number;
+  bonus_responsibility?: number;
+  transport_allowance?: number;
+  birth_date?: string | null;
+  birth_place?: string | null;
+  nationality?: string | null;
+  passport_no?: string | null;
+  address?: string | null;
+  contract_type?: string | null;
+  hired_at?: string | null;
+  weekly_hours?: number;
+  cnps_number?: string | null;
+  contract_ref?: string | null;
   employee_assignments?: {
     is_primary: boolean;
     departments?: { id: string; name: string; code: string } | null;
@@ -854,7 +873,7 @@ export async function fetchInvoices(): Promise<InvoiceRow[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("invoices")
-    .select("*, companies(name)")
+    .select("*, companies(name, email, phone, address, city, country)")
     .order("created_at", { ascending: false });
   throwIf(error);
   return (data ?? []) as InvoiceRow[];
@@ -1097,6 +1116,19 @@ export async function createEmployee(input: {
   phone?: string | null;
   job_title?: string | null;
   department_ids?: string[];
+  salary_base?: number;
+  bonus_performance?: number;
+  bonus_responsibility?: number;
+  transport_allowance?: number;
+  birth_date?: string | null;
+  birth_place?: string | null;
+  nationality?: string | null;
+  passport_no?: string | null;
+  address?: string | null;
+  contract_type?: string | null;
+  hired_at?: string | null;
+  weekly_hours?: number;
+  cnps_number?: string | null;
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -1116,6 +1148,16 @@ export async function createEmployee(input: {
     throwIf(aErr);
   }
   return created;
+}
+
+export async function updateEmployee(
+  id: string,
+  input: Partial<Omit<EmployeeRow, "id" | "employee_assignments">>
+) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.from("employees").update(input).eq("id", id);
+  throwIf(error);
 }
 
 export async function deleteEmployee(id: string) {
@@ -1411,6 +1453,7 @@ export interface DossierRow {
   end_at: string | null;
   notes: string | null;
   quote_id: string | null;
+  bassin_drawn?: boolean;
   updated_at?: string | null;
   companies?: { name: string | null } | null;
   dossier_members?: { employee_id: string; employees?: { full_name: string } | null }[];
@@ -1693,29 +1736,50 @@ export async function createDossier(input: {
   // sans être encaissé. Le déclencheur payments_refresh tient les statuts à jour.
   const total = Number(catalogItem?.unit_price ?? 0);
   if (total > 0) {
-    const advance = Math.min(Math.max(Number(input.advance ?? 0), 0), total);
     const today = new Date().toISOString().slice(0, 10);
-    if (advance > 0) {
-      const invoice = await createInvoice({
-        company_id: companyId,
-        contact_id: contactId,
-        dossier_id: created.id,
-        project: `${input.title} - avance de démarrage`,
-        amount: advance,
-        due_date: today,
-      });
-      await recordPayment({ invoice_id: invoice.id, amount: advance });
-    }
-    const balance = total - advance;
-    if (balance > 0) {
-      await createInvoice({
-        company_id: companyId,
-        contact_id: contactId,
-        dossier_id: created.id,
-        project: `${input.title} - solde à la livraison`,
-        amount: balance,
-        due_date: endAt,
-      });
+    if (isCanadaProcedure(input.title, catalogItem?.name, catalogItem?.sku)) {
+      const schedule = canadaSchedule(total);
+      for (const tranche of schedule) {
+        if (tranche.amount <= 0) continue;
+        const invoice = await createInvoice({
+          company_id: companyId,
+          contact_id: contactId,
+          dossier_id: created.id,
+          project: `${input.title} — ${tranche.label}`,
+          amount: tranche.amount,
+          due_date: tranche.key === "ouverture" ? today : endAt,
+        });
+        if (tranche.key === "ouverture") {
+          const advance = Math.min(Math.max(Number(input.advance ?? 0), 0), tranche.amount);
+          if (advance > 0) {
+            await recordPayment({ invoice_id: invoice.id, amount: advance });
+          }
+        }
+      }
+    } else {
+      const advance = Math.min(Math.max(Number(input.advance ?? 0), 0), total);
+      if (advance > 0) {
+        const invoice = await createInvoice({
+          company_id: companyId,
+          contact_id: contactId,
+          dossier_id: created.id,
+          project: `${input.title} - avance de démarrage`,
+          amount: advance,
+          due_date: today,
+        });
+        await recordPayment({ invoice_id: invoice.id, amount: advance });
+      }
+      const balance = total - advance;
+      if (balance > 0) {
+        await createInvoice({
+          company_id: companyId,
+          contact_id: contactId,
+          dossier_id: created.id,
+          project: `${input.title} - solde à la livraison`,
+          amount: balance,
+          due_date: endAt,
+        });
+      }
     }
   }
   if (kind === "visa") {

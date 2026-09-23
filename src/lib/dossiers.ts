@@ -85,6 +85,7 @@ export async function updateDossier(
     start_at?: string | null;
     end_at?: string | null;
     notes?: string | null;
+    bassin_drawn?: boolean;
   }
 ) {
   const supabase = db();
@@ -97,6 +98,7 @@ export async function updateDossier(
   if (input.start_at !== undefined) patch.start_at = input.start_at || null;
   if (input.end_at !== undefined) patch.end_at = input.end_at || null;
   if (input.notes !== undefined) patch.notes = input.notes || null;
+  if (input.bassin_drawn !== undefined) patch.bassin_drawn = input.bassin_drawn;
   if (patch.status === "done") {
     const { data: current, error: curErr } = await supabase
       .from("dossiers")

@@ -16,6 +16,7 @@ import { all_routes } from "@/router/all_routes";
 import ModalQuotations from "./modal/modalQuotations";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { acceptQuote, fetchQuotes, toQuotationsListRow } from "@/lib/crm";
+import { docHref, isLiveId } from "@/lib/docs";
 
 const QuotationsListComponent = () => {
   const route = all_routes;
@@ -34,11 +35,12 @@ const QuotationsListComponent = () => {
     {
       title: "Quote ID",
       dataIndex: "quoteId",
-      render: (text: string) => (
+      render: (text: string, record: { key?: string }) => (
         <Link
-          href="#"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#edit-offcanvas"
+          href={isLiveId(record.key) ? docHref("quote", record.key) : "#"}
+          data-bs-toggle={isLiveId(record.key) ? undefined : "offcanvas"}
+          data-bs-target={isLiveId(record.key) ? undefined : "#edit-offcanvas"}
+          target={isLiveId(record.key) ? "_blank" : undefined}
         >
           {text}
         </Link>

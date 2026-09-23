@@ -12,6 +12,7 @@ import { StaffDirectoryListData } from "../../../../core/json/staffDirectoryList
 import ModalStaffDirectory from "./modal/modalStaffDirectory";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchEmployees, toStaffListRow } from "@/lib/crm";
+import { docHref, isLiveId } from "@/lib/docs";
 
 const route = all_routes;
 
@@ -51,6 +52,16 @@ const StaffDirectoryListComponent = () => {
             />
           </Link>
           <Link href="#">{text}</Link>
+          {isLiveId(record.key) ? (
+            <span className="d-block mt-1">
+              <Link href={docHref("employment", record.key)} target="_blank" className="me-2">
+                Contrat
+              </Link>
+              <Link href={docHref("certificate", record.key)} target="_blank">
+                Attestation
+              </Link>
+            </span>
+          ) : null}
         </h6>
       ),
       sorter: (a: any, b: any) =>

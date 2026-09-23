@@ -38,6 +38,7 @@ import {
   FicheSuiviTab,
   LiveActivityCards,
 } from "../ficheLiveTabs";
+import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
 
 const CompaniesDetailsComponent = () => {
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
@@ -213,6 +214,13 @@ const CompaniesDetailsComponent = () => {
                   </div>
                 </div>
               </div>
+              {live && company ? (
+                <KalaoDocsBar
+                  companyId={company.id}
+                  invoices={invoices}
+                  dossiers={dossiers}
+                />
+              ) : null}
               {/* /Contact User */}
             </div>
             {/* Contact Sidebar */}

@@ -17,6 +17,7 @@ import {
   markInvoicePaid,
   toInvoicesListRow,
 } from "@/lib/crm";
+import { docHref, isLiveId } from "@/lib/docs";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -33,8 +34,12 @@ const InvoicesListComponent = () => {
     {
       title: "Invoice ID",
       dataIndex: "Invoice_ID",
-      render: (text: string) => (
-        <Link href="#" className="title-name">
+      render: (text: string, record: { key?: string }) => (
+        <Link
+          href={isLiveId(record.key) ? docHref("invoice", record.key) : "#"}
+          className="title-name"
+          target={isLiveId(record.key) ? "_blank" : undefined}
+        >
           {text}
         </Link>
       ),

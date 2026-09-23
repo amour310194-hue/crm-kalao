@@ -14,6 +14,7 @@ import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchPayments, toPaymentsListRow } from "@/lib/crm";
+import { docHref, isLiveId } from "@/lib/docs";
 
 const PaymentsComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -30,8 +31,12 @@ const PaymentsComponent = () => {
     {
       title: "Invoice ID",
       dataIndex: "InvoiceID",
-      render: (text: string) => (
-        <Link href="#" className="title-name">
+      render: (text: string, record: { key?: string }) => (
+        <Link
+          href={isLiveId(record.key) ? docHref("receipt", record.key) : "#"}
+          className="title-name"
+          target={isLiveId(record.key) ? "_blank" : undefined}
+        >
           {text}
         </Link>
       ),

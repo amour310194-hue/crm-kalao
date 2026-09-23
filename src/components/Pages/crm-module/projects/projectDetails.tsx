@@ -46,6 +46,8 @@ import {
   type DossierMilestoneRow,
   type DossierPurchaseRow,
 } from "@/lib/dossiers";
+import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
+import { isCanadaProcedure } from "@/lib/org";
 
 const KIND_LABEL: Record<string, string> = {
   chantier: "Chantier",
@@ -315,6 +317,35 @@ const ProjectDetailsComponent = () => {
                               : "Active"}
                           </span>
                         </div>
+                        {live && dossier ? (
+                          <div className="mt-2">
+                            <KalaoDocsBar
+                              companyId={dossier.company_id}
+                              invoices={invoices}
+                              dossiers={[dossier]}
+                            />
+                            {isCanadaProcedure(dossier.title) ? (
+                              <label className="form-check mt-1">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={Boolean(dossier.bassin_drawn)}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    void updateDossier(dossier.id, {
+                                      bassin_drawn: checked,
+                                    }).then((saved) => {
+                                      setDossier({ ...dossier, ...saved });
+                                    });
+                                  }}
+                                />
+                                <span className="form-check-label">
+                                  Tiré du bassin (2e échéance 1 500 000 FCFA)
+                                </span>
+                              </label>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                     <div className="d-flex align-items-center flex-wrap gap-2">

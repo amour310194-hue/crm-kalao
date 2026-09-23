@@ -257,6 +257,7 @@ export const all_routes = {
   kanbanview: "/application/kanban-view",
   invoice: "/application/invoice",
   invoice_details: "/application/invoice-details",
+  kalaoDocs: "/docs",
   addInvoices:"/application/add-invoice",
   editInvoices:"/application/edit-invoice",
 

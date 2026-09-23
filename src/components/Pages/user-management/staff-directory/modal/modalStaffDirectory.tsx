@@ -5,7 +5,10 @@ import {
   closeBootstrapChrome,
   createEmployee,
   fetchDepartments,
+  fetchEmployees,
+  parseAmount,
   readForm,
+  updateEmployee,
 } from "@/lib/crm";
 
 const ROLES = [
@@ -164,6 +167,97 @@ const StaffForm = ({ submitLabel, departmentOptions }: StaffFormProps) => (
             <input type="text" className="form-control" />
           </div>
         </div>
+        <div className="col-12">
+          <hr />
+          <p className="fw-semibold mb-2">Paie et contrat Kalao</p>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Intitulé réel</label>
+            <input className="form-control" name="job_title_custom" placeholder="PDG, DG, Secrétaire…" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Type de contrat</label>
+            <select className="form-select" name="contract_type" defaultValue="CDI">
+              <option value="CDI">CDI</option>
+              <option value="CDD">CDD</option>
+            </select>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Salaire de base (FCFA)</label>
+            <input className="form-control" name="salary_base" inputMode="numeric" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Prime de rendement</label>
+            <input className="form-control" name="bonus_performance" inputMode="numeric" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Prime de responsabilité</label>
+            <input className="form-control" name="bonus_responsibility" inputMode="numeric" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Indemnité de transport</label>
+            <input className="form-control" name="transport_allowance" inputMode="numeric" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Date d'embauche</label>
+            <input className="form-control" name="hired_at" type="date" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Heures / semaine</label>
+            <input className="form-control" name="weekly_hours" defaultValue="40" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Date de naissance</label>
+            <input className="form-control" name="birth_date" type="date" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Lieu de naissance</label>
+            <input className="form-control" name="birth_place" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Nationalité</label>
+            <input className="form-control" name="nationality" defaultValue="Camerounaise" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Passeport / CNI</label>
+            <input className="form-control" name="passport_no" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">N° CNPS</label>
+            <input className="form-control" name="cnps_number" />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="mb-3">
+            <label className="form-label">Adresse</label>
+            <input className="form-control" name="address" />
+          </div>
+        </div>
       </div>
     </div>
     <div className="modal-footer">
@@ -204,9 +298,63 @@ const ModalStaffDirectory = ({ onSaved }: ModalStaffDirectoryProps) => {
         full_name: `${vals.first_name || ""} ${vals.last_name || ""}`.trim() || "Collaborateur",
         email: vals.email || null,
         phone: vals.phone || null,
-        job_title: vals.job_title && vals.job_title !== "Select" ? vals.job_title : null,
+        job_title:
+          vals.job_title_custom ||
+          (vals.job_title && vals.job_title !== "Select" ? vals.job_title : null),
         department_ids: selected,
+        salary_base: parseAmount(vals.salary_base),
+        bonus_performance: parseAmount(vals.bonus_performance),
+        bonus_responsibility: parseAmount(vals.bonus_responsibility),
+        transport_allowance: parseAmount(vals.transport_allowance),
+        birth_date: vals.birth_date || null,
+        birth_place: vals.birth_place || null,
+        nationality: vals.nationality || null,
+        passport_no: vals.passport_no || null,
+        address: vals.address || null,
+        contract_type: vals.contract_type || "CDI",
+        hired_at: vals.hired_at || null,
+        weekly_hours: parseAmount(vals.weekly_hours) || 40,
+        cnps_number: vals.cnps_number || null,
       });
+      onSaved?.();
+      closeBootstrapChrome(form);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const staffPay = (vals: Record<string, string>) => ({
+    job_title:
+      vals.job_title_custom ||
+      (vals.job_title && vals.job_title !== "Select" ? vals.job_title : undefined),
+    salary_base: parseAmount(vals.salary_base),
+    bonus_performance: parseAmount(vals.bonus_performance),
+    bonus_responsibility: parseAmount(vals.bonus_responsibility),
+    transport_allowance: parseAmount(vals.transport_allowance),
+    birth_date: vals.birth_date || null,
+    birth_place: vals.birth_place || null,
+    nationality: vals.nationality || null,
+    passport_no: vals.passport_no || null,
+    address: vals.address || null,
+    contract_type: vals.contract_type || "CDI",
+    hired_at: vals.hired_at || null,
+    weekly_hours: parseAmount(vals.weekly_hours) || 40,
+    cnps_number: vals.cnps_number || null,
+    phone: vals.phone || null,
+    email: vals.email || null,
+  });
+
+  const onUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const form = e.currentTarget;
+      const vals = readForm(form);
+      const email = vals.email?.trim();
+      if (!email) throw new Error("Indiquez l'e-mail du collaborateur à mettre à jour");
+      const rows = await fetchEmployees();
+      const match = rows?.find((row) => row.email === email);
+      if (!match) throw new Error("Aucun collaborateur avec cet e-mail");
+      await updateEmployee(match.id, staffPay(vals));
       onSaved?.();
       closeBootstrapChrome(form);
     } catch (err) {
@@ -249,7 +397,7 @@ const ModalStaffDirectory = ({ onSaved }: ModalStaffDirectoryProps) => {
                 aria-label="Close"
               />
             </div>
-            <form>
+            <form onSubmit={onUpdate}>
               <StaffForm
                 submitLabel="Save Changes"
                 departmentOptions={departmentOptions}

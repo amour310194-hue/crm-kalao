@@ -12,6 +12,7 @@ import ModalTimesheets from "./modal/modalTimesheets";
 import TableToolbar from "@/core/common/table-toolbar/tableToolbar";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchPayRuns, markPayRunPaid, toTimesheetRow } from "@/lib/crm";
+import { docHref, isLiveId } from "@/lib/docs";
 
 const TimesheetsComponent = () => {
   const loadPay = useCallback(async () => {
@@ -24,9 +25,14 @@ const TimesheetsComponent = () => {
     {
       title: "Timesheet ID",
       dataIndex: "TimesheetID",
-      render: (text: any) => (
+      render: (text: any, record: { key?: string }) => (
         <h6 className="d-flex align-items-center fs-14 fw-normal mb-0">
-          <Link href="#" data-bs-toggle="modal" data-bs-target="#edit_timesheet">
+          <Link
+            href={isLiveId(record.key) ? docHref("payslip", record.key) : "#"}
+            data-bs-toggle={isLiveId(record.key) ? undefined : "modal"}
+            data-bs-target={isLiveId(record.key) ? undefined : "#edit_timesheet"}
+            target={isLiveId(record.key) ? "_blank" : undefined}
+          >
             {text}
           </Link>
         </h6>
