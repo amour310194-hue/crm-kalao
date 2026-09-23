@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer"
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import PageHeader from "@/core/common/page-header/pageHeader"
@@ -8,9 +9,28 @@ import CommonSelect from "@/core/common/common-select/commonSelect"
 import ModalDealsDetails from "./modal/modalDealsDetails"
 import Link from "next/link"
 import { all_routes } from "@/router/all_routes"
+import {
+  DEAL_STAGE_LABEL,
+  fetchDeals,
+  formatMoney,
+  type DealRow,
+} from "@/lib/crm";
 
 
 const DealsDetailsComponent = () => {
+  const [deal, setDeal] = useState<DealRow | null>(null);
+
+  useEffect(() => {
+    const id =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("id")
+        : null;
+    void fetchDeals().then((rows) => {
+      const row = id ? rows?.find((item) => item.id === id) : null;
+      if (row) setDeal(row);
+    });
+  }, []);
+
   return (
    <>
   {/* ========================
@@ -47,6 +67,15 @@ const DealsDetailsComponent = () => {
                       Tremblay and Rath{" "}
                       <i className="ti ti-star-filled text-warning" />
                     </h5>
+                    {deal ? <h5 className="mb-1">{deal.title}</h5> : null}
+                    {deal ? (
+                      <p className="mb-1">
+                        <i className="ti ti-building-skyscraper me-1" />
+                        {deal.companies?.name ?? "—"} ·{" "}
+                        {DEAL_STAGE_LABEL[deal.stage] ?? deal.stage} ·{" "}
+                        {formatMoney(deal.amount)}
+                      </p>
+                    ) : null}
                     <p className="mb-1">
                       <i className="ti ti-building-skyscraper me-1" />
                       Google Inc

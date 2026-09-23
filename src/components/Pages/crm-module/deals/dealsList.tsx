@@ -46,12 +46,11 @@ const handleClick = (key: string) => {
     {
       title: "Deal Name",
       dataIndex: "DealName",
-      // La fiche deal reste une maquette : sur données réelles, pas de lien.
-      render: (text: string) =>
-        live ? (
-          <span className="title-name">{text}</span>
-        ) : (
-          <Link href={all_routes.dealsDetails} className="title-name">
+      render: (text: string, record: any) => (
+          <Link
+            href={`${all_routes.dealsDetails}?id=${record.key ?? ""}`}
+            className="title-name"
+          >
             {text}
           </Link>
         ),
@@ -119,7 +118,7 @@ const handleClick = (key: string) => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_text: string, record: any) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -149,11 +148,12 @@ const handleClick = (key: string) => {
             >
               <i className="ti ti-trash" /> Delete
             </Link>
-            {live ? null : (
-              <Link className="dropdown-item" href={all_routes.dealsDetails}>
-                <i className="ti ti-eye text-blue-light" /> Preview
-              </Link>
-            )}
+            <Link
+              className="dropdown-item"
+              href={`${all_routes.dealsDetails}?id=${record.key ?? ""}`}
+            >
+              <i className="ti ti-eye text-blue-light" /> Preview
+            </Link>
           </div>
         </div>
       ),

@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import CommonSelect from "@/core/common/common-select/commonSelect";
@@ -13,8 +14,40 @@ import Footer from "@/core/common/footer/footer";
 import ModalLeadsDetails from "./modal/modalLeadsDetails";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
+import {
+  convertLead,
+  fetchLeads,
+  formatMoney,
+  LEAD_STATUS_LABEL,
+  type LeadRow,
+} from "@/lib/crm";
 
 const LeadsDetailsComponent = () => {
+  const [lead, setLead] = useState<LeadRow | null>(null);
+
+  useEffect(() => {
+    const id =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("id")
+        : null;
+    void fetchLeads().then((rows) => {
+      const row = id ? rows?.find((item) => item.id === id) : null;
+      if (row) setLead(row);
+    });
+  }, []);
+
+  const onConvert = async () => {
+    if (!lead) return;
+    try {
+      await convertLead(lead.id);
+      const rows = await fetchLeads();
+      const row = rows?.find((item) => item.id === lead.id);
+      if (row) setLead(row);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   return (
     <>
       {/* ========================
@@ -51,6 +84,17 @@ const LeadsDetailsComponent = () => {
                           Tremblay and Rath{" "}
                           <i className="ti ti-star-filled text-warning" />
                         </h5>
+                        {lead ? (
+                          <h5 className="mb-1">{lead.title}</h5>
+                        ) : null}
+                        {lead ? (
+                          <p className="mb-1">
+                            <i className="ti ti-building-skyscraper me-1" />
+                            {lead.companies?.name ?? "—"} ·{" "}
+                            {LEAD_STATUS_LABEL[lead.status] ?? lead.status} ·{" "}
+                            {formatMoney(lead.estimated_value)}
+                          </p>
+                        ) : null}
                         <p className="mb-1">
                           <i className="ti ti-building-skyscraper me-1" />
                           Google Inc
@@ -79,7 +123,14 @@ const LeadsDetailsComponent = () => {
                           <i className="ti ti-chevron-down ms-1" />{" "}
                         </Link>
                         <div className="dropdown-menu dropdown-menu-right">
-                          <Link className="dropdown-item" href="#">
+                          <Link
+                            className="dropdown-item"
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (lead) void onConvert();
+                            }}
+                          >
                             <span>Closed</span>
                           </Link>
                           <Link className="dropdown-item" href="#">

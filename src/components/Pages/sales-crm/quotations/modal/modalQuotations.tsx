@@ -55,14 +55,14 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
           const item = catalog.find((c) => c.id === select.value);
           const qty = parseAmount(qtys[i]?.value) || 1;
           const price = parseAmount(prices[i]?.value) || item?.unit_price || 0;
-          if (!item && !vals.amount) return null;
+          if (!item && !vals.amount && !select.value) return null;
           return {
             catalog_item_id: item?.id || null,
-            kind: (item?.kind || "product") as "product" | "service",
-            label: item?.name || "Ligne",
+            kind: (item?.kind || "service") as "product" | "service",
+            label: item?.name || vals.line_label || select.value || "Ligne",
             quantity: qty,
-            unit_price: price,
-            tax_rate: item?.tax_rate ?? 20,
+            unit_price: price || parseAmount(vals.amount),
+            tax_rate: item?.tax_rate ?? 0,
           };
         })
         .filter(Boolean) as {
@@ -75,12 +75,12 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
       }[];
       if (!lines.length && parseAmount(vals.amount)) {
         lines.push({
-          catalog_item_id: catalog[0]?.id || null,
-          kind: catalog[0]?.kind || "product",
-          label: catalog[0]?.name || "Prestation",
+          catalog_item_id: null,
+          kind: "service",
+          label: (vals.line_label || vals.notes || "Prestation").trim(),
           quantity: 1,
           unit_price: parseAmount(vals.amount),
-          tax_rate: 20,
+          tax_rate: 0,
         });
       }
       await createQuote({
@@ -145,6 +145,11 @@ const ModalQuotations = ({ onSaved }: ModalQuotationsProps) => {
                     Amount <span className="text-danger">*</span>
                   </label>
                   <input className="form-control" name="amount" />
+                  <input
+                    className="form-control mt-2"
+                    name="line_label"
+                    placeholder="Libellé de la ligne"
+                  />
                 </div>
               </div>
               <div className="col-md-6">

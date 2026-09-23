@@ -9,7 +9,7 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { fetchLeads, formatMoney, leadAffiliationNames } from "@/lib/crm";
+import { fetchLeads, formatMoney, leadAffiliationNames, updateLead } from "@/lib/crm";
 
 // Colonne du kanban correspondant à chaque statut de lead en base.
 const STATUS_COLUMN: Record<string, string> = {
@@ -18,6 +18,13 @@ const STATUS_COLUMN: Record<string, string> = {
   qualified: "closed",
   converted: "closed",
   unqualified: "lost",
+};
+
+const COLUMN_STATUS: Record<string, string> = {
+  not_contacted: "new",
+  contacted: "contacted",
+  closed: "qualified",
+  lost: "unqualified",
 };
 
 
@@ -259,6 +266,12 @@ function LeadsKanbanBoard() {
       newColumns[sourceColIdx] = { ...columns[sourceColIdx], cards: sourceCards };
       newColumns[destColIdx] = { ...columns[destColIdx], cards: destCards };
       setColumns(newColumns);
+      const nextStatus = COLUMN_STATUS[destination.droppableId];
+      if (nextStatus && /^[0-9a-f-]{36}$/i.test(removed.id)) {
+        void updateLead(removed.id, { status: nextStatus }).catch((err) =>
+          alert(err instanceof Error ? err.message : "Erreur")
+        );
+      }
     }
   };
 
@@ -361,7 +374,7 @@ function LeadsKanbanBoard() {
                                     </span>
                                   </Link>
                                   <h6 className="fw-medium fs-14 mb-0">
-                                    <Link href={all_routes.leadsDetails}>{card.name}</Link>
+                                    <Link href={`${all_routes.leadsDetails}?id=${card.id}`}>{card.name}</Link>
                                   </h6>
                                 </div>
                               </div>

@@ -473,6 +473,72 @@ export async function deleteLead(id: string) {
   throwIf(error);
 }
 
+function splitPersonName(title: string) {
+  const parts = title.trim().split(/\s+/).filter(Boolean);
+  return {
+    first_name: parts[0] || title || "Prospect",
+    last_name: parts.slice(1).join(" ") || "Kalao",
+  };
+}
+
+export async function convertLead(id: string) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const leads = await fetchLeads();
+  const lead = leads?.find((row) => row.id === id);
+  if (!lead) throw new Error("Prospect introuvable");
+
+  let companyId = lead.company_id;
+  if (!companyId) {
+    const company = await createCompany({
+      name: lead.title,
+      country: "Cameroun",
+      city: "Douala",
+      notes: lead.notes,
+    });
+    companyId = company.id;
+  }
+
+  let contactId = lead.contact_id;
+  if (!contactId) {
+    const names = splitPersonName(lead.title);
+    const contact = await createContact({
+      first_name: names.first_name,
+      last_name: names.last_name,
+      company_id: companyId,
+      notes: lead.notes,
+    });
+    contactId = contact.id;
+  }
+
+  const deals = await fetchDeals();
+  let deal = (deals ?? []).find((row) => row.lead_id === id) ?? null;
+  if (!deal) {
+    deal = await createDeal({
+      title: lead.title,
+      company_id: companyId,
+      contact_id: contactId,
+      lead_id: id,
+      stage: "qualification",
+      amount: Number(lead.estimated_value ?? 0),
+      notes: lead.notes,
+    });
+  }
+
+  await updateLead(id, {
+    status: "converted",
+    company_id: companyId,
+    contact_id: contactId,
+  });
+
+  return {
+    companyId,
+    contactId,
+    dealId: deal.id,
+    leadId: id,
+  };
+}
+
 export function leadAffiliationNames(row: LeadRow): string {
   const names = (row.lead_affiliations ?? [])
     .map((a) => a.departments?.name)
@@ -1676,4 +1742,4 @@ export function toTimesheetRow(row: PayRunRow, index: number) {
 
 export const PROJECT_KIND_FILTERS = PROJECT_KINDS;
 
-export { parseAmount, FILE_MANAGER_ENTITY };
+export { parseAmount, FILE_MANAGER_ENTITY, LEAD_STATUS_LABEL, DEAL_STAGE_LABEL };

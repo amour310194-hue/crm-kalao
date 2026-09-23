@@ -35,7 +35,7 @@ const LeadsListComponent = () => {
     const rows = await fetchLeads();
     return rows ? rows.map(toLeadsListRow) : null;
   }, []);
-  const { rows: data, live, reload } = useLiveRows(LeadsListData, loadLeads);
+  const { rows: data, reload } = useLiveRows(LeadsListData, loadLeads);
   const columns = [
     {
       title: "",
@@ -58,30 +58,22 @@ const LeadsListComponent = () => {
       // La fiche lead reste une maquette : sur données réelles, pas de lien.
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
-          {live ? (
-            <span className="avatar me-2">
-              <ImageWithBasePath
-                className="img-fluid rounded-circle"
-                src={`assets/img/profiles/${render.LeadImage}`}
-                alt="User Image"
-              />
-            </span>
-          ) : (
-            <Link href={all_routes.leadsDetails} className="avatar me-2">
+          <Link
+            href={`${all_routes.leadsDetails}?id=${render.key ?? ""}`}
+            className="avatar me-2"
+          >
               <ImageWithBasePath
                 className="img-fluid rounded-circle"
                 src={`assets/img/profiles/${render.LeadImage}`}
                 alt="User Image"
               />
             </Link>
-          )}
-          {live ? (
-            <span className="d-flex flex-column">{text}</span>
-          ) : (
-            <Link href={all_routes.leadsDetails} className="d-flex flex-column">
+          <Link
+            href={`${all_routes.leadsDetails}?id=${render.key ?? ""}`}
+            className="d-flex flex-column"
+          >
               {text}{" "}
             </Link>
-          )}
         </h6>
       ),
       sorter: (a: any, b: any) => a.LeadName.length - b.LeadName.length,

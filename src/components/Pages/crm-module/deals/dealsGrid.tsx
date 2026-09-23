@@ -9,7 +9,7 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import ModalDeals from "./modal/modalDeals";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { fetchDeals, formatMoney } from "@/lib/crm";
+import { fetchDeals, formatMoney, updateDeal } from "@/lib/crm";
 
 // Les colonnes du template ne portent pas les étapes réelles : on les aligne sur
 // les cinq étapes de la base, dans l'ordre de l'entonnoir.
@@ -19,6 +19,14 @@ const STAGE_COLUMN: Record<string, string> = {
   negotiation: "presentation",
   won: "proposal",
   lost: "appointment",
+};
+
+const COLUMN_STAGE: Record<string, string> = {
+  qualify: "qualification",
+  contact: "proposal",
+  presentation: "negotiation",
+  proposal: "won",
+  appointment: "lost",
 };
 
 const COLUMN_TITLE: Record<string, string> = {
@@ -386,6 +394,12 @@ const DealsGridComponent = () => {
         };
         newColumns[destColIdx] = { ...columns[destColIdx], cards: destCards };
         setColumns(newColumns);
+        const nextStage = COLUMN_STAGE[destination.droppableId];
+        if (nextStage && /^[0-9a-f-]{36}$/i.test(removed.id)) {
+          void updateDeal(removed.id, { stage: nextStage }).catch((err) =>
+            alert(err instanceof Error ? err.message : "Erreur")
+          );
+        }
       }
     };
 
@@ -474,7 +488,7 @@ const DealsGridComponent = () => {
                                 <div className="d-block">
                                   <div className="d-flex align-items-center mb-3">
                                     <Link
-                                        href={all_routes.dealsDetails}
+                                        href={`${all_routes.dealsDetails}?id=${card.id}`}
                                       className={`avatar bg-soft-${card.avatar.color} text-${card.avatar.color} rounded-circle flex-shrink-0 me-2`}
                                     >
                                       <span
@@ -484,7 +498,7 @@ const DealsGridComponent = () => {
                                       </span>
                                     </Link>
                                     <h6 className="fw-medium fs-14 mb-0">
-                                        <Link href={all_routes.dealsDetails}>
+                                        <Link href={`${all_routes.dealsDetails}?id=${card.id}`}>
                                         {card.name}
                                       </Link>
                                     </h6>
