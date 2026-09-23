@@ -14,10 +14,12 @@ const EmailSettingsComponent = () => {
   const [testStatus, setTestStatus] = useState<
     "idle" | "sending" | "ok" | "held" | "err"
   >("idle");
+  const [testDetail, setTestDetail] = useState<string | null>(null);
 
   const onTestMail = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setTestStatus("sending");
+    setTestDetail(null);
     try {
       const res = await fetch("/api/email/send", {
         method: "POST",
@@ -32,7 +34,9 @@ const EmailSettingsComponent = () => {
         ok?: boolean;
         dispatched?: boolean;
         reason?: string;
+        detail?: string;
       };
+      setTestDetail(json.detail ?? null);
       if (json.ok && json.dispatched) setTestStatus("ok");
       else if (json.reason === "resend_missing") setTestStatus("held");
       else setTestStatus("err");
@@ -455,7 +459,7 @@ const EmailSettingsComponent = () => {
               ) : null}
               {testStatus === "err" ? (
                 <p className="mb-0 mt-2 text-danger fs-13">
-                  Envoi impossible. Vérifier l’adresse et Resend.
+                  Envoi impossible. {testDetail || "Vérifier l’adresse et Resend."}
                 </p>
               ) : null}
             </div>

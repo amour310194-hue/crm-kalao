@@ -35,9 +35,21 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({ from, to: [to], subject, text }),
   });
 
+  let detail: string | undefined;
+  if (!res.ok) {
+    const raw = await res.text();
+    try {
+      const parsed = JSON.parse(raw) as { message?: string; name?: string };
+      detail = [parsed.name, parsed.message].filter(Boolean).join(": ") || raw.slice(0, 280);
+    } catch {
+      detail = raw.slice(0, 280);
+    }
+  }
+
   return Response.json({
     ok: res.ok,
     dispatched: res.ok,
     reason: res.ok ? "sent" : "resend_error",
+    detail,
   });
 }

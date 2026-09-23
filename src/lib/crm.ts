@@ -964,6 +964,7 @@ export type RemindResult = {
   dispatched: boolean;
   to: string | null;
   reason: string;
+  detail?: string;
 };
 
 export function explainRemind(result: RemindResult): string {
@@ -973,6 +974,9 @@ export function explainRemind(result: RemindResult): string {
   }
   if (result.reason === "resend_missing") {
     return `Relance non envoyée vers ${result.to} (Resend absent).`;
+  }
+  if (result.detail) {
+    return `Relance non envoyée vers ${result.to}. ${result.detail}`;
   }
   return `Relance non envoyée vers ${result.to}.`;
 }
@@ -1006,11 +1010,16 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
         .join("\n"),
     }),
   });
-  const json = (await res.json()) as { dispatched?: boolean; reason?: string };
+  const json = (await res.json()) as {
+    dispatched?: boolean;
+    reason?: string;
+    detail?: string;
+  };
   return {
     dispatched: Boolean(json.dispatched),
     to,
     reason: json.reason ?? (json.dispatched ? "sent" : "resend_error"),
+    detail: json.detail,
   };
 }
 
