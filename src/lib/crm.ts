@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { assertCanDelete, canSeePayroll } from "@/lib/roles";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
 import {
   canadaSchedule,
@@ -345,6 +346,7 @@ export async function updateCompany(id: string, input: Partial<CompanyRow>) {
 }
 
 export async function deleteCompany(id: string) {
+  await assertCanDelete();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("companies").delete().eq("id", id);
@@ -920,6 +922,7 @@ export async function createInvoice(input: {
 }
 
 export async function deleteInvoice(id: string) {
+  await assertCanDelete();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("invoices").delete().eq("id", id);
@@ -1240,6 +1243,7 @@ export async function updateEmployee(
 }
 
 export async function deleteEmployee(id: string) {
+  await assertCanDelete();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("employees").delete().eq("id", id);
@@ -1934,6 +1938,7 @@ export function toContractsListRow(row: DossierRow) {
 }
 
 export async function fetchPayRuns(): Promise<PayRunRow[] | null> {
+  if (!(await canSeePayroll())) return [];
   const supabase = db();
   if (!supabase) return null;
   const { data, error } = await supabase

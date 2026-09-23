@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
@@ -11,6 +11,7 @@ import ModalStaffDirectory from "./modal/modalStaffDirectory";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchEmployees, toStaffListRow } from "@/lib/crm";
 import { docHref, isLiveId } from "@/lib/docs";
+import { canSeePayroll } from "@/lib/roles";
 
 const route = all_routes;
 
@@ -20,6 +21,10 @@ const route = all_routes;
   shared staffDirectoryListData used by the list view, so the two stay in sync.
 */
 const StaffDirectoryGridComponent = () => {
+  const [showPayDocs, setShowPayDocs] = useState(true);
+  useEffect(() => {
+    void canSeePayroll().then(setShowPayDocs);
+  }, []);
   const loadStaff = useCallback(async () => {
     const rows = await fetchEmployees();
     return rows ? rows.map(toStaffListRow) : null;
@@ -112,9 +117,13 @@ const StaffDirectoryGridComponent = () => {
                       <div className="d-flex align-items-center justify-content-between mb-3">
                         <div className="d-flex align-items-center">
                           <Link
-                            href={isLiveId(staff.key) ? docHref("employment", staff.key) : route.contactDetails}
+                            href={
+                              isLiveId(staff.key) && showPayDocs
+                                ? docHref("employment", staff.key)
+                                : route.staffDirectoryGrid
+                            }
                             className="avatar avatar-md flex-shrink-0 me-2 position-relative"
-                            target={isLiveId(staff.key) ? "_blank" : undefined}
+                            target={isLiveId(staff.key) && showPayDocs ? "_blank" : undefined}
                           >
                             <ImageWithBasePath
                               src={staff.EmployeeImage}
@@ -128,9 +137,13 @@ const StaffDirectoryGridComponent = () => {
                           <div>
                             <div className="fs-14 mb-1 text-dark">
                               <Link
-                                href={isLiveId(staff.key) ? docHref("employment", staff.key) : route.contactDetails}
+                                href={
+                                  isLiveId(staff.key) && showPayDocs
+                                    ? docHref("employment", staff.key)
+                                    : route.staffDirectoryGrid
+                                }
                                 className="fw-semibold"
-                                target={isLiveId(staff.key) ? "_blank" : undefined}
+                                target={isLiveId(staff.key) && showPayDocs ? "_blank" : undefined}
                               >
                                 {staff.EmployeeName}
                               </Link>

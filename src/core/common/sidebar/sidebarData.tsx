@@ -1732,6 +1732,16 @@ const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
   ]),
 };
 
+export function sidebarForRole(role?: string | null) {
+  if (role !== "staff") return SidebarData;
+  return SidebarData.map((section) => ({
+    ...section,
+    submenuItems: (section.submenuItems ?? []).filter(
+      (item) => item.label !== "Paie simple"
+    ),
+  }));
+}
+
 export const SidebarData = SidebarDataAll.filter(
   (section) => !HIDDEN_SECTIONS.has(section.tittle)
 ).map((section) => ({

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import AuthGuard from "@/components/auth/AuthGuard";
 import KalaoLetterhead from "@/components/docs/KalaoLetterhead";
 import { DOC_KINDS, loadDocView, type DocKind, type DocView } from "@/lib/docs";
+import { assertCanSeePayroll, isPayDocKind } from "@/lib/roles";
 
 function isDocKind(value: string): value is DocKind {
   return (DOC_KINDS as readonly string[]).includes(value);
@@ -22,11 +23,14 @@ export default function KalaoDocumentPage() {
       setError("Type de document inconnu.");
       return;
     }
-    void loadDocView(kind, id)
-      .then(setView)
-      .catch((err: unknown) => {
+    void (async () => {
+      try {
+        if (isPayDocKind(kind)) await assertCanSeePayroll();
+        setView(await loadDocView(kind, id));
+      } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Erreur de chargement");
-      });
+      }
+    })();
   }, [kind, id]);
 
   return (

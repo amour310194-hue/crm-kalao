@@ -1,5 +1,6 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { emptyUuid, type DossierRow } from "@/lib/crm";
+import { assertCanDelete } from "@/lib/roles";
 
 function db() {
   if (!isSupabaseConfigured()) return null;
@@ -131,6 +132,7 @@ export async function updateDossier(
 }
 
 export async function deleteDossier(id: string) {
+  await assertCanDelete();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("dossiers").delete().eq("id", id);

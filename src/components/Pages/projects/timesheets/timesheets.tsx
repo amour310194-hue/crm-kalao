@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -12,10 +12,17 @@ import ModalTimesheets from "./modal/modalTimesheets";
 import TableToolbar from "@/core/common/table-toolbar/tableToolbar";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchPayRuns, markPayRunPaid, toTimesheetRow } from "@/lib/crm";
+import { canSeePayroll } from "@/lib/roles";
 import { docHref, isLiveId } from "@/lib/docs";
+import KalaoAccessBanner from "@/components/docs/KalaoAccessBanner";
 
 const TimesheetsComponent = () => {
+  const [forbidden, setForbidden] = useState(false);
+  useEffect(() => {
+    void canSeePayroll().then((ok) => setForbidden(!ok));
+  }, []);
   const loadPay = useCallback(async () => {
+    if (!(await canSeePayroll())) return [];
     const rows = await fetchPayRuns();
     return rows ? rows.map(toTimesheetRow) : null;
   }, []);
@@ -191,6 +198,11 @@ const TimesheetsComponent = () => {
             moduleTitle="Projects"
             showExport={true}
           />
+          {forbidden ? (
+            <KalaoAccessBanner>
+              Accès réservé à la direction. La paie n’est pas visible pour le secrétariat.
+            </KalaoAccessBanner>
+          ) : null}
           {/* End Page Header */}
           {/* card start */}
           <div className="card border-0 rounded-0">

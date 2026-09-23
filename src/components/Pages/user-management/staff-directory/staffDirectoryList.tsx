@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
@@ -13,6 +13,7 @@ import ModalStaffDirectory from "./modal/modalStaffDirectory";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchEmployees, toStaffListRow } from "@/lib/crm";
 import { docHref, isLiveId } from "@/lib/docs";
+import { canSeePayroll } from "@/lib/roles";
 
 const route = all_routes;
 
@@ -23,6 +24,10 @@ const StaffDirectoryListComponent = () => {
   }, []);
   const { rows: data, reload } = useLiveRows(StaffDirectoryListData, loadStaff);
   const [searchText, setSearchText] = useState<string>("");
+  const [showPayDocs, setShowPayDocs] = useState(true);
+  useEffect(() => {
+    void canSeePayroll().then(setShowPayDocs);
+  }, []);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -45,9 +50,15 @@ const StaffDirectoryListComponent = () => {
       render: (text: string, record: any) => (
         <h6 className="d-flex align-items-center fs-14 mb-0 fw-medium">
           <Link
-            href={isLiveId(record.key) ? docHref("employment", record.key) : "#"}
+            href={
+              isLiveId(record.key) && showPayDocs
+                ? docHref("employment", record.key)
+                : isLiveId(record.key)
+                  ? route.staffDirectoryList
+                  : "#"
+            }
             className="avatar avatar-sm border rounded-circle me-2"
-            target={isLiveId(record.key) ? "_blank" : undefined}
+            target={isLiveId(record.key) && showPayDocs ? "_blank" : undefined}
           >
             <ImageWithBasePath
               className="rounded-circle"
@@ -56,12 +67,18 @@ const StaffDirectoryListComponent = () => {
             />
           </Link>
           <Link
-            href={isLiveId(record.key) ? docHref("employment", record.key) : "#"}
-            target={isLiveId(record.key) ? "_blank" : undefined}
+            href={
+              isLiveId(record.key) && showPayDocs
+                ? docHref("employment", record.key)
+                : isLiveId(record.key)
+                  ? route.staffDirectoryList
+                  : "#"
+            }
+            target={isLiveId(record.key) && showPayDocs ? "_blank" : undefined}
           >
             {text}
           </Link>
-          {isLiveId(record.key) ? (
+          {isLiveId(record.key) && showPayDocs ? (
             <span className="d-block mt-1">
               <Link href={docHref("employment", record.key)} target="_blank" className="me-2">
                 Contrat

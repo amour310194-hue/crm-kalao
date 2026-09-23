@@ -2,11 +2,12 @@
 /* eslint-disable @next/next/no-img-element */
 import { useDispatch, useSelector } from "react-redux";
 import ImageWithBasePath from "../imageWithBasePath";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import "overlayscrollbars/overlayscrollbars.css";
-import { SidebarData } from "./sidebarData";
+import { sidebarForRole } from "./sidebarData";
+import { fetchSessionRole } from "@/lib/roles";
 import React from "react";
 import { all_routes } from "@/router/all_routes";
 import { updateTheme } from "@/core/redux/themeSlice";
@@ -20,13 +21,18 @@ const Sidebar = () => {
   const pathname = usePathname();
   // Track open state for each menu by label
   const [openMenus, setOpenMenus] = useState<{ [label: string]: boolean }>({});
+  const [menuRole, setMenuRole] = useState<string | null>(null);
   const dispatch = useDispatch();
+  const navData = useMemo(() => sidebarForRole(menuRole), [menuRole]);
 
+  useEffect(() => {
+    void fetchSessionRole().then(setMenuRole);
+  }, []);
 
   // On mount or pathname change, auto-open submenus with an active link
   useEffect(() => {
     const newOpenMenus: { [label: string]: boolean } = {};
-    SidebarData.forEach((mainLabel) => {
+    navData.forEach((mainLabel) => {
       mainLabel.submenuItems?.forEach((title: any) => {
         // If any submenu link is active, open this menu
         const isActive =
@@ -47,7 +53,7 @@ const Sidebar = () => {
     });
     // Reset the open menus state completely instead of extending it
     setOpenMenus(newOpenMenus);
-  }, [pathname]);
+  }, [pathname, navData]);
 
   // Toggle logic for main menus
   const handleMenuToggle = (label: string) => {
@@ -207,7 +213,7 @@ const Sidebar = () => {
           <OverlayScrollbarsComponent style={{ height: "100%", width: "100%" }}>
             <div id="sidebar-menu" className="sidebar-menu">
               <ul>
-                {SidebarData?.map((mainLabel, index) => (
+                {navData?.map((mainLabel, index) => (
                   <React.Fragment key={`main-${index}`}>
                     <li className="menu-title">
                       <span>{mainLabel?.tittle}</span>
