@@ -227,6 +227,7 @@ export interface ProfileRow {
   id: string;
   full_name: string | null;
   role: string;
+  job_title?: string | null;
 }
 
 export interface EmployeeRow {
@@ -1146,7 +1147,17 @@ export async function fetchMyProfile(): Promise<ProfileRow | null> {
     .eq("id", auth.user.id)
     .maybeSingle();
   throwIf(error);
-  return (data as ProfileRow) ?? null;
+  if (!data) return null;
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("full_name, job_title")
+    .eq("profile_id", auth.user.id)
+    .maybeSingle();
+  return {
+    ...(data as ProfileRow),
+    full_name: emp?.full_name ?? data.full_name,
+    job_title: emp?.job_title ?? null,
+  };
 }
 
 export async function fetchManageUserRows() {

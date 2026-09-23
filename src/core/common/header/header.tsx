@@ -52,7 +52,7 @@ const Header = () => {
       const user = data.user;
       if (!user) return;
       const meta = user.user_metadata ?? {};
-      const name =
+      let name =
         (meta.full_name as string) ||
         (meta.name as string) ||
         user.email?.split("@")[0] ||
@@ -60,7 +60,10 @@ const Header = () => {
       let role = "";
       try {
         const profile = await fetchMyProfile();
-        role = profile ? ROLE_LABEL[profile.role] ?? profile.role : "";
+        if (profile?.full_name) name = profile.full_name;
+        role =
+          profile?.job_title ||
+          (profile ? ROLE_LABEL[profile.role] ?? profile.role : "");
       } catch {
         role = "";
       }
