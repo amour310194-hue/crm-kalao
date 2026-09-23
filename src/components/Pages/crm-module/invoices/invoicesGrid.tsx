@@ -39,7 +39,18 @@ const InvoicesGrid = () => {
             badgeCount={rows.length}
             showModuleTile={false}
             showExport={true}
-            headerExtra={live ? <KalaoCashBar onDone={reload} /> : null}
+            headerExtra={
+              live ? (
+                <KalaoCashBar
+                  onDone={reload}
+                  revision={rows
+                    .map((row: { key?: string; Key?: string; Paid_Amount?: string; Status?: string }) =>
+                      `${row.key || row.Key}:${row.Paid_Amount}:${row.Status}`
+                    )
+                    .join("|")}
+                />
+              ) : null
+            }
           />
           {/* End Page Header */}
           {/* table header */}

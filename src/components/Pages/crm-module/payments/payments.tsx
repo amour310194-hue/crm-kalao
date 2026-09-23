@@ -142,7 +142,13 @@ const PaymentsComponent = () => {
             headerExtra={
               live ? (
                 <>
-                  <KalaoCashBar onDone={reload} />
+                  <KalaoCashBar
+                    onDone={reload}
+                    revision={data
+                      .filter((row) => Boolean(rowLiveId(row)))
+                      .map((row) => `${rowLiveId(row)}:${row.Amount}:${row.InvoiceID}`)
+                      .join("|")}
+                  />
                   <KalaoExportBar
                     filename="paiements-kalao"
                     headers={["Facture", "Client", "Montant", "Echeance", "Transaction"]}

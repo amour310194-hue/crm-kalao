@@ -11,6 +11,7 @@ import { isLiveId } from "@/lib/docs";
 
 type Props = {
   onDone?: () => void;
+  revision?: string;
 };
 
 function parseFcfa(raw: string): number {
@@ -19,7 +20,7 @@ function parseFcfa(raw: string): number {
   return Math.round(n);
 }
 
-export default function KalaoCashBar({ onDone }: Props) {
+export default function KalaoCashBar({ onDone, revision }: Props) {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [invoiceId, setInvoiceId] = useState("");
   const [amount, setAmount] = useState("");
@@ -36,7 +37,7 @@ export default function KalaoCashBar({ onDone }: Props) {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [revision]);
 
   const selected = useMemo(
     () => invoices.find((row) => row.id === invoiceId) ?? null,
