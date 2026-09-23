@@ -13,12 +13,16 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import {
+  explainRemind,
   fetchInvoices,
   markInvoicePaid,
+  markInvoiceUnpaid,
+  remindInvoiceById,
   toInvoicesListRow,
 } from "@/lib/crm";
 import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
+import KalaoCashBar from "@/components/docs/KalaoCashBar";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -208,9 +212,35 @@ const InvoicesListComponent = () => {
             >
               <i className="ti ti-file me-1" /> Mark as Partially Paid
             </Link>
-            <Link className="dropdown-item" href="#">
+            <Link
+              className="dropdown-item"
+              href="#"
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  await markInvoiceUnpaid(record.key);
+                  await reload();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Erreur");
+                }
+              }}
+            >
               <i className="ti ti-sticker me-1" /> Mark ad Unpaid
             </Link>
+            <button
+              type="button"
+              className="dropdown-item"
+              onClick={async () => {
+                try {
+                  const result = await remindInvoiceById(record.key);
+                  alert(explainRemind(result));
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Erreur");
+                }
+              }}
+            >
+              <i className="ti ti-mail me-1" /> Relancer
+            </button>
             <Link
               className="dropdown-item"
               href={isLiveId(record.key) ? docHref("invoice", record.key) : "#"}
@@ -240,23 +270,26 @@ const InvoicesListComponent = () => {
             showExport={true}
             headerExtra={
               live ? (
-                <KalaoExportBar
-                  filename="factures-kalao"
-                  headers={["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]}
-                  rows={data
-                    .filter((row) => Boolean(rowLiveId(row)))
-                    .map((row) => [
-                      row.Invoice_ID,
-                      row.Client,
-                      row.Project,
-                      row.Amount,
-                      row.Paid_Amount,
-                      row.Status,
-                    ])}
-                  printHref={
-                    rowLiveId(data[0]) ? docHref("invoice", rowLiveId(data[0]) as string) : null
-                  }
-                />
+                <>
+                  <KalaoCashBar onDone={reload} />
+                  <KalaoExportBar
+                    filename="factures-kalao"
+                    headers={["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]}
+                    rows={data
+                      .filter((row) => Boolean(rowLiveId(row)))
+                      .map((row) => [
+                        row.Invoice_ID,
+                        row.Client,
+                        row.Project,
+                        row.Amount,
+                        row.Paid_Amount,
+                        row.Status,
+                      ])}
+                    printHref={
+                      rowLiveId(data[0]) ? docHref("invoice", rowLiveId(data[0]) as string) : null
+                    }
+                  />
+                </>
               ) : null
             }
           />

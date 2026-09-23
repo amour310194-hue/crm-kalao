@@ -16,6 +16,7 @@ import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchPayments, toPaymentsListRow } from "@/lib/crm";
 import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
+import KalaoCashBar from "@/components/docs/KalaoCashBar";
 
 const PaymentsComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -27,7 +28,7 @@ const PaymentsComponent = () => {
     const rows = await fetchPayments();
     return rows ? rows.map(toPaymentsListRow) : null;
   }, []);
-  const { rows: data, live } = useLiveRows(PaymentsListData, loadPayments);
+  const { rows: data, live, reload } = useLiveRows(PaymentsListData, loadPayments);
   const columns = [
     {
       title: "Invoice ID",
@@ -140,22 +141,25 @@ const PaymentsComponent = () => {
             showExport={true}
             headerExtra={
               live ? (
-                <KalaoExportBar
-                  filename="paiements-kalao"
-                  headers={["Facture", "Client", "Montant", "Echeance", "Transaction"]}
-                  rows={data
-                    .filter((row) => Boolean(rowLiveId(row)))
-                    .map((row) => [
-                      row.InvoiceID,
-                      row.Client,
-                      row.Amount,
-                      row.DueDate,
-                      row.TransactionID,
-                    ])}
-                  printHref={
-                    rowLiveId(data[0]) ? docHref("receipt", rowLiveId(data[0]) as string) : null
-                  }
-                />
+                <>
+                  <KalaoCashBar onDone={reload} />
+                  <KalaoExportBar
+                    filename="paiements-kalao"
+                    headers={["Facture", "Client", "Montant", "Echeance", "Transaction"]}
+                    rows={data
+                      .filter((row) => Boolean(rowLiveId(row)))
+                      .map((row) => [
+                        row.InvoiceID,
+                        row.Client,
+                        row.Amount,
+                        row.DueDate,
+                        row.TransactionID,
+                      ])}
+                    printHref={
+                      rowLiveId(data[0]) ? docHref("receipt", rowLiveId(data[0]) as string) : null
+                    }
+                  />
+                </>
               ) : null
             }
           />

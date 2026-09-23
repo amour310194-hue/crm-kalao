@@ -7,8 +7,16 @@ import { all_routes } from "@/router/all_routes";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import ModalInvoice from "./modal/modalInvoice";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { fetchInvoices, markInvoicePaid, toInvoicesListRow } from "@/lib/crm";
+import {
+  explainRemind,
+  fetchInvoices,
+  markInvoicePaid,
+  markInvoiceUnpaid,
+  remindInvoiceById,
+  toInvoicesListRow,
+} from "@/lib/crm";
 import { docHref, isLiveId, liveHref } from "@/lib/docs";
+import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
 
 const InvoicesGrid = () => {
@@ -31,6 +39,7 @@ const InvoicesGrid = () => {
             badgeCount={rows.length}
             showModuleTile={false}
             showExport={true}
+            headerExtra={live ? <KalaoCashBar onDone={reload} /> : null}
           />
           {/* End Page Header */}
           {/* table header */}
@@ -374,6 +383,41 @@ const InvoicesGrid = () => {
                             >
                               <i className="ti ti-checks me-1" /> Mark as Paid
                             </Link>
+                            <Link
+                              className="dropdown-item d-inline-flex align-items-center"
+                              href="#"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                try {
+                                  await markInvoiceUnpaid(invoice.key || invoice.Key);
+                                  await reload();
+                                } catch (err) {
+                                  alert(
+                                    err instanceof Error ? err.message : "Erreur"
+                                  );
+                                }
+                              }}
+                            >
+                              <i className="ti ti-sticker me-1" /> Mark as Unpaid
+                            </Link>
+                            <button
+                              type="button"
+                              className="dropdown-item d-inline-flex align-items-center"
+                              onClick={async () => {
+                                try {
+                                  const result = await remindInvoiceById(
+                                    invoice.key || invoice.Key
+                                  );
+                                  alert(explainRemind(result));
+                                } catch (err) {
+                                  alert(
+                                    err instanceof Error ? err.message : "Erreur"
+                                  );
+                                }
+                              }}
+                            >
+                              <i className="ti ti-mail me-1" /> Relancer
+                            </button>
                           </div>
                         </div>
                       </div>

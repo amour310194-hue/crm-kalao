@@ -1,6 +1,12 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
-import { canadaSchedule, isCanadaProcedure, KALAO_CONTACT_EMAIL, ROLE_LABEL } from "@/lib/org";
+import {
+  canadaSchedule,
+  isCanadaProcedure,
+  KALAO_CONTACT_EMAIL,
+  KALAO_NOREPLY_EMAIL,
+  ROLE_LABEL,
+} from "@/lib/org";
 
 export type EntityType =
   | "company"
@@ -941,6 +947,68 @@ export async function markInvoicePaid(invoice: InvoiceRow, partial = false) {
   const amount = partial ? Math.max(remaining / 2, 0.01) : remaining;
   if (amount <= 0) return;
   await recordPayment({ invoice_id: invoice.id, amount });
+}
+
+export async function markInvoiceUnpaid(invoiceId: string) {
+  if (!invoiceId) throw new Error("Facture manquante");
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.from("payments").delete().eq("invoice_id", invoiceId);
+  throwIf(error);
+}
+
+export type RemindResult = {
+  dispatched: boolean;
+  to: string | null;
+  reason: string;
+};
+
+export function explainRemind(result: RemindResult): string {
+  if (!result.to) return "Pas d'e-mail client sur cette fiche.";
+  if (result.dispatched) {
+    return `Relance envoyée à ${result.to} depuis ${KALAO_NOREPLY_EMAIL}.`;
+  }
+  if (result.reason === "resend_missing") {
+    return `Relance non envoyée vers ${result.to} (Resend absent).`;
+  }
+  return `Relance non envoyée vers ${result.to}.`;
+}
+
+export async function remindInvoiceById(invoiceId: string): Promise<RemindResult> {
+  const rows = await fetchInvoices();
+  const invoice = rows?.find((row) => row.id === invoiceId);
+  if (!invoice) throw new Error("Facture introuvable");
+  const to = invoice.companies?.email?.trim() || "";
+  if (!to) return { dispatched: false, to: null, reason: "missing_to" };
+  const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
+  const res = await fetch("/api/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to,
+      subject: `Relance — facture ${invoice.number ?? ""} — Groupe Kalao`,
+      body: [
+        "Bonjour,",
+        "",
+        `Facture ${invoice.number ?? invoice.id} — ${invoice.companies?.name ?? "Client"}.`,
+        `Montant : ${formatMoney(invoice.amount)}.`,
+        `Déjà encaissé : ${formatMoney(invoice.paid_amount)}.`,
+        `Reste dû : ${formatMoney(remaining)}.`,
+        invoice.due_date ? `Échéance : ${formatDate(invoice.due_date)}.` : "",
+        "",
+        "Groupe Kalao",
+        KALAO_CONTACT_EMAIL,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    }),
+  });
+  const json = (await res.json()) as { dispatched?: boolean; reason?: string };
+  return {
+    dispatched: Boolean(json.dispatched),
+    to,
+    reason: json.reason ?? (json.dispatched ? "sent" : "resend_error"),
+  };
 }
 
 export function toInvoicesListRow(row: InvoiceRow) {

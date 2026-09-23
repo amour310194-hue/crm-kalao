@@ -4,21 +4,24 @@ import { KALAO_NOREPLY_FROM } from "@/lib/org";
 export async function POST(request: NextRequest) {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    return Response.json({ ok: true, dispatched: false });
+    return Response.json({ ok: true, dispatched: false, reason: "resend_missing" });
   }
 
   let payload: { to?: string; subject?: string; body?: string } = {};
   try {
     payload = (await request.json()) as typeof payload;
   } catch {
-    return Response.json({ ok: false, dispatched: false }, { status: 400 });
+    return Response.json(
+      { ok: false, dispatched: false, reason: "bad_payload" },
+      { status: 400 }
+    );
   }
 
   const to = String(payload.to ?? "").trim();
   const subject = String(payload.subject ?? "CRM Kalao").trim();
   const text = String(payload.body ?? "").trim();
   if (!to || !text) {
-    return Response.json({ ok: true, dispatched: false });
+    return Response.json({ ok: true, dispatched: false, reason: "missing_to" });
   }
 
   const from = process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
@@ -32,5 +35,9 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({ from, to: [to], subject, text }),
   });
 
-  return Response.json({ ok: res.ok, dispatched: res.ok });
+  return Response.json({
+    ok: res.ok,
+    dispatched: res.ok,
+    reason: res.ok ? "sent" : "resend_error",
+  });
 }

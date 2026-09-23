@@ -11,9 +11,9 @@ import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_EMAIL } from "@/lib/org";
 
 const EmailSettingsComponent = () => {
   const [testTo, setTestTo] = useState("");
-  const [testStatus, setTestStatus] = useState<"idle" | "sending" | "ok" | "err">(
-    "idle"
-  );
+  const [testStatus, setTestStatus] = useState<
+    "idle" | "sending" | "ok" | "held" | "err"
+  >("idle");
 
   const onTestMail = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,8 +28,14 @@ const EmailSettingsComponent = () => {
           body: `Ceci est un e-mail de test envoyé depuis ${KALAO_NOREPLY_EMAIL}.`,
         }),
       });
-      const json = (await res.json()) as { ok?: boolean; dispatched?: boolean };
-      setTestStatus(json.ok && json.dispatched ? "ok" : "err");
+      const json = (await res.json()) as {
+        ok?: boolean;
+        dispatched?: boolean;
+        reason?: string;
+      };
+      if (json.ok && json.dispatched) setTestStatus("ok");
+      else if (json.reason === "resend_missing") setTestStatus("held");
+      else setTestStatus("err");
     } catch {
       setTestStatus("err");
     }
@@ -440,6 +446,11 @@ const EmailSettingsComponent = () => {
               {testStatus === "ok" ? (
                 <p className="mb-0 mt-2 text-success fs-13">
                   Envoyé depuis {KALAO_NOREPLY_EMAIL}
+                </p>
+              ) : null}
+              {testStatus === "held" ? (
+                <p className="mb-0 mt-2 text-warning fs-13">
+                  Non envoyé. RESEND_API_KEY absente sur Vercel.
                 </p>
               ) : null}
               {testStatus === "err" ? (
