@@ -1,6 +1,18 @@
 export const KALAO_CONTACT_EMAIL = "contact@groupe-kalao.com";
 export const KALAO_NOREPLY_EMAIL = "no-reply@groupe-kalao.com";
 export const KALAO_NOREPLY_FROM = `CRM Kalao <${KALAO_NOREPLY_EMAIL}>`;
+export const KALAO_INBOUND_RESEND = "ildiielkie.resend.app";
+export const KALAO_INBOUND_DOMAIN = "inbound.groupe-kalao.com";
+
+export function inboundResendAlias(proEmail: string): string {
+  const local = proEmail.split("@")[0]?.trim().toLowerCase() || "";
+  return `${local}@${KALAO_INBOUND_RESEND}`;
+}
+
+export function inboundEndpoint(): string {
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://crm.groupe-kalao.com").replace(/\/$/, "");
+  return `${site}/api/email/inbound`;
+}
 
 export const ROLE_LABEL: Record<string, string> = {
   super_admin: "Super-admin",

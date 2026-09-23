@@ -24,6 +24,7 @@ import {
   type SessionMail,
 } from "@/lib/mail";
 import { liveHref } from "@/lib/docs";
+import { inboundResendAlias } from "@/lib/org";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
@@ -151,6 +152,11 @@ const EmailComponent = () => {
                         </Link>
                       ))}
                     </div>
+                    {session?.workEmail ? (
+                      <p className="fs-12 text-muted mb-0">
+                        Réception : <code>{inboundResendAlias(session.workEmail)}</code>
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
                 <div className="mt-3">

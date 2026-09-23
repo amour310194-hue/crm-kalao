@@ -6,6 +6,7 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { FormEvent, useState } from "react";
+import KalaoInboundMail from "@/components/docs/KalaoInboundMail";
 import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_EMAIL } from "@/lib/org";
 
 
@@ -110,6 +111,7 @@ const EmailSettingsComponent = () => {
                   Send Test Mail
                 </Link>
               </div>
+              <KalaoInboundMail />
               <div className="row">
                 {/* Email Wrap */}
                 <div className="col-md-12">
