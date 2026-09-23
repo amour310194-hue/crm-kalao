@@ -44,14 +44,23 @@ const StaffDirectoryListComponent = () => {
       dataIndex: "EmployeeName",
       render: (text: string, record: any) => (
         <h6 className="d-flex align-items-center fs-14 mb-0 fw-medium">
-          <Link href="#" className="avatar avatar-sm border rounded-circle me-2">
+          <Link
+            href={isLiveId(record.key) ? docHref("employment", record.key) : "#"}
+            className="avatar avatar-sm border rounded-circle me-2"
+            target={isLiveId(record.key) ? "_blank" : undefined}
+          >
             <ImageWithBasePath
               className="rounded-circle"
               src={record.EmployeeImage}
               alt="User Image"
             />
           </Link>
-          <Link href="#">{text}</Link>
+          <Link
+            href={isLiveId(record.key) ? docHref("employment", record.key) : "#"}
+            target={isLiveId(record.key) ? "_blank" : undefined}
+          >
+            {text}
+          </Link>
           {isLiveId(record.key) ? (
             <span className="d-block mt-1">
               <Link href={docHref("employment", record.key)} target="_blank" className="me-2">

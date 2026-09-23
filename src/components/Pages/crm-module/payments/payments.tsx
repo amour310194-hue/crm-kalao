@@ -90,7 +90,7 @@ const PaymentsComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: unknown, record: { key?: string }) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -103,9 +103,10 @@ const PaymentsComponent = () => {
           <div className="dropdown-menu dropdown-menu-right" style={{}}>
             <Link
               className="dropdown-item"
-              href="#"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvas_view"
+              href={isLiveId(record.key) ? docHref("receipt", record.key) : "#"}
+              target={isLiveId(record.key) ? "_blank" : undefined}
+              data-bs-toggle={isLiveId(record.key) ? undefined : "offcanvas"}
+              data-bs-target={isLiveId(record.key) ? undefined : "#offcanvas_view"}
             >
               <i className="ti ti-eye text-indigo" /> Preview
             </Link>

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchDossiers, toCampaignListRow } from "@/lib/crm";
+import { liveHref } from "@/lib/docs";
 
 const CampaignComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -56,6 +57,9 @@ const CampaignComponent = () => {
     {
       title: "Name",
       dataIndex: "Name",
+      render: (text: string, record: { key?: string }) => (
+        <Link href={liveHref(all_routes.projectDetails, record.key)}>{text}</Link>
+      ),
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
     },
     {

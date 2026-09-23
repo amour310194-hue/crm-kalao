@@ -26,6 +26,7 @@ import {
   fetchRentReceipts,
   type RentReceiptRow,
 } from "@/lib/dossiers";
+import { liveHref } from "@/lib/docs";
 
 const ContractsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -91,8 +92,8 @@ const ContractsListComponent = () => {
     {
       title: "Contract ID",
       dataIndex: "ContractID",
-      render: (text: string) => (
-        <Link href="#" className="title-name">
+      render: (text: string, record: { key?: string }) => (
+        <Link href={liveHref(all_routes.projectDetails, record.key)} className="title-name">
           {text}
         </Link>
       ),
@@ -101,8 +102,8 @@ const ContractsListComponent = () => {
     {
       title: "Subject",
       dataIndex: "Subject",
-      render: (text: string) => (
-        <Link href="#" className="title-name">
+      render: (text: string, record: { key?: string }) => (
+        <Link href={liveHref(all_routes.projectDetails, record.key)} className="title-name">
           {text}
         </Link>
       ),
@@ -114,7 +115,7 @@ const ContractsListComponent = () => {
       render: (text: any, render: any) => (
         <h6 className="d-flex align-items-center fw-medium fs-14">
           <Link
-            href={all_routes.companiesDetails}
+            href={liveHref(all_routes.companiesDetails, render.companyId)}
             className="avatar border rounded-circle me-2"
           >
             <ImageWithBasePath
@@ -123,7 +124,7 @@ const ContractsListComponent = () => {
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.companiesDetails}>{text}</Link>
+          <Link href={liveHref(all_routes.companiesDetails, render.companyId)}>{text}</Link>
         </h6>
       ),
       sorter: (a: any, b: any) => a.Customer.length - b.Customer.length,

@@ -10,6 +10,7 @@ import { StaffDirectoryListData } from "../../../../core/json/staffDirectoryList
 import ModalStaffDirectory from "./modal/modalStaffDirectory";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchEmployees, toStaffListRow } from "@/lib/crm";
+import { docHref, isLiveId } from "@/lib/docs";
 
 const route = all_routes;
 
@@ -111,8 +112,9 @@ const StaffDirectoryGridComponent = () => {
                       <div className="d-flex align-items-center justify-content-between mb-3">
                         <div className="d-flex align-items-center">
                           <Link
-                            href={route.contactDetails}
+                            href={isLiveId(staff.key) ? docHref("employment", staff.key) : route.contactDetails}
                             className="avatar avatar-md flex-shrink-0 me-2 position-relative"
+                            target={isLiveId(staff.key) ? "_blank" : undefined}
                           >
                             <ImageWithBasePath
                               src={staff.EmployeeImage}
@@ -126,8 +128,9 @@ const StaffDirectoryGridComponent = () => {
                           <div>
                             <div className="fs-14 mb-1 text-dark">
                               <Link
-                                href={route.contactDetails}
+                                href={isLiveId(staff.key) ? docHref("employment", staff.key) : route.contactDetails}
                                 className="fw-semibold"
+                                target={isLiveId(staff.key) ? "_blank" : undefined}
                               >
                                 {staff.EmployeeName}
                               </Link>

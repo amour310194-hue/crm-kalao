@@ -12,6 +12,7 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchActivities, toActivitiesListRow } from "@/lib/crm";
+import { isLiveId, liveHref } from "@/lib/docs";
 
 
 /* AI guidance tiles shown above the activities table (html/activities.html). */
@@ -49,7 +50,17 @@ const ActivitiesComponent = () => {
     {
       title: "Title",
       dataIndex: "Title",
-      
+      render: (text: string, record: { companyId?: string; dealId?: string }) => (
+        <Link
+          href={
+            isLiveId(record.dealId)
+              ? liveHref(all_routes.dealsDetails, record.dealId)
+              : liveHref(all_routes.companyDetails, record.companyId)
+          }
+        >
+          {text}
+        </Link>
+      ),
       sorter: (a: any, b: any) => a.Title.length - b.Title.length,
     },
     {

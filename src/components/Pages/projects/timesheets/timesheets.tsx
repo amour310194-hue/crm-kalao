@@ -44,14 +44,22 @@ const TimesheetsComponent = () => {
       dataIndex: "EmployeeName",
       render: (text: any, record: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
-          <Link href={all_routes.contactDetails} className="avatar me-2">
+          <Link
+            href={isLiveId(record.employeeId) ? docHref("employment", record.employeeId) : all_routes.contactDetails}
+            className="avatar me-2"
+            target={isLiveId(record.employeeId) ? "_blank" : undefined}
+          >
             <ImageWithBasePath
               className="img-fluid rounded-circle"
               src={`assets/img/profiles/${record.EmployeeImage}`}
               alt="User Image"
             />
           </Link>
-          <Link href={all_routes.contactDetails} className="d-flex flex-column">
+          <Link
+            href={isLiveId(record.employeeId) ? docHref("employment", record.employeeId) : all_routes.contactDetails}
+            className="d-flex flex-column"
+            target={isLiveId(record.employeeId) ? "_blank" : undefined}
+          >
             {text}{" "}
             <span className="text-body fs-13 fw-normal mt-1">
               {record.Role}

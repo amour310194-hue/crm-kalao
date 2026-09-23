@@ -1083,6 +1083,8 @@ export function toActivitiesListRow(row: ActivityRow) {
     Owner: "Kalao",
     CreatedAt: formatDate(row.created_at),
     Image: "avatar-01.jpg",
+    companyId: row.company_id,
+    dealId: row.deal_id,
   };
 }
 
@@ -1859,6 +1861,7 @@ export function toContractsListRow(row: DossierRow) {
     ContractType: row.notes || "Bail",
     StartDate: formatDate(row.start_at),
     EndDate: formatDate(row.end_at),
+    companyId: row.company_id,
   };
 }
 
@@ -1922,6 +1925,7 @@ export function toTimesheetRow(row: PayRunRow, index: number) {
     CreatedDate: formatDate(row.paid_at || row.period),
     HoursWorked: formatMoney(Number(row.amount) + Number(row.bonus || 0)),
     Status: row.status === "paid" ? "Approved" : "Pending",
+    employeeId: row.employee_id,
   };
 }
 

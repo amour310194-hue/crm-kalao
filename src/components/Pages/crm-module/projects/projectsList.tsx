@@ -173,7 +173,7 @@ const ProjectsListComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: () => (
+      render: (_: unknown, record: { key?: string; Kind?: string }) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -204,7 +204,17 @@ const ProjectsListComponent = () => {
               <i className="ti ti-clipboard-copy text-green" /> Clone this
               Project
             </Link>
-            <Link className="dropdown-item" href="#">
+            <Link
+              className="dropdown-item"
+              href={
+                isLiveId(record.key)
+                  ? record.Kind === "visa"
+                    ? docHref("visa", record.key)
+                    : liveHref(all_routes.projectDetails, record.key)
+                  : "#"
+              }
+              target={isLiveId(record.key) ? "_blank" : undefined}
+            >
               <i className="ti ti-printer" /> Print
             </Link>
             <Link className="dropdown-item" href="#">
