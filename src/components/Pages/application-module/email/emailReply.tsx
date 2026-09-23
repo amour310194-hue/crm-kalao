@@ -5,10 +5,25 @@ import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import "overlayscrollbars/overlayscrollbars.css";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import KalaoMailReader from "@/components/docs/KalaoMailReader";
+import { useLiveRows } from "@/lib/useLiveRows";
+import {
+  EMAIL_FOLDERS,
+  MAILBOXES,
+  countFolder,
+  fetchCrmEmails,
+  fetchSessionMail,
+  isMailFolder,
+  isMailboxKey,
+  mailHref,
+  type CrmEmailRow,
+  type MailFolder,
+  type MailboxKey,
+  type SessionMail,
+} from "@/lib/mail";
 
 const EmailReplyComponent = () => {
   const [showMore, setShowMore] = useState(false);
@@ -16,6 +31,21 @@ const EmailReplyComponent = () => {
   const [showMore3, setShowMore3] = useState(false);
   const [openLightbox, setOpenLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [mailbox, setMailbox] = useState<MailboxKey>("contact");
+  const [folder, setFolder] = useState<MailFolder>("inbox");
+  const [session, setSession] = useState<SessionMail | null>(null);
+  const loadEmails = useCallback(async () => fetchCrmEmails(), []);
+  const { rows: emails, live } = useLiveRows([] as CrmEmailRow[], loadEmails);
+
+  useEffect(() => {
+    if (!live) return;
+    void fetchSessionMail().then(setSession);
+    const params = new URLSearchParams(window.location.search);
+    const box = params.get("box");
+    const tray = params.get("folder");
+    if (isMailboxKey(box)) setMailbox(box);
+    if (isMailFolder(tray)) setFolder(tray);
+  }, [live]);
 
   const slides = [
     { src: "/assets/img/media/email-attach-big-01.jpg" },
@@ -63,9 +93,11 @@ const EmailReplyComponent = () => {
                     </Link>
                     <div>
                       <h6 className="mb-1 fs-16 fw-medium">
-                        <Link href="#">James Hong</Link>
+                        <Link href="#">{live ? session?.fullName || "Kalao" : "James Hong"}</Link>
                       </h6>
-                      <p className="fs-14 mb-0">james@example.com</p>
+                      <p className="fs-14 mb-0">
+                        {live ? session?.workEmail || "yuki.t@example.com" : "james@example.com"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -77,99 +109,89 @@ const EmailReplyComponent = () => {
                   <i className="ti ti-edit me-2" />
                   Compose
                 </Link>
+                {live ? (
+                  <div className="mt-3">
+                    <h5 className="mb-2">Boîtes Kalao</h5>
+                    <div className="d-block mb-3 pb-3 border-bottom">
+                      {MAILBOXES.map((item) => (
+                        <Link
+                          key={item.key}
+                          href={mailHref(item.key, folder)}
+                          className={`d-flex align-items-center justify-content-between p-2 rounded ${
+                            mailbox === item.key ? "bg-light active" : ""
+                          }`}
+                          onClick={() => setMailbox(item.key)}
+                        >
+                          <span className="d-flex align-items-center fw-medium">{item.label}</span>
+                          <span className="badge bg-dark rounded-pill badge-xs">
+                            {countFolder(emails, item.key, "all")}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="mt-3">
                   <h5 className="mb-2">Emails</h5>
                   <div className="d-block mb-3 pb-3 border-bottom">
-                    <Link
-                      href={all_routes.email}
-                      className="d-flex bg-light align-items-center justify-content-between p-2 rounded active"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-inbox text-gray me-2" />
-                        Inbox
-                      </span>
-                      <span className="badge bg-danger bg-danger rounded-pill badge-xs">
-                        56
-                      </span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-star text-gray me-2" />
-                        Starred
-                      </span>
-                      <span className="fw-semibold fs-12 rounded-pill">46</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-rocket text-gray me-2" />
-                        Sent
-                      </span>
-                      <span className="rounded-pill">14</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-file text-gray me-2" />
-                        Drafts
-                      </span>
-                      <span className="rounded-pill">12</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-trash text-gray me-2" />
-                        Deleted
-                      </span>
-                      <span className="rounded-pill">08</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-info-octagon text-gray me-2" />
-                        Spam
-                      </span>
-                      <span className="rounded-pill">0</span>
-                    </Link>
+                    {EMAIL_FOLDERS.filter((item) => !item.extra).map((item) => (
+                      <Link
+                        key={item.key}
+                        href={live ? mailHref(mailbox, item.key) : item.key === "inbox" ? all_routes.email : "#"}
+                        className={`d-flex align-items-center justify-content-between p-2 rounded ${
+                          (live ? folder === item.key : item.key === "inbox") ? "bg-light active" : ""
+                        }`}
+                        onClick={() => {
+                          if (live) setFolder(item.key);
+                        }}
+                      >
+                        <span className="d-flex align-items-center fw-medium">
+                          <i className={item.icon} />
+                          {item.label}
+                        </span>
+                        {item.key === "inbox" ? (
+                          <span className="badge bg-danger bg-danger rounded-pill badge-xs">
+                            {live ? countFolder(emails, mailbox, "inbox") : item.dummy}
+                          </span>
+                        ) : item.key === "starred" ? (
+                          <span className="fw-semibold fs-12 rounded-pill">
+                            {live ? countFolder(emails, mailbox, "starred") : item.dummy}
+                          </span>
+                        ) : (
+                          <span className="rounded-pill">
+                            {live ? countFolder(emails, mailbox, item.key) : item.dummy}
+                          </span>
+                        )}
+                      </Link>
+                    ))}
                     <div>
                       <div
                         className="more-menu"
                         style={{
-                          display: showMore ? "block" : "none",
+                          display: showMore || live ? "block" : "none",
                           marginTop: "10px",
                         }}
                       >
-                        <Link
-                          href="#"
-                          className="d-flex align-items-center justify-content-between p-2 rounded"
-                        >
-                          <span className="d-flex align-items-center fw-medium">
-                            <i className="ti ti-location-up text-gray me-2" />
-                            Important
-                          </span>
-                          <span className="rounded-pill">12</span>
-                        </Link>
-                        <Link
-                          href="#"
-                          className="d-flex align-items-center justify-content-between p-2 rounded"
-                        >
-                          <span className="d-flex align-items-center fw-medium">
-                            <i className="ti ti-transition-top text-gray me-2" />
-                            All Emails
-                          </span>
-                          <span className="rounded-pill">34</span>
-                        </Link>
+                        {EMAIL_FOLDERS.filter((item) => item.extra).map((item) => (
+                          <Link
+                            key={item.key}
+                            href={live ? mailHref(mailbox, item.key) : "#"}
+                            className={`d-flex align-items-center justify-content-between p-2 rounded ${
+                              live && folder === item.key ? "bg-light active" : ""
+                            }`}
+                            onClick={() => {
+                              if (live) setFolder(item.key);
+                            }}
+                          >
+                            <span className="d-flex align-items-center fw-medium">
+                              <i className={item.icon} />
+                              {item.label}
+                            </span>
+                            <span className="rounded-pill">
+                              {live ? countFolder(emails, mailbox, item.key) : item.dummy}
+                            </span>
+                          </Link>
+                        ))}
                       </div>
                       <div className="view-all mt-2">
                         <Link
@@ -177,7 +199,7 @@ const EmailReplyComponent = () => {
                           className="viewall-button fw-medium"
                           onClick={handleToggle}
                         >
-                          <span>{`${showMore ? "Less" : "Show More"}`}</span>
+                          <span>{`${showMore || live ? "Less" : "Show More"}`}</span>
                         </Link>
                       </div>
                     </div>

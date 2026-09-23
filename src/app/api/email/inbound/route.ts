@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
     subject: String(data.subject ?? "Sans objet").trim(),
     body,
     status: "stored",
+    folder: "inbox",
+    starred: false,
+    important: false,
   });
   if (error) {
     return Response.json({ ok: false, reason: error.message }, { status: 500 });

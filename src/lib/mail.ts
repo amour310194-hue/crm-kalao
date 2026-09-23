@@ -6,7 +6,39 @@ import {
 } from "@/lib/org";
 
 export type MailboxKey = "noreply" | "contact" | "personal";
-export type MailFolder = "inbox" | "sent" | MailboxKey;
+export type MailTray = "inbox" | "sent" | "drafts" | "deleted" | "spam";
+export type MailFolder =
+  | "inbox"
+  | "starred"
+  | "sent"
+  | "drafts"
+  | "deleted"
+  | "spam"
+  | "important"
+  | "all";
+
+export const MAILBOXES: { key: MailboxKey; label: string }[] = [
+  { key: "contact", label: "Contact (partagée)" },
+  { key: "noreply", label: "No-reply (partagée)" },
+  { key: "personal", label: "Ma boîte (privée)" },
+];
+
+export const EMAIL_FOLDERS: {
+  key: MailFolder;
+  label: string;
+  icon: string;
+  dummy: string;
+  extra?: boolean;
+}[] = [
+  { key: "inbox", label: "Inbox", icon: "ti ti-inbox text-gray me-2", dummy: "56" },
+  { key: "starred", label: "Starred", icon: "ti ti-star text-gray me-2", dummy: "46" },
+  { key: "sent", label: "Sent", icon: "ti ti-rocket text-gray me-2", dummy: "14" },
+  { key: "drafts", label: "Drafts", icon: "ti ti-file text-gray me-2", dummy: "12" },
+  { key: "deleted", label: "Deleted", icon: "ti ti-trash text-gray me-2", dummy: "08" },
+  { key: "spam", label: "Spam", icon: "ti ti-info-octagon text-gray me-2", dummy: "0" },
+  { key: "important", label: "Important", icon: "ti ti-location-up text-gray me-2", dummy: "12", extra: true },
+  { key: "all", label: "All Emails", icon: "ti ti-transition-top text-gray me-2", dummy: "34", extra: true },
+];
 
 export type CrmEmailRow = {
   id: string;
@@ -22,6 +54,9 @@ export type CrmEmailRow = {
   invoice_id: string | null;
   resend_id: string | null;
   status: "stored" | "sent" | "failed";
+  folder: MailTray;
+  starred: boolean;
+  important: boolean;
   created_at: string;
   companies?: { name: string | null } | null;
   contacts?: { first_name: string; last_name: string; email: string | null } | null;
@@ -57,10 +92,25 @@ export function mailboxLabel(key: MailboxKey): string {
   return "No-reply";
 }
 
+export function isMailboxKey(value: string | null): value is MailboxKey {
+  return value === "contact" || value === "noreply" || value === "personal";
+}
+
+export function isMailFolder(value: string | null): value is MailFolder {
+  return EMAIL_FOLDERS.some((item) => item.key === value);
+}
+
 export function folderLabel(folder: MailFolder): string {
-  if (folder === "inbox") return "Reçus";
-  if (folder === "sent") return "Envoyés";
-  return mailboxLabel(folder);
+  return EMAIL_FOLDERS.find((item) => item.key === folder)?.label ?? "Inbox";
+}
+
+export function mailHref(mailbox: MailboxKey, folder: MailFolder): string {
+  return `/application/email?box=${mailbox}&folder=${folder}`;
+}
+
+export function trayOf(row: CrmEmailRow): MailTray {
+  if (row.folder) return row.folder;
+  return row.direction === "out" ? "sent" : "inbox";
 }
 
 export function mailboxFrom(key: MailboxKey, session: SessionMail): { from: string; address: string } {
@@ -80,10 +130,35 @@ export function emailParty(row: CrmEmailRow): string {
   return contact || row.companies?.name || (row.direction === "out" ? row.to_email : row.from_email);
 }
 
-export function filterEmails(rows: CrmEmailRow[], folder: MailFolder): CrmEmailRow[] {
-  if (folder === "inbox") return rows.filter((row) => row.direction === "in");
-  if (folder === "sent") return rows.filter((row) => row.direction === "out");
-  return rows.filter((row) => row.mailbox === folder);
+export function filterEmails(
+  rows: CrmEmailRow[],
+  mailbox: MailboxKey,
+  folder: MailFolder
+): CrmEmailRow[] {
+  const box = rows.filter((row) => row.mailbox === mailbox);
+  if (folder === "inbox") return box.filter((row) => trayOf(row) === "inbox");
+  if (folder === "sent") return box.filter((row) => trayOf(row) === "sent");
+  if (folder === "drafts") return box.filter((row) => trayOf(row) === "drafts");
+  if (folder === "deleted") return box.filter((row) => trayOf(row) === "deleted");
+  if (folder === "spam") return box.filter((row) => trayOf(row) === "spam");
+  if (folder === "starred") {
+    return box.filter((row) => row.starred && trayOf(row) !== "deleted");
+  }
+  if (folder === "important") {
+    return box.filter((row) => row.important && trayOf(row) !== "deleted");
+  }
+  return box.filter((row) => {
+    const tray = trayOf(row);
+    return tray !== "deleted" && tray !== "spam";
+  });
+}
+
+export function countFolder(
+  rows: CrmEmailRow[],
+  mailbox: MailboxKey,
+  folder: MailFolder
+): number {
+  return filterEmails(rows, mailbox, folder).length;
 }
 
 export async function fetchSessionMail(): Promise<SessionMail | null> {
@@ -193,6 +268,9 @@ export async function sendCrmEmail(input: {
       invoice_id: input.invoiceId || null,
       resend_id: json.id ?? null,
       status: dispatched ? "sent" : "failed",
+      folder: "sent",
+      starred: false,
+      important: false,
     })
     .select("id")
     .single();
@@ -204,6 +282,16 @@ export async function sendCrmEmail(input: {
     detail: json.detail,
     id: data?.id,
   };
+}
+
+export async function patchCrmEmail(
+  id: string,
+  patch: Partial<Pick<CrmEmailRow, "folder" | "starred" | "important">>
+): Promise<void> {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.from("crm_emails").update(patch).eq("id", id);
+  throwIf(error);
 }
 
 export function explainSend(result: SendCrmResult): string {

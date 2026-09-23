@@ -4,11 +4,20 @@ import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { composeEmail, formatChatTime, remindDueVisaActivities } from "@/lib/inbox";
 import {
+  EMAIL_FOLDERS,
+  MAILBOXES,
+  countFolder,
   emailParty,
   fetchCrmEmails,
   fetchSessionMail,
   filterEmails,
   folderLabel,
+  isMailFolder,
+  isMailboxKey,
+  mailHref,
+  mailboxLabel,
+  patchCrmEmail,
+  trayOf,
   type CrmEmailRow,
   type MailFolder,
   type MailboxKey,
@@ -38,7 +47,10 @@ const EmailComponent = () => {
     [] as CrmEmailRow[],
     loadEmails
   );
-  const visible = useMemo(() => filterEmails(emails, folder), [emails, folder]);
+  const visible = useMemo(
+    () => filterEmails(emails, mailbox, folder),
+    [emails, mailbox, folder]
+  );
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
   };
@@ -47,8 +59,12 @@ const EmailComponent = () => {
     if (!live) return;
     void remindDueVisaActivities();
     void fetchSessionMail().then(setSession);
-    const box = new URLSearchParams(window.location.search).get("box") as MailFolder | null;
-    if (box) setFolder(box);
+    const params = new URLSearchParams(window.location.search);
+    const box = params.get("box");
+    const tray = params.get("folder");
+    if (isMailboxKey(box)) setMailbox(box);
+    if (isMailFolder(tray)) setFolder(tray);
+    else if (tray === null && (box === "inbox" || box === "sent")) setFolder(box);
   }, [live]);
 
 
@@ -119,26 +135,18 @@ const EmailComponent = () => {
                   <div className="mt-3">
                     <h5 className="mb-2">Boîtes Kalao</h5>
                     <div className="d-block mb-3 pb-3 border-bottom">
-                      {(
-                        [
-                          ["inbox", "Reçus"],
-                          ["sent", "Envoyés"],
-                          ["contact", "Contact (partagée)"],
-                          ["noreply", "No-reply (partagée)"],
-                          ["personal", "Ma boîte (privée)"],
-                        ] as [MailFolder, string][]
-                      ).map(([key, label]) => (
+                      {MAILBOXES.map((item) => (
                         <Link
-                          key={key}
-                          href={`${all_routes.email}?box=${key}`}
+                          key={item.key}
+                          href={mailHref(item.key, folder)}
                           className={`d-flex align-items-center justify-content-between p-2 rounded ${
-                            folder === key ? "bg-light active" : ""
+                            mailbox === item.key ? "bg-light active" : ""
                           }`}
-                          onClick={() => setFolder(key)}
+                          onClick={() => setMailbox(item.key)}
                         >
-                          <span className="d-flex align-items-center fw-medium">{label}</span>
+                          <span className="d-flex align-items-center fw-medium">{item.label}</span>
                           <span className="badge bg-dark rounded-pill badge-xs">
-                            {filterEmails(emails, key).length}
+                            {countFolder(emails, item.key, "all")}
                           </span>
                         </Link>
                       ))}
@@ -148,96 +156,64 @@ const EmailComponent = () => {
                 <div className="mt-3">
                   <h5 className="mb-2">Emails</h5>
                   <div className="d-block mb-3 pb-3 border-bottom">
-                    <Link
-                      href={all_routes.email}
-                      className="d-flex bg-light align-items-center justify-content-between p-2 rounded active"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-inbox text-gray me-2" />
-                        Inbox
-                      </span>
-                      <span className="badge bg-danger bg-danger rounded-pill badge-xs">
-                        {live ? visible.length : 56}
-                      </span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-star text-gray me-2" />
-                        Starred
-                      </span>
-                      <span className="fw-semibold fs-12 rounded-pill">46</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-rocket text-gray me-2" />
-                        Sent
-                      </span>
-                      <span className="rounded-pill">14</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-file text-gray me-2" />
-                        Drafts
-                      </span>
-                      <span className="rounded-pill">12</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-trash text-gray me-2" />
-                        Deleted
-                      </span>
-                      <span className="rounded-pill">08</span>
-                    </Link>
-                    <Link
-                      href="#"
-                      className="d-flex align-items-center justify-content-between p-2 rounded"
-                    >
-                      <span className="d-flex align-items-center fw-medium">
-                        <i className="ti ti-info-octagon text-gray me-2" />
-                        Spam
-                      </span>
-                      <span className="rounded-pill">0</span>
-                    </Link>
+                    {EMAIL_FOLDERS.filter((item) => !item.extra).map((item) => (
+                      <Link
+                        key={item.key}
+                        href={live ? mailHref(mailbox, item.key) : item.key === "inbox" ? all_routes.email : "#"}
+                        className={`d-flex align-items-center justify-content-between p-2 rounded ${
+                          (live ? folder === item.key : item.key === "inbox") ? "bg-light active" : ""
+                        }`}
+                        onClick={() => {
+                          if (live) setFolder(item.key);
+                        }}
+                      >
+                        <span className="d-flex align-items-center fw-medium">
+                          <i className={item.icon} />
+                          {item.label}
+                        </span>
+                        {item.key === "inbox" ? (
+                          <span className="badge bg-danger bg-danger rounded-pill badge-xs">
+                            {live ? countFolder(emails, mailbox, "inbox") : item.dummy}
+                          </span>
+                        ) : item.key === "starred" ? (
+                          <span className="fw-semibold fs-12 rounded-pill">
+                            {live ? countFolder(emails, mailbox, "starred") : item.dummy}
+                          </span>
+                        ) : (
+                          <span className="rounded-pill">
+                            {live ? countFolder(emails, mailbox, item.key) : item.dummy}
+                          </span>
+                        )}
+                      </Link>
+                    ))}
                     <div>
                       <div
                         className="more-menu"
                         style={{
-                          display: showMore ? "block" : "none",
+                          display: showMore || live ? "block" : "none",
                           marginTop: "10px",
                         }}
                       >
-                        <Link
-                          href="#"
-                          className="d-flex align-items-center justify-content-between p-2 rounded"
-                        >
-                          <span className="d-flex align-items-center fw-medium">
-                            <i className="ti ti-location-up text-gray me-2" />
-                            Important
-                          </span>
-                          <span className="rounded-pill">12</span>
-                        </Link>
-                        <Link
-                          href="#"
-                          className="d-flex align-items-center justify-content-between p-2 rounded"
-                        >
-                          <span className="d-flex align-items-center fw-medium">
-                            <i className="ti ti-transition-top text-gray me-2" />
-                            All Emails
-                          </span>
-                          <span className="rounded-pill">34</span>
-                        </Link>
+                        {EMAIL_FOLDERS.filter((item) => item.extra).map((item) => (
+                          <Link
+                            key={item.key}
+                            href={live ? mailHref(mailbox, item.key) : "#"}
+                            className={`d-flex align-items-center justify-content-between p-2 rounded ${
+                              live && folder === item.key ? "bg-light active" : ""
+                            }`}
+                            onClick={() => {
+                              if (live) setFolder(item.key);
+                            }}
+                          >
+                            <span className="d-flex align-items-center fw-medium">
+                              <i className={item.icon} />
+                              {item.label}
+                            </span>
+                            <span className="rounded-pill">
+                              {live ? countFolder(emails, mailbox, item.key) : item.dummy}
+                            </span>
+                          </Link>
+                        ))}
                       </div>
                       <div className="view-all mt-2">
                         <Link
@@ -245,7 +221,7 @@ const EmailComponent = () => {
                           className="viewall-button fw-medium"
                           onClick={handleToggle}
                         >
-                          <span>{`${showMore ? "Less" : "Show More"}`}</span>
+                          <span>{`${showMore || live ? "Less" : "Show More"}`}</span>
                         </Link>
                       </div>
                     </div>
@@ -386,7 +362,9 @@ const EmailComponent = () => {
                   <div className="p-3 border-bottom">
                     <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                       <div>
-                        <h5 className="mb-1">{live ? folderLabel(folder) : "Inbox"}</h5>
+                        <h5 className="mb-1">
+                          {live ? `${mailboxLabel(mailbox)} · ${folderLabel(folder)}` : "Inbox"}
+                        </h5>
                         <div className="d-flex align-items-center">
                           <span>{live ? `${visible.length} courriers` : "2345 Emails"}</span>
                           {live ? null : (
@@ -425,6 +403,9 @@ const EmailComponent = () => {
                           <Link
                             href="#"
                             className="btn btn-icon btn-sm btn-outline-white border-0 rounded-circle"
+                            onClick={() => {
+                              if (live) void reload();
+                            }}
                           >
                             <i className="ti ti-refresh" />
                           </Link>
@@ -473,8 +454,47 @@ const EmailComponent = () => {
                             <div className="d-flex align-items-center justify-content-between">
                               <span className="badge badge-soft-info d-inline-flex align-items-center p-1">
                                 <i className="ti ti-square me-1" />
-                                {row.direction === "out" ? "Envoyé" : "Reçu"} · {row.mailbox}
+                                {row.direction === "out" ? "Envoyé" : "Reçu"} · {mailboxLabel(row.mailbox)}
                               </span>
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  type="button"
+                                  className="btn btn-link p-0"
+                                  title="Starred"
+                                  onClick={() =>
+                                    void patchCrmEmail(row.id, { starred: !row.starred }).then(reload)
+                                  }
+                                >
+                                  <i className={`ti ${row.starred ? "ti-star-filled text-warning" : "ti-star"}`} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-link p-0"
+                                  title="Important"
+                                  onClick={() =>
+                                    void patchCrmEmail(row.id, { important: !row.important }).then(reload)
+                                  }
+                                >
+                                  <i className={`ti ti-location-up ${row.important ? "text-danger" : ""}`} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-link p-0"
+                                  title={trayOf(row) === "deleted" ? "Restore" : "Deleted"}
+                                  onClick={() =>
+                                    void patchCrmEmail(row.id, {
+                                      folder:
+                                        trayOf(row) === "deleted"
+                                          ? row.direction === "out"
+                                            ? "sent"
+                                            : "inbox"
+                                          : "deleted",
+                                    }).then(reload)
+                                  }
+                                >
+                                  <i className="ti ti-trash" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ))

@@ -8,6 +8,7 @@ import {
   explainSend,
   fetchPartyEmails,
   fetchSessionMail,
+  mailHref,
   mailboxLabel,
   sendCrmEmail,
   type CrmEmailRow,
@@ -57,7 +58,7 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
           <i className="ti ti-mail me-1" />
           Envoyer un e-mail
         </button>
-        <Link href={all_routes.email} className="btn btn-outline-light shadow">
+        <Link href={mailHref(mailbox, "all")} className="btn btn-outline-light shadow">
           Boîtes CRM
         </Link>
       </div>
