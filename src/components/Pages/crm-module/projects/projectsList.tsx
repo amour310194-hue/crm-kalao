@@ -14,7 +14,7 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { docHref, isLiveId } from "@/lib/docs";
+import { docHref, isLiveId, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import {
   fetchDossiers,
@@ -236,8 +236,8 @@ const ProjectsListComponent = () => {
                   filename="dossiers-kalao"
                   headers={["Dossier", "Client", "Debut", "Echeance", "Statut"]}
                   rows={data
-                    .filter((row: { key?: string }) => isLiveId(row.key))
-                    .map((row: any) => [
+                    .filter((row) => Boolean(rowLiveId(row)))
+                    .map((row) => [
                       row.Name,
                       row.Client,
                       row.StartDate,
@@ -245,8 +245,9 @@ const ProjectsListComponent = () => {
                       row.PipelineStage,
                     ])}
                   printHref={
-                    isLiveId(data[0]?.key) && data[0]?.Kind === "visa"
-                      ? docHref("visa", data[0].key)
+                    rowLiveId(data[0]) &&
+                    (data[0] as { Kind?: string }).Kind === "visa"
+                      ? docHref("visa", rowLiveId(data[0]) as string)
                       : null
                   }
                 />

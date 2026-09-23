@@ -16,7 +16,7 @@ import { all_routes } from "@/router/all_routes";
 import ModalQuotations from "./modal/modalQuotations";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { acceptQuote, fetchQuotes, toQuotationsListRow } from "@/lib/crm";
-import { docHref, isLiveId } from "@/lib/docs";
+import { docHref, isLiveId, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const QuotationsListComponent = () => {
@@ -165,8 +165,8 @@ const QuotationsListComponent = () => {
                   filename="devis-kalao"
                   headers={["Devis", "Client", "Date", "Valide", "Montant"]}
                   rows={data
-                    .filter((row: { key?: string }) => isLiveId(row.key))
-                    .map((row: any) => [
+                    .filter((row) => Boolean(rowLiveId(row)))
+                    .map((row) => [
                       row.quoteId,
                       row.client,
                       row.quoteDate,
@@ -174,7 +174,7 @@ const QuotationsListComponent = () => {
                       row.finalAmount,
                     ])}
                   printHref={
-                    isLiveId(data[0]?.key) ? docHref("quote", data[0].key) : null
+                    rowLiveId(data[0]) ? docHref("quote", rowLiveId(data[0]) as string) : null
                   }
                 />
               ) : null

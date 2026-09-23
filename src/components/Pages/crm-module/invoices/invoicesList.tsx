@@ -17,7 +17,7 @@ import {
   markInvoicePaid,
   toInvoicesListRow,
 } from "@/lib/crm";
-import { docHref, isLiveId } from "@/lib/docs";
+import { docHref, isLiveId, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const InvoicesListComponent = () => {
@@ -240,17 +240,17 @@ const InvoicesListComponent = () => {
                   filename="factures-kalao"
                   headers={["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]}
                   rows={data
-                    .filter((row: { key?: string }) => isLiveId(row.key))
-                    .map((row: any) => [
+                    .filter((row) => Boolean(rowLiveId(row)))
+                    .map((row) => [
                       row.Invoice_ID,
                       row.Client,
-                      row.project,
+                      row.Project,
                       row.Amount,
                       row.Paid_Amount,
                       row.Status,
                     ])}
                   printHref={
-                    isLiveId(data[0]?.key) ? docHref("invoice", data[0].key) : null
+                    rowLiveId(data[0]) ? docHref("invoice", rowLiveId(data[0]) as string) : null
                   }
                 />
               ) : null

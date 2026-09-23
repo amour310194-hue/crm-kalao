@@ -44,6 +44,17 @@ export function isLiveId(value: string | null | undefined): value is string {
   );
 }
 
+/** Dummy lists use Key/kye ; les lignes live portent aussi key. */
+export function rowLiveId(row: unknown): string | undefined {
+  if (!row || typeof row !== "object") return undefined;
+  const rec = row as Record<string, unknown>;
+  for (const field of ["key", "Key", "kye"] as const) {
+    const value = rec[field];
+    if (typeof value === "string" && isLiveId(value)) return value;
+  }
+  return undefined;
+}
+
 export function docHref(kind: DocKind, id: string): string {
   return `/docs/${kind}/${id}`;
 }
