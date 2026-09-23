@@ -597,10 +597,29 @@ const ProjectDetailsComponent = () => {
               <div className="mb-3 pb-3 border-bottom">
                 <h5 className="mb-3">Project Pipeline Status</h5>
                 <div className="step-progress d-flex flex-wrap gap-2">
-                  <div className="step bg-indigo">Plan</div>
-                  <div className="step bg-cyan">Design</div>
-                  <div className="step bg-success">Development</div>
-                  <div className="step bg-orange">Completed</div>
+                  {(
+                    [
+                      { key: "plan", label: "Plan", cls: "bg-indigo" },
+                      { key: "design", label: "Design", cls: "bg-cyan" },
+                      { key: "develop", label: "Development", cls: "bg-success" },
+                      { key: "done", label: "Completed", cls: "bg-orange" },
+                    ] as const
+                  ).map((step, i, all) => {
+                    const current = all.findIndex((s) => s.key === dossier?.status);
+                    const reached = !dossier || current < 0 || i <= current;
+                    return (
+                      <div
+                        key={step.key}
+                        className={`step ${reached ? step.cls : "bg-light text-muted"}`}
+                        role={dossier ? "button" : undefined}
+                        onClick={() => {
+                          if (dossier) void onChangeStatus(step.key);
+                        }}
+                      >
+                        {step.label}
+                      </div>
+                    );
+                  })}
                   <div className="step bg-transparent" />
                 </div>
               </div>

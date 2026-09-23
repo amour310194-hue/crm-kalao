@@ -14,14 +14,24 @@ import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import {
   dossierFlag,
+  fetchActivities,
   fetchAttachments,
   fetchContacts,
   fetchDossiers,
+  type ActivityRow,
   type AttachmentRow,
   type ContactRow,
   type DossierRow,
   uploadAttachment,
 } from "@/lib/crm";
+import { updateDossier } from "@/lib/dossiers";
+import {
+  FICHE_EXTRA_TABS,
+  FicheDossierTab,
+  FichePipeline,
+  FicheSuiviTab,
+  LiveActivityCards,
+} from "../ficheLiveTabs";
 
 
 const ContactsDetailsComponent = () => {
@@ -33,27 +43,36 @@ const ContactsDetailsComponent = () => {
   const [contact, setContact] = useState<ContactRow | null>(null);
   const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [files, setFiles] = useState<AttachmentRow[]>([]);
+  const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
 
   useEffect(() => {
-    void Promise.all([fetchContacts(), fetchDossiers()]).then(([rows, dos]) => {
-      if (!rows?.length) return;
-      const row = rows.find((c) => c.id === contactId) ?? rows[0];
-      setContact(row);
-      setContactName(`${row.first_name} ${row.last_name}`.trim());
-      const place = [row.companies?.city, row.companies?.country]
-        .filter(Boolean)
-        .join(", ");
-      if (place) setLocationLabel(place);
-      setDossiers(
-        (dos ?? []).filter(
-          (d) => d.contact_id === row.id || d.company_id === row.company_id
-        )
-      );
-    });
+    void Promise.all([fetchContacts(), fetchDossiers(), fetchActivities()]).then(
+      ([rows, dos, acts]) => {
+        if (!rows?.length) return;
+        const row = rows.find((c) => c.id === contactId) ?? rows[0];
+        setContact(row);
+        setContactName(`${row.first_name} ${row.last_name}`.trim());
+        const place = [row.companies?.city, row.companies?.country]
+          .filter(Boolean)
+          .join(", ");
+        if (place) setLocationLabel(place);
+        setDossiers(
+          (dos ?? []).filter(
+            (d) => d.contact_id === row.id || d.company_id === row.company_id
+          )
+        );
+        setActivities(
+          (acts ?? []).filter(
+            (a) => a.contact_id === row.id || a.company_id === row.company_id
+          )
+        );
+      }
+    );
   }, [contactId]);
 
   const live = Boolean(contact);
+  const primaryDossier = dossiers[0] ?? null;
 
   useEffect(() => {
     const entityId = contactId;
@@ -511,7 +530,31 @@ const ContactsDetailsComponent = () => {
             </div>
             {/* /Contact Sidebar */}
             {/* Contact Details */}
-            <div className={live ? "d-none" : "col-xl-9"}>
+            <div className="col-xl-9">
+              {live ? (
+                <FichePipeline
+                  status={primaryDossier?.status}
+                  onPick={(status) => {
+                    if (!primaryDossier) return;
+                    void updateDossier(primaryDossier.id, { status }).then((saved) => {
+                      setDossiers((prev) =>
+                        prev.map((d) => (d.id === saved.id ? { ...d, ...saved } : d))
+                      );
+                    });
+                  }}
+                />
+              ) : (
+                <div className="mb-3 pb-3 border-bottom">
+                  <h5 className="mb-3">Project Pipeline Status</h5>
+                  <div className="step-progress d-flex flex-wrap gap-2">
+                    <div className="step bg-indigo">Plan</div>
+                    <div className="step bg-cyan">Design</div>
+                    <div className="step bg-success">Development</div>
+                    <div className="step bg-orange">Completed</div>
+                    <div className="step bg-transparent" />
+                  </div>
+                </div>
+              )}
               <div className="card mb-3">
                 <div className="card-body pb-0 pt-2">
                   <ul className="nav nav-tabs nav-bordered mb-3" role="tablist">
@@ -594,6 +637,7 @@ const ContactsDetailsComponent = () => {
                         </span>
                       </Link>
                     </li>
+                    {FICHE_EXTRA_TABS}
                   </ul>
                 </div>
               </div>
@@ -630,6 +674,13 @@ const ContactsDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live ? (
+                        <LiveActivityCards
+                          rows={activities}
+                          empty="Aucune activité pour ce contact."
+                        />
+                      ) : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="badge badge-soft-info border-0 mb-3">
                         <i className="ti ti-calendar-check me-1" />
                         28 May 2025
@@ -798,6 +849,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -844,6 +896,13 @@ const ContactsDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live ? (
+                        <LiveActivityCards
+                          rows={activities.filter((a) => a.type === "note")}
+                          empty="Aucune note pour ce contact."
+                        />
+                      ) : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="notes-activity">
                         <div className="card mb-3">
                           <div className="card-body">
@@ -1159,6 +1218,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1181,6 +1241,13 @@ const ContactsDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live ? (
+                        <LiveActivityCards
+                          rows={activities.filter((a) => a.type === "call")}
+                          empty="Aucun appel pour ce contact."
+                        />
+                      ) : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="card mb-3">
                         <div className="card-body">
                           <div className="d-sm-flex align-items-center justify-content-between pb-2">
@@ -1444,6 +1511,7 @@ const ContactsDetailsComponent = () => {
                           </p>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1513,7 +1581,10 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       ))}
-                      <div className="card border shadow-none mb-3">
+                      {live && !files.length ? (
+                        <p className="mb-3 text-muted">Aucune pièce jointe.</p>
+                      ) : null}
+                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1580,7 +1651,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="card border shadow-none mb-3">
+                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1647,7 +1718,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="card border shadow-none mb-0">
+                      <div className={live ? "d-none" : "card border shadow-none mb-0"}>
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1769,6 +1840,8 @@ const ContactsDetailsComponent = () => {
                   </div>
                 </div>
                 {/* /Email */}
+                <FicheSuiviTab dossiers={dossiers} />
+                <FicheDossierTab dossiers={dossiers} />
               </div>
               {/* /Tab Content */}
             </div>

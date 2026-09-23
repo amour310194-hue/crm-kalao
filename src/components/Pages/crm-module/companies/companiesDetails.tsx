@@ -14,17 +14,26 @@ import Footer from "@/core/common/footer/footer";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import {
-  dossierFlag,
+  fetchActivities,
   fetchCompanies,
   fetchContacts,
   fetchDossiers,
   fetchInvoices,
   formatMoney,
+  type ActivityRow,
   type CompanyRow,
   type ContactRow,
   type DossierRow,
   type InvoiceRow,
 } from "@/lib/crm";
+import { updateDossier } from "@/lib/dossiers";
+import {
+  FICHE_EXTRA_TABS,
+  FicheDossierTab,
+  FichePipeline,
+  FicheSuiviTab,
+  LiveActivityCards,
+} from "../ficheLiveTabs";
 
 const CompaniesDetailsComponent = () => {
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
@@ -32,6 +41,7 @@ const CompaniesDetailsComponent = () => {
   const [contact, setContact] = useState<ContactRow | null>(null);
   const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [activities, setActivities] = useState<ActivityRow[]>([]);
 
   useEffect(() => {
     const id =
@@ -43,7 +53,8 @@ const CompaniesDetailsComponent = () => {
       fetchContacts(),
       fetchDossiers(),
       fetchInvoices(),
-    ]).then(([companies, contacts, dos, inv]) => {
+      fetchActivities(),
+    ]).then(([companies, contacts, dos, inv, acts]) => {
       const row = (id ? companies?.find((c) => c.id === id) : null) ?? companies?.[0];
       if (!row) return;
       setCompany(row);
@@ -52,10 +63,12 @@ const CompaniesDetailsComponent = () => {
       setContact((contacts ?? []).find((c) => c.company_id === row.id) ?? null);
       setDossiers((dos ?? []).filter((d) => d.company_id === row.id));
       setInvoices((inv ?? []).filter((i) => i.company_id === row.id));
+      setActivities((acts ?? []).filter((a) => a.company_id === row.id));
     });
   }, []);
 
   const live = Boolean(company);
+  const primaryDossier = dossiers[0] ?? null;
   const billed = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
   const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
   const outstanding = invoices
@@ -401,57 +414,31 @@ const CompaniesDetailsComponent = () => {
             </div>
             {/* /Contact Sidebar */}
             {/* Contact Details */}
-            <div className={live ? "col-xl-9" : "d-none"}>
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="fw-semibold mb-0">Dossiers</h5>
-                </div>
-                <div className="card-body">
-                  {dossiers.length ? (
-                    dossiers.map((dossier) => {
-                      const destination = dossierFlag(dossier);
-                      return (
-                        <div
-                          key={dossier.id}
-                          className="d-flex align-items-center justify-content-between mb-3"
-                        >
-                          <div className="d-flex align-items-center">
-                            <Link
-                              href={`${all_routes.projectDetails}?id=${dossier.id}`}
-                              className="avatar border rounded-circle me-2"
-                            >
-                              <ImageWithBasePath
-                                src={
-                                  destination?.src ??
-                                  "assets/img/projects/kalao-visa.jpg"
-                                }
-                                alt={destination?.label ?? dossier.title}
-                                className="w-auto h-auto"
-                              />
-                            </Link>
-                            <div>
-                              <h6 className="fw-medium mb-1">
-                                <Link
-                                  href={`${all_routes.projectDetails}?id=${dossier.id}`}
-                                >
-                                  {dossier.title}
-                                </Link>
-                              </h6>
-                              <p className="mb-0">
-                                {destination?.label ?? dossier.kind}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+            <div className="col-xl-9">
+              {live ? (
+                <FichePipeline
+                  status={primaryDossier?.status}
+                  onPick={(status) => {
+                    if (!primaryDossier) return;
+                    void updateDossier(primaryDossier.id, { status }).then((saved) => {
+                      setDossiers((prev) =>
+                        prev.map((d) => (d.id === saved.id ? { ...d, ...saved } : d))
                       );
-                    })
-                  ) : (
-                    <p className="mb-0 text-muted">Aucun dossier pour ce client.</p>
-                  )}
+                    });
+                  }}
+                />
+              ) : (
+                <div className="mb-3 pb-3 border-bottom">
+                  <h5 className="mb-3">Project Pipeline Status</h5>
+                  <div className="step-progress d-flex flex-wrap gap-2">
+                    <div className="step bg-indigo">Plan</div>
+                    <div className="step bg-cyan">Design</div>
+                    <div className="step bg-success">Development</div>
+                    <div className="step bg-orange">Completed</div>
+                    <div className="step bg-transparent" />
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className={live ? "d-none" : "col-xl-9"}>
+              )}
               <div className="card mb-3">
                 <div className="card-body pb-0 pt-2">
                   <ul className="nav nav-tabs nav-bordered mb-3" role="tablist">
@@ -534,6 +521,7 @@ const CompaniesDetailsComponent = () => {
                         </span>
                       </Link>
                     </li>
+                    {FICHE_EXTRA_TABS}
                   </ul>
                 </div>
               </div>
@@ -570,6 +558,13 @@ const CompaniesDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live ? (
+                        <LiveActivityCards
+                          rows={activities}
+                          empty="Aucune activité pour ce client."
+                        />
+                      ) : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="badge badge-soft-info border-0 mb-3">
                         <i className="ti ti-calendar-check me-1" />
                         28 May 2025
@@ -738,6 +733,7 @@ const CompaniesDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -784,6 +780,13 @@ const CompaniesDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live ? (
+                        <LiveActivityCards
+                          rows={activities.filter((a) => a.type === "note")}
+                          empty="Aucune note pour ce client."
+                        />
+                      ) : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="notes-activity">
                         <div className="card mb-3">
                           <div className="card-body">
@@ -1099,6 +1102,7 @@ const CompaniesDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1121,6 +1125,13 @@ const CompaniesDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live ? (
+                        <LiveActivityCards
+                          rows={activities.filter((a) => a.type === "call")}
+                          empty="Aucun appel pour ce client."
+                        />
+                      ) : null}
+                      <div className={live ? "d-none" : ""}>
                       <div className="card mb-3">
                         <div className="card-body">
                           <div className="d-sm-flex align-items-center justify-content-between pb-2">
@@ -1383,6 +1394,7 @@ const CompaniesDetailsComponent = () => {
                             improving an existing
                           </p>
                         </div>
+                      </div>
                       </div>
                     </div>
                   </div>
@@ -1678,6 +1690,8 @@ const CompaniesDetailsComponent = () => {
                   </div>
                 </div>
                 {/* /Email */}
+                <FicheSuiviTab dossiers={dossiers} />
+                <FicheDossierTab dossiers={dossiers} />
               </div>
               {/* /Tab Content */}
             </div>
