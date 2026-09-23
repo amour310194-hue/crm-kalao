@@ -1348,6 +1348,7 @@ export function toStaffListRow(row: EmployeeRow, index: number) {
     Department: deps.map((d) => d.name).join(" · ") || "—",
     DepartmentTone: DEPT_TONE[primary?.code ?? ""] || "info",
     Email: row.email ?? "—",
+    HasAccount: Boolean(row.profile_id),
     Phone: row.phone ?? "—",
     LocationFlag: "assets/img/flags/cm.svg",
     LocationName: "Douala",

@@ -164,14 +164,8 @@ const Login = () => {
                   </div>
                   <div className="mb-3">
                     <p className="mb-0">
-                      New on our platform?
-                      <Link
-                        href={all_routes.register}
-                        className="link-indigo fw-bold link-hover"
-                      >
-                        {" "}
-                        Create an account
-                      </Link>
+                      Pas de compte ? Demandez à un admin ou au RH de le créer dans
+                      l’annuaire du personnel.
                     </p>
                   </div>
                 </div>

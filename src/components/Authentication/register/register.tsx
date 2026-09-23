@@ -38,6 +38,11 @@ const RegisterComponent = () => {
                   <div className="mb-3">
                     <h3 className="mb-2">Register</h3>
                     <p className="mb-0">Create new CRMS account</p>
+                    <div className="alert alert-light border mt-3 mb-0">
+                      Les comptes CRM sont créés uniquement par un super-admin, un admin ou un RH,
+                      depuis l’annuaire du personnel. L’employé reçoit un e-mail no-reply pour
+                      choisir son mot de passe.
+                    </div>
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Name</label>

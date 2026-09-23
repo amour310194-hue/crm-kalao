@@ -4,6 +4,7 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import { useState } from "react";
+import KalaoResetPassword from "@/components/auth/KalaoResetPassword";
 type PasswordField = "password" | "confirmPassword" | "newPassword";
 
 const ResetPasswordComponent = () => {
@@ -42,6 +43,7 @@ const ResetPasswordComponent = () => {
                       Enter New Password &amp; Confirm Password to get inside
                     </p>
                   </div>
+                  <KalaoResetPassword />
                   <div className="mb-3">
                     <label className="form-label">Password</label>
                     <div className="input-group input-group-flat pass-group">

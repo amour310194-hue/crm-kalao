@@ -44,14 +44,27 @@ export async function POST(request: NextRequest) {
   }
 
   const from = resolveFrom(payload.mailbox, payload.from);
-
+  const automatic = payload.mailbox !== "contact" && payload.mailbox !== "personal";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from, to: [to], subject, text, reply_to: from }),
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject,
+      text,
+      ...(automatic
+        ? {
+            headers: {
+              "Auto-Submitted": "auto-generated",
+              "X-Auto-Response-Suppress": "All",
+            },
+          }
+        : { reply_to: from }),
+    }),
   });
 
   let detail: string | undefined;

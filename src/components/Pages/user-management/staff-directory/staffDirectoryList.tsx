@@ -14,6 +14,7 @@ import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchEmployees, toStaffListRow } from "@/lib/crm";
 import { docHref, isLiveId } from "@/lib/docs";
 import { canSeePayroll } from "@/lib/roles";
+import KalaoStaffAccounts from "@/components/docs/KalaoStaffAccounts";
 
 const route = all_routes;
 
@@ -87,6 +88,13 @@ const StaffDirectoryListComponent = () => {
                 Attestation
               </Link>
             </span>
+          ) : null}
+          {isLiveId(record.key) ? (
+            <KalaoStaffAccounts
+              employeeId={record.key}
+              hasAccount={Boolean(record.HasAccount)}
+              onDone={reload}
+            />
           ) : null}
         </h6>
       ),

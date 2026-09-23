@@ -3,8 +3,10 @@ export const KALAO_NOREPLY_EMAIL = "no-reply@groupe-kalao.com";
 export const KALAO_NOREPLY_FROM = `CRM Kalao <${KALAO_NOREPLY_EMAIL}>`;
 
 export const ROLE_LABEL: Record<string, string> = {
+  super_admin: "Super-admin",
   admin: "Admin",
   manager: "Manager",
+  rh: "RH",
   staff: "Secrétaire",
 };
 

@@ -1,7 +1,7 @@
-
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import { all_routes } from "@/router/all_routes"
 import Link from "next/link"
+import KalaoForgotPassword from "@/components/auth/KalaoForgotPassword"
 
 
 
@@ -28,6 +28,7 @@ const ForgotPasswordComponents = () => {
                   instructions to reset your password.
                 </p>
               </div>
+              <KalaoForgotPassword />
               <div className="mb-3">
                 <label className="form-label">Email Address</label>
                 <div className="input-group input-group-flat">

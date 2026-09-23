@@ -1,13 +1,12 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { canCreateStaffAccount, isCrmAdmin } from "@/lib/authz";
+
+export { canCreateStaffAccount, isCrmAdmin } from "@/lib/authz";
 
 export const PAY_DOC_KINDS = ["employment", "certificate", "payslip"] as const;
 
 export function isPayDocKind(kind: string): boolean {
   return (PAY_DOC_KINDS as readonly string[]).includes(kind);
-}
-
-export function isCrmAdmin(role?: string | null): boolean {
-  return role === "admin" || role === "manager";
 }
 
 async function db() {
@@ -30,6 +29,10 @@ export async function fetchSessionRole(): Promise<string | null> {
 
 export async function canSeePayroll(): Promise<boolean> {
   return isCrmAdmin(await fetchSessionRole());
+}
+
+export async function canInviteStaff(): Promise<boolean> {
+  return canCreateStaffAccount(await fetchSessionRole());
 }
 
 export async function canMassDelete(): Promise<boolean> {
