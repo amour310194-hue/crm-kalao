@@ -14,6 +14,8 @@ import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
+import { docHref, isLiveId } from "@/lib/docs";
+import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import {
   fetchDossiers,
   projectKindsFromQuery,
@@ -228,6 +230,28 @@ const ProjectsListComponent = () => {
             badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
+            headerExtra={
+              live ? (
+                <KalaoExportBar
+                  filename="dossiers-kalao"
+                  headers={["Dossier", "Client", "Debut", "Echeance", "Statut"]}
+                  rows={data
+                    .filter((row: { key?: string }) => isLiveId(row.key))
+                    .map((row: any) => [
+                      row.Name,
+                      row.Client,
+                      row.StartDate,
+                      row.EndDate,
+                      row.PipelineStage,
+                    ])}
+                  printHref={
+                    isLiveId(data[0]?.key) && data[0]?.Kind === "visa"
+                      ? docHref("visa", data[0].key)
+                      : null
+                  }
+                />
+              ) : null
+            }
           />
           {/* End Page Header */}
           {/* card start */}

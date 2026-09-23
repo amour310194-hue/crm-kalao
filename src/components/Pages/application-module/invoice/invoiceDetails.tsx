@@ -4,6 +4,7 @@ import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import { all_routes } from "@/router/all_routes"
 import Link from "next/link"
+import KalaoInvoiceInject from "@/components/docs/KalaoInvoiceInject"
 
 
 const InvoiceDetailsComponent = () => {
@@ -15,6 +16,7 @@ const InvoiceDetailsComponent = () => {
   <div className="page-wrapper">
     {/* Start Content */}
     <div className="content pb-0">
+      <KalaoInvoiceInject />
       {/* start row*/}
       <div className="row">
         <div className="col-lg-10 mx-auto">

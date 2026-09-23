@@ -12,6 +12,8 @@ import ModalCompanies from "./modal/modalCompanies";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
+import { isLiveId } from "@/lib/docs";
+import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import { deleteCompany, fetchCompanies, toCompaniesListRow } from "@/lib/crm";
 
 const CompaniesListComponent = () => {
@@ -213,6 +215,17 @@ const CompaniesListComponent = () => {
             badgeCount={data.length}
             showModuleTile={false}
             showExport={false}
+            headerExtra={
+              live ? (
+                <KalaoExportBar
+                  filename="clients-kalao"
+                  headers={["Client", "Email", "Telephone", "Ville"]}
+                  rows={data
+                    .filter((row: { key?: string }) => isLiveId(row.key))
+                    .map((row: any) => [row.Name, row.Email, row.Phone, row.Location])}
+                />
+              ) : null
+            }
           />
 
           {/* End Page Header */}

@@ -4,6 +4,7 @@ import Footer from "@/core/common/footer/footer"
 import ImageWithBasePath from "@/core/common/imageWithBasePath"
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import KalaoInvoiceInject from "@/components/docs/KalaoInvoiceInject";
 
 
 const InvoicesDetailsComponent2 = () => {
@@ -15,6 +16,7 @@ const InvoicesDetailsComponent2 = () => {
   <div className="page-wrapper">
     {/* Start Content */}
     <div className="content pb-0">
+      <KalaoInvoiceInject />
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h4 className="mb-0">Invoices Details</h4>
         <button className="btn btn-primary" type="button">

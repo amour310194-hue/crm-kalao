@@ -18,6 +18,7 @@ import {
   toInvoicesListRow,
 } from "@/lib/crm";
 import { docHref, isLiveId } from "@/lib/docs";
+import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -156,7 +157,14 @@ const InvoicesListComponent = () => {
               <i className="ti ti-trash me-1" />
               Delete
             </Link>
-            <Link className="dropdown-item" href={all_routes.invoice_details}>
+            <Link
+              className="dropdown-item"
+              href={
+                isLiveId(record.key)
+                  ? `${all_routes.invoice_details}?id=${record.key}`
+                  : all_routes.invoice_details
+              }
+            >
               <i className="ti ti-clipboard-copy me-1" /> View Invoices
             </Link>
             <Link
@@ -226,6 +234,27 @@ const InvoicesListComponent = () => {
             badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
+            headerExtra={
+              live ? (
+                <KalaoExportBar
+                  filename="factures-kalao"
+                  headers={["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]}
+                  rows={data
+                    .filter((row: { key?: string }) => isLiveId(row.key))
+                    .map((row: any) => [
+                      row.Invoice_ID,
+                      row.Client,
+                      row.project,
+                      row.Amount,
+                      row.Paid_Amount,
+                      row.Status,
+                    ])}
+                  printHref={
+                    isLiveId(data[0]?.key) ? docHref("invoice", data[0].key) : null
+                  }
+                />
+              ) : null
+            }
           />
           {/* End Page Header */}
           {/* card start */}

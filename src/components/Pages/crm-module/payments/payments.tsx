@@ -15,6 +15,7 @@ import PredefinedDatePicker from "@/core/common/common-dateRangePicker/Predefine
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchPayments, toPaymentsListRow } from "@/lib/crm";
 import { docHref, isLiveId } from "@/lib/docs";
+import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const PaymentsComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -26,7 +27,7 @@ const PaymentsComponent = () => {
     const rows = await fetchPayments();
     return rows ? rows.map(toPaymentsListRow) : null;
   }, []);
-  const { rows: data } = useLiveRows(PaymentsListData, loadPayments);
+  const { rows: data, live } = useLiveRows(PaymentsListData, loadPayments);
   const columns = [
     {
       title: "Invoice ID",
@@ -136,6 +137,26 @@ const PaymentsComponent = () => {
             badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
+            headerExtra={
+              live ? (
+                <KalaoExportBar
+                  filename="paiements-kalao"
+                  headers={["Facture", "Client", "Montant", "Echeance", "Transaction"]}
+                  rows={data
+                    .filter((row: { key?: string }) => isLiveId(row.key))
+                    .map((row: any) => [
+                      row.InvoiceID,
+                      row.Client,
+                      row.Amount,
+                      row.Due_Date,
+                      row.TransactionID,
+                    ])}
+                  printHref={
+                    isLiveId(data[0]?.key) ? docHref("receipt", data[0].key) : null
+                  }
+                />
+              ) : null
+            }
           />
           {/* End Page Header */}
           {/* card start */}

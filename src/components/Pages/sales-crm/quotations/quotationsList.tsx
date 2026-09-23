@@ -17,6 +17,7 @@ import ModalQuotations from "./modal/modalQuotations";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { acceptQuote, fetchQuotes, toQuotationsListRow } from "@/lib/crm";
 import { docHref, isLiveId } from "@/lib/docs";
+import KalaoExportBar from "@/components/docs/KalaoExportBar";
 
 const QuotationsListComponent = () => {
   const route = all_routes;
@@ -24,7 +25,7 @@ const QuotationsListComponent = () => {
     const rows = await fetchQuotes();
     return rows ? rows.map(toQuotationsListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(QuotationsListData, loadQuotes);
+  const { rows: data, live, reload } = useLiveRows(QuotationsListData, loadQuotes);
   const [searchText, setSearchText] = useState<string>("");
 
   const handleSearch = (value: string) => {
@@ -158,6 +159,26 @@ const QuotationsListComponent = () => {
             showModuleTile={true}
             moduleTitle="Sales CRM"
             showExport={true}
+            headerExtra={
+              live ? (
+                <KalaoExportBar
+                  filename="devis-kalao"
+                  headers={["Devis", "Client", "Date", "Valide", "Montant"]}
+                  rows={data
+                    .filter((row: { key?: string }) => isLiveId(row.key))
+                    .map((row: any) => [
+                      row.quoteId,
+                      row.client,
+                      row.quoteDate,
+                      row.validTill,
+                      row.finalAmount,
+                    ])}
+                  printHref={
+                    isLiveId(data[0]?.key) ? docHref("quote", data[0].key) : null
+                  }
+                />
+              ) : null
+            }
           />
           {/* End Page Header */}
           {/* card start */}
