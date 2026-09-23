@@ -1672,7 +1672,7 @@ const ProjectDetailsComponent = () => {
                           </div>
                         </div>
                       ))}
-                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
+                      <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1739,7 +1739,7 @@ const ProjectDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
+                      <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1806,7 +1806,7 @@ const ProjectDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className={live ? "d-none" : "card border shadow-none mb-0"}>
+                      <div className="card border shadow-none mb-0">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
