@@ -97,6 +97,27 @@ export async function updateDossier(
   if (input.start_at !== undefined) patch.start_at = input.start_at || null;
   if (input.end_at !== undefined) patch.end_at = input.end_at || null;
   if (input.notes !== undefined) patch.notes = input.notes || null;
+  if (patch.status === "done") {
+    const { data: current, error: curErr } = await supabase
+      .from("dossiers")
+      .select("kind")
+      .eq("id", id)
+      .maybeSingle();
+    throwIf(curErr);
+    if (current?.kind === "visa") {
+      const { data: items, error: chkErr } = await supabase
+        .from("dossier_checklist")
+        .select("provided")
+        .eq("dossier_id", id);
+      throwIf(chkErr);
+      const pending = (items ?? []).filter((row) => !row.provided).length;
+      if (pending > 0) {
+        throw new Error(
+          `Pièces manquantes : ${pending} pièce(s) encore en attente. Le visa ne peut pas être marqué livré.`
+        );
+      }
+    }
+  }
   const { data, error } = await supabase
     .from("dossiers")
     .update(patch)

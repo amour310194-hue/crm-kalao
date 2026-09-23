@@ -1170,6 +1170,27 @@ export async function uploadAttachment(input: {
   return data as AttachmentRow;
 }
 
+export async function deleteAttachment(id: string) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error } = await supabase.from("attachments").select("*").eq("id", id).single();
+  throwIf(error);
+  const row = data as AttachmentRow;
+  const { error: storageErr } = await supabase.storage.from("attachments").remove([row.bucket_path]);
+  throwIf(storageErr);
+  const { error: delErr } = await supabase.from("attachments").delete().eq("id", id);
+  throwIf(delErr);
+}
+
+const VISA_CHECKLIST_LABELS = [
+  "Passeport en cours de validité",
+  "CNI recto / verso",
+  "Photos d'identité aux normes",
+  "Justificatif d'hébergement",
+  "Relevés bancaires 3 mois",
+  "Assurance voyage",
+];
+
 export async function resolveDepartmentIds(
   values: Array<string | undefined | null>,
   departments: DepartmentRow[]
@@ -1528,6 +1549,10 @@ export async function createDossier(input: {
       notes: "Échéance du dossier d'immigration",
       due_at: endAt || undefined,
     });
+    const { error: chkErr } = await supabase.from("dossier_checklist").insert(
+      VISA_CHECKLIST_LABELS.map((label) => ({ dossier_id: created.id, label }))
+    );
+    throwIf(chkErr);
   }
   return created;
 }

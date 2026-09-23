@@ -6,14 +6,14 @@ import PageHeader from "@/core/common/page-header/pageHeader";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { fetchAttachments, uploadAttachment } from "@/lib/crm";
+import { deleteAttachment, fetchAttachments, uploadAttachment } from "@/lib/crm";
 
 
 const FileManagerComponent = () => {
   const loadFiles = useCallback(async () => {
     return fetchAttachments("misc");
   }, []);
-  const { rows: liveFiles, reload } = useLiveRows([], loadFiles);
+  const { rows: liveFiles, live, reload } = useLiveRows([], loadFiles);
 
   const onUpload = async (file: File) => {
     try {
@@ -43,7 +43,7 @@ const FileManagerComponent = () => {
           {/* End Page Header */}
           <div className="d-flex align-items-center justify-content-between flex-wrap mb-2">
             <div className="mb-2">
-              <div className="dropdown">
+              <div className={live ? "d-none" : "dropdown"}>
                 <Link
                   href="#"
                   className="dropdown-toggle btn btn-sm btn-outline-white bg-white text-dark d-inline-flex align-items-center drop-arrow-none"
@@ -81,7 +81,7 @@ const FileManagerComponent = () => {
                 </ul>
               </div>
             </div>
-            <div className="mb-2">
+            <div className={live ? "d-none" : "mb-2"}>
               <Link
                 href="#"
                 data-bs-toggle="modal"
@@ -94,7 +94,7 @@ const FileManagerComponent = () => {
             </div>
           </div>
           {/* start row */}
-          <div className="row">
+          <div className={live ? "d-none" : "row"}>
             <div className="col-lg-3 col-md-6 d-flex">
               <div className="card flex-fill">
                 <div className="card-body">
@@ -348,7 +348,7 @@ const FileManagerComponent = () => {
               <div className="filemanager-left-sidebar">
                 <div className="card ">
                   <div className="card-body">
-                    <div className="mb-3">
+                    <div className={live ? "d-none" : "mb-3"}>
                       <div className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center overflow-hidden">
                           <span className="avatar flex-shrink-0">
@@ -401,7 +401,7 @@ const FileManagerComponent = () => {
                         ))}
                       </div>
                     ) : null}
-                    <div className="files-list nav d-block">
+                    <div className={live ? "d-none" : "files-list nav d-block"}>
                       <Link
                         href="javscript:void(0);"
                         className="d-flex align-items-center fw-medium p-2 active"
@@ -538,8 +538,41 @@ const FileManagerComponent = () => {
             {/* end col */}
             {/* End Sidebar */}
             <div className="col-xl-9">
+              {live ? (
+                <div className="border-bottom mb-3">
+                  <h6 className="mb-2">Files</h6>
+                  {liveFiles.length ? (
+                    liveFiles.map((file) => (
+                      <div className="rounded border mb-3" key={file.id}>
+                        <div className="bg-white d-flex align-items-center justify-content-between p-3 rounded">
+                          <h6 className="fw-medium mb-0">
+                            <a href={file.url} target="_blank" rel="noreferrer">
+                              {file.file_name}
+                            </a>
+                          </h6>
+                          <button
+                            type="button"
+                            className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                            onClick={() =>
+                              void deleteAttachment(file.id)
+                                .then(() => reload())
+                                .catch((err) =>
+                                  alert(err instanceof Error ? err.message : "Erreur")
+                                )
+                            }
+                          >
+                            <i className="ti ti-trash" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="mb-3">Aucun fichier.</p>
+                  )}
+                </div>
+              ) : null}
               {/* Start Quick Access */}
-              <div className="border-bottom mb-3">
+              <div className={live ? "d-none" : "border-bottom mb-3"}>
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <h6 className="mb-2">Quick Access</h6>
                   <div>
@@ -717,7 +750,7 @@ const FileManagerComponent = () => {
               </div>
               {/* End Quick Access */}
               {/* Start Recent Folders */}
-              <div className="border-bottom mb-3">
+              <div className={live ? "d-none" : "border-bottom mb-3"}>
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <h6 className="mb-2">Recent Folders</h6>
                   <div className="dropdown mb-2">
@@ -1109,7 +1142,7 @@ const FileManagerComponent = () => {
               </div>
               {/* End Recent Folders */}
               {/* Start Recent Files */}
-              <div className="border-bottom mb-3">
+              <div className={live ? "d-none" : "border-bottom mb-3"}>
                 <div className="d-flex align-items-center justify-content-between mb-2 table-header">
                   <h6 className="mb-2">
                     <Link
@@ -1428,7 +1461,7 @@ const FileManagerComponent = () => {
               </div>
               {/* End Recent Files */}
               {/* Start table list */}
-              <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div className={live ? "d-none" : "d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3"}>
                 <h6 className="mb-0">Files</h6>
                 <div className="d-flex align-items-center">
                   <div className="dropdown me-2">
@@ -1473,7 +1506,7 @@ const FileManagerComponent = () => {
                   </Link>
                 </div>
               </div>
-              <div className="table-responsive table-nowrap">
+              <div className={live ? "d-none" : "table-responsive table-nowrap"}>
                 {/* Start Table List*/}
                 <table className="table table-nowrap border">
                   <thead className="table-light">

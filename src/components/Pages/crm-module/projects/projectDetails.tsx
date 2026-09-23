@@ -14,6 +14,7 @@ import ModalProjectDetails from "./modal/modalProjectDetails";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import {
+  deleteAttachment,
   dossierFlag,
   fetchAttachments,
   fetchDossiers,
@@ -89,6 +90,7 @@ const ProjectDetailsComponent = () => {
   /** L'id vient de l'URL ; sans id on retombe sur le premier dossier chargé. */
   const currentId = dossier?.id ?? dossierId ?? null;
   const destination = dossier ? dossierFlag(dossier) : null;
+  const live = Boolean(dossier);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
 
   useEffect(() => {
@@ -222,18 +224,37 @@ const ProjectDetailsComponent = () => {
   const purchasesTotal = purchases.reduce((sum, row) => sum + Number(row.amount), 0);
   const checklistDone = checklist.filter((row) => row.provided).length;
 
+  const reloadFiles = useCallback(async (id: string | null) => {
+    if (!id) return;
+    const rows = await fetchAttachments("dossier", id);
+    if (rows) setFiles(rows);
+  }, []);
+
   useEffect(() => {
-    if (!dossierId) return;
-    void fetchAttachments("dossier", dossierId).then((rows) => {
-      if (rows) setFiles(rows);
-    });
-  }, [dossierId]);
+    void reloadFiles(currentId);
+  }, [currentId, reloadFiles]);
 
   const uploadToFiche = async (file: File) => {
-    if (!dossierId) return;
-    await uploadAttachment({ file, entity_type: "dossier", entity_id: dossierId });
-    const rows = await fetchAttachments("dossier", dossierId);
-    if (rows) setFiles(rows);
+    if (!currentId) return;
+    await uploadAttachment({ file, entity_type: "dossier", entity_id: currentId });
+    await reloadFiles(currentId);
+  };
+
+  const removeFile = async (id: string) => {
+    await deleteAttachment(id);
+    await reloadFiles(currentId);
+    await reloadSuivi(currentId);
+  };
+
+  const attachToChecklist = async (itemId: string, file: File) => {
+    if (!currentId) return;
+    const saved = await uploadAttachment({
+      file,
+      entity_type: "dossier",
+      entity_id: currentId,
+    });
+    await setChecklistProvided(itemId, true, saved.id);
+    await reloadFiles(currentId);
   };
 
   return (
@@ -1615,11 +1636,24 @@ const ProjectDetailsComponent = () => {
                                   <p>Pièce jointe liée au dossier.</p>
                                 </div>
                               </div>
+                              <div className="col-md-4 text-md-end">
+                                <div className="mb-3">
+                                  <button
+                                    type="button"
+                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                                    onClick={() =>
+                                      void guard(() => removeFile(file.id))
+                                    }
+                                  >
+                                    <i className="ti ti-trash" />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
-                      <div className="card border shadow-none mb-3">
+                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1686,7 +1720,7 @@ const ProjectDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="card border shadow-none mb-3">
+                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1753,7 +1787,7 @@ const ProjectDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="card border shadow-none mb-0">
+                      <div className={live ? "d-none" : "card border shadow-none mb-0"}>
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -2073,6 +2107,39 @@ const ProjectDetailsComponent = () => {
                               </label>
                             </div>
                             <div className="d-inline-flex align-items-center gap-2">
+                              {row.attachment_id
+                                ? (() => {
+                                    const attached = files.find((file) => file.id === row.attachment_id);
+                                    if (attached?.url) {
+                                      return (
+                                        <a
+                                          href={attached.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="fs-13"
+                                        >
+                                          {attached.file_name}
+                                        </a>
+                                      );
+                                    }
+                                    return attached ? (
+                                      <span className="fs-13">{attached.file_name}</span>
+                                    ) : null;
+                                  })()
+                                : null}
+                              <label className="action-icon btn btn-icon btn-sm btn-outline-light shadow mb-0">
+                                <i className="ti ti-upload" />
+                                <input
+                                  type="file"
+                                  className="d-none"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    e.target.value = "";
+                                    if (!file) return;
+                                    void guard(() => attachToChecklist(row.id, file));
+                                  }}
+                                />
+                              </label>
                               <span
                                 className={`badge ${row.provided ? "bg-success" : "badge-soft-warning border-0"}`}
                               >
