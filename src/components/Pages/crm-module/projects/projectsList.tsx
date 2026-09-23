@@ -42,7 +42,7 @@ const ProjectsListComponent = () => {
     const rows = await fetchDossiers(projectKindsFromQuery(kindParam));
     return rows ? rows.map(toProjectsListRow) : null;
   }, [kindParam]);
-  const { rows: data, reload } = useLiveRows(ProjectListData, loadDossiers);
+  const { rows: data, live, reload } = useLiveRows(ProjectListData, loadDossiers);
   const columns = [
     {
       title: "",
@@ -280,7 +280,7 @@ const ProjectsListComponent = () => {
                   <PredefinedDatePicker/>
                 </div>
                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                  <div className="dropdown">
+                  <div className={live ? "d-none" : "dropdown"}>
                     <Link
                       href="#"
                       className="btn btn-outline-light shadow px-2"

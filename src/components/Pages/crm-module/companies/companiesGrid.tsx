@@ -32,7 +32,7 @@ const CompaniesGridComponent = () => {
       {/* table header */}
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
         <div className="d-flex align-items-center gap-2 flex-wrap">
-          <div className="dropdown">
+          <div className={live ? "d-none" : "dropdown"}>
             <Link
               href="#"
               className="btn btn-outline-light shadow px-2"
@@ -620,7 +620,7 @@ const CompaniesGridComponent = () => {
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2 mb-3 border-bottom pb-3">
                     <div className="d-flex align-items-center">
                       <Link
-                        href={all_routes.companiesDetails}
+                        href={`${all_routes.companiesDetails}?id=${company.key}`}
                         className="avatar border rounded-circle flex-shrink-0 me-2"
                       >
                         <ImageWithBasePath
@@ -631,7 +631,7 @@ const CompaniesGridComponent = () => {
                       </Link>
                       <div>
                         <h6 className="fs-14">
-                          <Link href={all_routes.companiesDetails} className="fw-medium">
+                          <Link href={`${all_routes.companiesDetails}?id=${company.key}`} className="fw-medium">
                             {company.Name}
                           </Link>
                         </h6>

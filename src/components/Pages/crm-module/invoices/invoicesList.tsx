@@ -28,7 +28,7 @@ const InvoicesListComponent = () => {
     const rows = await fetchInvoices();
     return rows ? rows.map(toInvoicesListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(InvoicesListData, loadInvoices);
+  const { rows: data, live, reload } = useLiveRows(InvoicesListData, loadInvoices);
   const columns = [
     {
       title: "Invoice ID",
@@ -289,7 +289,7 @@ const InvoicesListComponent = () => {
                       </ul>
                     </div>
                   </div>
-                  <div className="dropdown">
+                  <div className={live ? "d-none" : "dropdown"}>
                     <Link
                       href="#"
                       className="btn btn-outline-light shadow px-2"

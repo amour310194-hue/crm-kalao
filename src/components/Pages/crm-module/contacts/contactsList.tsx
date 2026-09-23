@@ -29,7 +29,7 @@ const ContactsListComponent = () => {
     const rows = await fetchContacts();
     return rows ? rows.map(toContactsListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(ContactsListData, loadContacts);
+  const { rows: data, live, reload } = useLiveRows(ContactsListData, loadContacts);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const columns = [
     {
@@ -273,7 +273,7 @@ const ContactsListComponent = () => {
                   <PredefinedDatePicker/>
                 </div>
                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                  <div className="dropdown">
+                  <div className={live ? "d-none" : "dropdown"}>
                     <Link
                       href="#"
                       className="btn btn-outline-light shadow px-2"

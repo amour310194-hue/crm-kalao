@@ -35,7 +35,7 @@ const InvoicesGrid = () => {
           {/* table header */}
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div className="d-flex align-items-center gap-2 flex-wrap">
-              <div className="dropdown">
+              <div className={live ? "d-none" : "dropdown"}>
                 <Link
                   href="#"
                   className="btn btn-outline-light shadow px-2"

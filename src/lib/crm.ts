@@ -1313,6 +1313,21 @@ export function dossierFlag(row: {
   return findDestination(row.title, row.notes);
 }
 
+/** Délai de traitement par destination, en mois. */
+export function destinationDeadlineMonths(...texts: (string | null | undefined)[]): number | null {
+  const dest = findDestination(...texts);
+  if (dest?.label === "Russie") return 4;
+  if (dest?.label === "Allemagne") return 6;
+  if (dest?.label === "Canada") return 8;
+  return null;
+}
+
+function addCalendarMonths(isoDate: string, months: number): string {
+  const date = new Date(`${isoDate}T00:00:00`);
+  date.setMonth(date.getMonth() + months);
+  return date.toISOString().slice(0, 10);
+}
+
 function companyImageName(row: CompanyRow, index: number): string {
   const v = `${row.industry ?? ""} ${row.name ?? ""}`.toLowerCase();
   if (v.includes("plant") || v.includes("cacao") || v.includes("agro")) return "kalao-plantation.jpg";
@@ -1429,6 +1444,12 @@ export async function createDossier(input: {
       }
     }
   }
+  const startAt = input.start_at || new Date().toISOString().slice(0, 10);
+  let endAt = input.end_at || null;
+  if (!endAt) {
+    const months = destinationDeadlineMonths(input.title, catalogItem?.name);
+    if (months) endAt = addCalendarMonths(startAt, months);
+  }
   /** Le client est une personne : on rattache son contact pour que son nom suive le dossier. */
   let contactId: string | null = null;
   if (companyId) {
@@ -1449,8 +1470,8 @@ export async function createDossier(input: {
       notes: input.notes || null,
       quote_id: quoteId,
       status: "plan",
-      start_at: input.start_at || null,
-      end_at: input.end_at || null,
+      start_at: startAt,
+      end_at: endAt,
     })
     .select("*")
     .single();
@@ -1495,7 +1516,7 @@ export async function createDossier(input: {
         dossier_id: created.id,
         project: `${input.title} - solde à la livraison`,
         amount: balance,
-        due_date: input.end_at || null,
+        due_date: endAt,
       });
     }
   }
@@ -1505,7 +1526,7 @@ export async function createDossier(input: {
       subject: `Échéance ${input.title}`,
       company_id: companyId,
       notes: "Échéance du dossier d'immigration",
-      due_at: input.end_at || undefined,
+      due_at: endAt || undefined,
     });
   }
   return created;

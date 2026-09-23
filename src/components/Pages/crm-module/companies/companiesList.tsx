@@ -28,7 +28,7 @@ const CompaniesListComponent = () => {
     const rows = await fetchCompanies();
     return rows ? rows.map(toCompaniesListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(CompaniesListData, loadCompanies);
+  const { rows: data, live, reload } = useLiveRows(CompaniesListData, loadCompanies);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const columns = [
     {
@@ -52,7 +52,7 @@ const CompaniesListComponent = () => {
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
           <Link
-            href={all_routes.companyDetails}
+            href={`${all_routes.companyDetails}?id=${render.key}`}
             className="avatar avatar-sm border rounded-circle p-1 me-2"
           >
             <ImageWithBasePath
@@ -62,7 +62,7 @@ const CompaniesListComponent = () => {
             />
           </Link>
           <Link
-            href={all_routes.companyDetails}
+            href={`${all_routes.companyDetails}?id=${render.key}`}
             className="d-flex flex-column fw-medium"
           >
             {text}
@@ -266,7 +266,7 @@ const CompaniesListComponent = () => {
                   <PredefinedDatePicker/>
                 </div>
                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                  <div className="dropdown">
+                  <div className={live ? "d-none" : "dropdown"}>
                     <Link
                       href="#"
                       className="btn btn-outline-light shadow px-2"

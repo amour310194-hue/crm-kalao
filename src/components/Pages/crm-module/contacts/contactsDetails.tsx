@@ -13,10 +13,14 @@ import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import {
+  dossierFlag,
   fetchAttachments,
   fetchContacts,
-  uploadAttachment,
+  fetchDossiers,
   type AttachmentRow,
+  type ContactRow,
+  type DossierRow,
+  uploadAttachment,
 } from "@/lib/crm";
 
 
@@ -26,20 +30,30 @@ const ContactsDetailsComponent = () => {
       ? new URLSearchParams(window.location.search).get("id")
       : null;
   const [contactName, setContactName] = useState("Contact");
+  const [contact, setContact] = useState<ContactRow | null>(null);
+  const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [files, setFiles] = useState<AttachmentRow[]>([]);
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
 
   useEffect(() => {
-    void fetchContacts().then((rows) => {
+    void Promise.all([fetchContacts(), fetchDossiers()]).then(([rows, dos]) => {
       if (!rows?.length) return;
       const row = rows.find((c) => c.id === contactId) ?? rows[0];
+      setContact(row);
       setContactName(`${row.first_name} ${row.last_name}`.trim());
       const place = [row.companies?.city, row.companies?.country]
         .filter(Boolean)
         .join(", ");
       if (place) setLocationLabel(place);
+      setDossiers(
+        (dos ?? []).filter(
+          (d) => d.contact_id === row.id || d.company_id === row.company_id
+        )
+      );
     });
   }, [contactId]);
+
+  const live = Boolean(contact);
 
   useEffect(() => {
     const entityId = contactId;
@@ -70,7 +84,9 @@ const ContactsDetailsComponent = () => {
             <div>
               <h4 className="mb-1">
                 Contacts
-                <span className="badge badge-soft-primary ms-2">125</span>
+                {live ? null : (
+                  <span className="badge badge-soft-primary ms-2">125</span>
+                )}
               </h4>
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0 p-0">
@@ -155,8 +171,13 @@ const ContactsDetailsComponent = () => {
                       </div>
                       <div>
                         <h5 className="mb-1">{contactName}</h5>
-                        <p className="mb-2">Facility Manager, Global INC</p>
-                        <div className="d-flex align-items-center">
+                        <p className={live ? "d-none" : "mb-2"}>
+                          Facility Manager, Global INC
+                        </p>
+                        <p className={live ? "mb-2" : "d-none"}>
+                          {contact?.companies?.name ?? contact?.job_title ?? "—"}
+                        </p>
+                        <div className={live ? "d-none" : "d-flex align-items-center"}>
                           <span className="badge badge-soft-danger border-0 me-2">
                             <i className="ti ti-lock me-1" />
                             Private
@@ -168,7 +189,7 @@ const ContactsDetailsComponent = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="d-flex align-items-center flex-wrap gap-2">
+                    <div className={live ? "d-none" : "d-flex align-items-center flex-wrap gap-2"}>
                       <Link
                         href="#"
                         className="avatar avatar-sm border shadow text-dark"
@@ -244,13 +265,17 @@ const ContactsDetailsComponent = () => {
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
                         <i className="ti ti-mail fs-14" />
                       </span>
-                      <p className="mb-0">darleeo@example.com</p>
+                      <p className="mb-0">
+                        {live ? contact?.email || "—" : "darleeo@example.com"}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center mb-2">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
                         <i className="ti ti-phone fs-14" />
                       </span>
-                      <p className="mb-0">+1 12445-47878</p>
+                      <p className="mb-0">
+                        {live ? contact?.phone || "—" : "+1 12445-47878"}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center mb-3">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
@@ -258,15 +283,15 @@ const ContactsDetailsComponent = () => {
                       </span>
                       <p className="mb-0">{locationLabel}</p>
                     </div>
-                    <div className="d-flex align-items-center">
+                    <div className={live ? "d-none" : "d-flex align-items-center"}>
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
                         <i className="ti ti-calendar-exclamation fs-14" />
                       </span>
                       <p className="mb-0">Created on 27 Sep 2025, 11:45 PM</p>
                     </div>
                   </div>
-                  <h6 className="mb-3 fw-semibold">Other Information</h6>
-                  <ul className="border-bottom mb-3 pb-3">
+                  <h6 className={live ? "d-none" : "mb-3 fw-semibold"}>Other Information</h6>
+                  <ul className={live ? "d-none" : "border-bottom mb-3 pb-3"}>
                     <li className="row mb-2">
                       <span className="col-6">Language</span>
                       <span className="col-6 text-dark">English</span>
@@ -288,8 +313,8 @@ const ContactsDetailsComponent = () => {
                       <span className="col-6 text-dark">Paid Campaign</span>
                     </li>
                   </ul>
-                  <h6 className="mb-3 fw-semibold">Tags</h6>
-                  <div className="border-bottom mb-3 pb-3">
+                  <h6 className={live ? "d-none" : "mb-3 fw-semibold"}>Tags</h6>
+                  <div className={live ? "d-none" : "border-bottom mb-3 pb-3"}>
                     <Link
                       href="#"
                       className="badge badge-soft-success fw-medium me-2"
@@ -303,7 +328,76 @@ const ContactsDetailsComponent = () => {
                       Rated
                     </Link>
                   </div>
-                  <div className="d-flex align-items-center justify-content-between flex-wrap">
+                  <div className={live ? "d-flex align-items-center justify-content-between flex-wrap" : "d-none"}>
+                    <h6 className="mb-3 fw-semibold">Client</h6>
+                  </div>
+                  <div className={live ? "mb-3" : "d-none"}>
+                    <div className="d-flex align-items-center">
+                      <span className="avatar avatar-lg rounded me-2 border">
+                        <ImageWithBasePath
+                          src="assets/img/icons/company-icon-01.svg"
+                          alt=""
+                          className="img-fluid w-auto h-auto"
+                        />
+                      </span>
+                      <div>
+                        <h6 className="fw-medium mb-1">
+                          {contact?.company_id ? (
+                            <Link
+                              href={`${all_routes.companyDetails}?id=${contact.company_id}`}
+                            >
+                              {contact.companies?.name ?? "—"}
+                            </Link>
+                          ) : (
+                            contact?.companies?.name ?? "—"
+                          )}
+                        </h6>
+                      </div>
+                    </div>
+                  </div>
+                  <h6 className={live ? "mb-3 fw-semibold" : "d-none"}>Dossier</h6>
+                  <div className={live ? "mb-3" : "d-none"}>
+                    {dossiers.length ? (
+                      dossiers.map((dossier) => {
+                        const destination = dossierFlag(dossier);
+                        return (
+                          <div
+                            key={dossier.id}
+                            className="d-flex align-items-center mb-2"
+                          >
+                            <Link
+                              href={`${all_routes.projectDetails}?id=${dossier.id}`}
+                              className="avatar border rounded-circle me-2"
+                            >
+                              <ImageWithBasePath
+                                src={
+                                  destination?.src ??
+                                  "assets/img/projects/kalao-visa.jpg"
+                                }
+                                alt={destination?.label ?? dossier.title}
+                                className="w-auto h-auto"
+                              />
+                            </Link>
+                            <div>
+                              <h6 className="fw-medium mb-0">
+                                <Link
+                                  href={`${all_routes.projectDetails}?id=${dossier.id}`}
+                                >
+                                  {dossier.title}
+                                </Link>
+                              </h6>
+                              <p className="mb-0">
+                                {destination?.label ?? dossier.kind}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="mb-0 text-muted">Aucun dossier.</p>
+                    )}
+                  </div>
+                  <div className={live ? "d-none" : "d-flex align-items-center justify-content-between flex-wrap"}>
                     <h6 className="mb-3 fw-semibold">Company</h6>
                     <Link
                       href="#"
@@ -315,7 +409,7 @@ const ContactsDetailsComponent = () => {
                       Add New
                     </Link>
                   </div>
-                  <div className="mb-3">
+                  <div className={live ? "d-none" : "mb-3"}>
                     <div className="d-flex align-items-center">
                       <span className="avatar avatar-lg rounded me-2 border">
                         <ImageWithBasePath
@@ -333,9 +427,9 @@ const ContactsDetailsComponent = () => {
                       </div>
                     </div>
                   </div>
-                  <hr />
-                  <h6 className="mb-3 fw-semibold">Social Profile</h6>
-                  <ul className="d-flex align-items-center">
+                  <hr className={live ? "d-none" : ""} />
+                  <h6 className={live ? "d-none" : "mb-3 fw-semibold"}>Social Profile</h6>
+                  <ul className={live ? "d-none" : "d-flex align-items-center"}>
                     <li>
                       <Link
                         href="#"
@@ -385,9 +479,9 @@ const ContactsDetailsComponent = () => {
                       </Link>
                     </li>
                   </ul>
-                  <hr />
-                  <h6 className="mb-3 fw-semibold">Settings</h6>
-                  <div className="mb-0">
+                  <hr className={live ? "d-none" : ""} />
+                  <h6 className={live ? "d-none" : "mb-3 fw-semibold"}>Settings</h6>
+                  <div className={live ? "d-none" : "mb-0"}>
                     <Link href="#" className="d-block mb-2">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
                         <i className="ti ti-share-2" />
@@ -417,7 +511,7 @@ const ContactsDetailsComponent = () => {
             </div>
             {/* /Contact Sidebar */}
             {/* Contact Details */}
-            <div className="col-xl-9">
+            <div className={live ? "d-none" : "col-xl-9"}>
               <div className="card mb-3">
                 <div className="card-body pb-0 pt-2">
                   <ul className="nav nav-tabs nav-bordered mb-3" role="tablist">
