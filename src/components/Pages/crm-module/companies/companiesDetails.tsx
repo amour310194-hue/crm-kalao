@@ -14,13 +14,17 @@ import Footer from "@/core/common/footer/footer";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import {
+  deleteAttachment,
   fetchActivities,
+  fetchAttachments,
   fetchCompanies,
   fetchContacts,
   fetchDossiers,
   fetchInvoices,
   formatMoney,
+  uploadAttachment,
   type ActivityRow,
+  type AttachmentRow,
   type CompanyRow,
   type ContactRow,
   type DossierRow,
@@ -42,6 +46,7 @@ const CompaniesDetailsComponent = () => {
   const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [activities, setActivities] = useState<ActivityRow[]>([]);
+  const [files, setFiles] = useState<AttachmentRow[]>([]);
 
   useEffect(() => {
     const id =
@@ -69,6 +74,27 @@ const CompaniesDetailsComponent = () => {
 
   const live = Boolean(company);
   const primaryDossier = dossiers[0] ?? null;
+
+  useEffect(() => {
+    if (!company?.id) return;
+    void fetchAttachments("company", company.id).then((rows) => {
+      if (rows) setFiles(rows);
+    });
+  }, [company?.id]);
+
+  const uploadToFiche = async (file: File) => {
+    if (!company?.id) return;
+    await uploadAttachment({ file, entity_type: "company", entity_id: company.id });
+    const rows = await fetchAttachments("company", company.id);
+    if (rows) setFiles(rows);
+  };
+
+  const removeFile = async (id: string) => {
+    await deleteAttachment(id);
+    if (!company?.id) return;
+    const rows = await fetchAttachments("company", company.id);
+    if (rows) setFiles(rows);
+  };
   const billed = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
   const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
   const outstanding = invoices
@@ -1421,19 +1447,65 @@ const CompaniesDetailsComponent = () => {
                             </div>
                             <div className="col-md-4 text-md-end">
                               <div className="mb-3">
-                                <Link
-                                  href="#"
-                                  className="btn btn-primary"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#new_file"
-                                >
+                                <label className="btn btn-primary mb-0">
                                   Create Document
-                                </Link>
+                                  <input
+                                    type="file"
+                                    className="d-none"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      try {
+                                        await uploadToFiche(file);
+                                      } catch (err) {
+                                        alert(
+                                          err instanceof Error
+                                            ? err.message
+                                            : "Erreur"
+                                        );
+                                      }
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                </label>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
+                      {files.map((file) => (
+                        <div className="card border shadow-none mb-3" key={file.id}>
+                          <div className="card-body pb-0">
+                            <div className="row align-items-center">
+                              <div className="col-md-8">
+                                <div className="mb-3">
+                                  <h6 className="fw-semibold fs-14 mb-1">
+                                    <a href={file.url} target="_blank" rel="noreferrer">
+                                      {file.file_name}
+                                    </a>
+                                  </h6>
+                                  <p>Pièce jointe liée à la fiche.</p>
+                                </div>
+                              </div>
+                              <div className="col-md-4 text-md-end">
+                                <div className="mb-3">
+                                  <button
+                                    type="button"
+                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                                    onClick={() =>
+                                      void removeFile(file.id).catch((err) =>
+                                        alert(err instanceof Error ? err.message : "Erreur")
+                                      )
+                                    }
+                                  >
+                                    <i className="ti ti-trash" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                       <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">

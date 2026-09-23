@@ -13,6 +13,7 @@ import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import {
+  deleteAttachment,
   dossierFlag,
   fetchActivities,
   fetchAttachments,
@@ -86,6 +87,14 @@ const ContactsDetailsComponent = () => {
     const entityId = contactId;
     if (!entityId) return;
     await uploadAttachment({ file, entity_type: "contact", entity_id: entityId });
+    const rows = await fetchAttachments("contact", entityId);
+    if (rows) setFiles(rows);
+  };
+
+  const removeFile = async (id: string) => {
+    await deleteAttachment(id);
+    const entityId = contactId;
+    if (!entityId) return;
     const rows = await fetchAttachments("contact", entityId);
     if (rows) setFiles(rows);
   };
@@ -1577,14 +1586,26 @@ const ContactsDetailsComponent = () => {
                                   <p>Pièce jointe liée à la fiche.</p>
                                 </div>
                               </div>
+                              <div className="col-md-4 text-md-end">
+                                <div className="mb-3">
+                                  <button
+                                    type="button"
+                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                                    onClick={() =>
+                                      void removeFile(file.id).catch((err) =>
+                                        alert(err instanceof Error ? err.message : "Erreur")
+                                      )
+                                    }
+                                  >
+                                    <i className="ti ti-trash" />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
-                      {live && !files.length ? (
-                        <p className="mb-3 text-muted">Aucune pièce jointe.</p>
-                      ) : null}
-                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
+                      <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1651,7 +1672,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className={live ? "d-none" : "card border shadow-none mb-3"}>
+                      <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
@@ -1718,7 +1739,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className={live ? "d-none" : "card border shadow-none mb-0"}>
+                      <div className="card border shadow-none mb-0">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
                             <div className="col-md-8">
