@@ -1352,7 +1352,7 @@ export function toStaffListRow(row: EmployeeRow, index: number) {
     Phone: row.phone ?? "—",
     LocationFlag: "assets/img/flags/cm.svg",
     LocationName: "Douala",
-    Status: row.status === "active" ? "Active" : "Inactive",
+    Status: (row.status === "active" ? "Active" : "Inactive") as "Active" | "Inactive",
   };
 }
 

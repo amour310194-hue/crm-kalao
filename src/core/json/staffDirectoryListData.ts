@@ -22,6 +22,7 @@ export interface StaffDirectoryData {
   Department: string;
   DepartmentTone: string;
   Email: string;
+  HasAccount?: boolean;
   Phone: string;
   LocationFlag: string;
   LocationName: string;
