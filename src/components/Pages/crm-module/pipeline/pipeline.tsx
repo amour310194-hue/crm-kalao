@@ -133,7 +133,7 @@ const PipelineComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Pipeline"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
           />

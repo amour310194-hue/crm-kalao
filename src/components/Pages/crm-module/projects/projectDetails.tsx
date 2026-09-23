@@ -17,7 +17,10 @@ import {
   dossierFlag,
   fetchAttachments,
   fetchDossiers,
+  fetchInvoicesForDossier,
   formatDate,
+  isDossierClosed,
+  type InvoiceRow,
   formatMoney,
   readForm,
   uploadAttachment,
@@ -57,6 +60,7 @@ const STATUS_LABEL: Record<string, string> = {
   design: "Design",
   develop: "Development",
   done: "Completed",
+  cancelled: "Annulé",
 };
 
 const ProjectDetailsComponent = () => {
@@ -85,6 +89,20 @@ const ProjectDetailsComponent = () => {
   /** L'id vient de l'URL ; sans id on retombe sur le premier dossier chargé. */
   const currentId = dossier?.id ?? dossierId ?? null;
   const destination = dossier ? dossierFlag(dossier) : null;
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+
+  useEffect(() => {
+    if (!currentId) return;
+    void fetchInvoicesForDossier(currentId).then((rows) => {
+      if (rows) setInvoices(rows);
+    });
+  }, [currentId]);
+
+  const billed = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
+  const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
+  const outstanding = invoices
+    .filter((i) => i.status !== "paid")
+    .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
 
   const reloadSuivi = useCallback(async (id: string | null) => {
     if (!id) return;
@@ -229,7 +247,7 @@ const ProjectDetailsComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Project"
-            badgeCount={125}
+            badgeCount={null}
             showModuleTile={false}
             showExport={true}
           />
@@ -262,16 +280,28 @@ const ProjectDetailsComponent = () => {
                         <div className="d-flex align-items-center">
                           <span className="badge badge-sm badge-soft-danger fw-medium me-2 border-0">
                             <i className="ti ti-arrow-up-right me-1" />
-                            High
+                            {destination?.label ?? "High"}
                           </span>
-                          <span className="badge badge-sm bg-success">
-                            Active
+                          <span
+                            className={`badge badge-sm ${
+                              dossier && isDossierClosed(dossier.status)
+                                ? "bg-secondary"
+                                : "bg-success"
+                            }`}
+                          >
+                            {dossier && isDossierClosed(dossier.status)
+                              ? "Clôturé"
+                              : "Active"}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="d-flex align-items-center flex-wrap gap-2">
-                      <span className="py-1 px-2 fs-12 bg-soft-danger rounded text-danger fw-medium">
+                      <span
+                        className={`py-1 px-2 fs-12 bg-soft-danger rounded text-danger fw-medium${
+                          dossier ? " d-none" : ""
+                        }`}
+                      >
                         <i className="ti ti-lock me-1" />
                         Private
                       </span>
@@ -361,14 +391,36 @@ const ProjectDetailsComponent = () => {
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <p className="mb-0">Project Type</p>
                       <p className="mb-0 text-dark">
-                        {dossier
-                          ? KIND_LABEL[dossier.kind] ?? dossier.kind
-                          : "Mobile Application"}
+                        {destination
+                          ? `Immigration ${destination.label}`
+                          : dossier
+                            ? KIND_LABEL[dossier.kind] ?? dossier.kind
+                            : "Mobile Application"}
                       </p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <p className="mb-0">Project Timing</p>
-                      <p className="mb-0 text-dark">Hourly</p>
+                      <p className="mb-0">{dossier ? "Facturé" : "Project Timing"}</p>
+                      <p className="mb-0 text-dark">
+                        {dossier ? formatMoney(billed) : "Hourly"}
+                      </p>
+                    </div>
+                    <div
+                      className={`d-flex align-items-center justify-content-between mb-2${
+                        dossier ? "" : " d-none"
+                      }`}
+                    >
+                      <p className="mb-0">Encaissé</p>
+                      <p className="mb-0 text-success">{formatMoney(collected)}</p>
+                    </div>
+                    <div
+                      className={`d-flex align-items-center justify-content-between mb-2${
+                        dossier ? "" : " d-none"
+                      }`}
+                    >
+                      <p className="mb-0">Reste à encaisser</p>
+                      <p className="mb-0 text-danger fw-medium">
+                        {formatMoney(outstanding)}
+                      </p>
                     </div>
                   </div>
                   <div className="d-flex align-items-center justify-content-between flex-wrap">
@@ -388,11 +440,17 @@ const ProjectDetailsComponent = () => {
                         />
                       </span>
                       <div>
-                        <p className="mb-0">Jessica Sen</p>
+                        <p className="mb-0">
+                          {dossier?.companies?.name ?? "Jessica Sen"}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  <div className="d-flex align-items-center justify-content-between flex-wrap">
+                  <div
+                    className={`d-flex align-items-center justify-content-between flex-wrap${
+                      dossier ? " d-none" : ""
+                    }`}
+                  >
                     <h6 className="mb-3 fw-semibold">Responsible Persons</h6>
                     <Link
                       href="#"
@@ -404,7 +462,7 @@ const ProjectDetailsComponent = () => {
                       Add New
                     </Link>
                   </div>
-                  <div className="mb-3">
+                  <div className={`mb-3${dossier ? " d-none" : ""}`}>
                     <div className="avatar-list-stacked avatar-group-sm">
                       <span className="avatar avatar-rounded">
                         <ImageWithBasePath
@@ -449,13 +507,17 @@ const ProjectDetailsComponent = () => {
                       </Link>
                     </div>
                   </div>
-                  <div className="d-flex align-items-center justify-content-between flex-wrap">
+                  <div
+                    className={`d-flex align-items-center justify-content-between flex-wrap${
+                      dossier ? " d-none" : ""
+                    }`}
+                  >
                     <h6 className="mb-3 fw-semibold">Team Leader</h6>
                     <Link href="#" className="link-primary mb-3">
                       Change
                     </Link>
                   </div>
-                  <div className="mb-3">
+                  <div className={`mb-3${dossier ? " d-none" : ""}`}>
                     <div className="d-flex align-items-center">
                       <span className="avatar avatar-xs rounded-circle me-2">
                         <ImageWithBasePath
@@ -474,15 +536,23 @@ const ProjectDetailsComponent = () => {
                     <h6 className="mb-0 fw-semibold">Pipeline</h6>
                     <p className="mb-0 fw-medium text-dark">
                       <i className="ti ti-timeline-event-text me-1" />
-                      Marketing Pipeline
+                      {dossier
+                        ? STATUS_LABEL[dossier.status] ?? dossier.status
+                        : "Marketing Pipeline"}
                     </p>
                   </div>
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <p className="mb-0">Last Modified </p>
-                    <p className="mb-0 text-dark"> 27 Sep 2025, 11:45 PM</p>
+                    <p className="mb-0 text-dark">
+                      {dossier ? formatDate(dossier.updated_at) : " 27 Sep 2025, 11:45 PM"}
+                    </p>
                   </div>
-                  <hr />
-                  <div className="d-flex align-items-center justify-content-between mb-0">
+                  <hr className={dossier ? "d-none" : ""} />
+                  <div
+                    className={`d-flex align-items-center justify-content-between mb-0${
+                      dossier ? " d-none" : ""
+                    }`}
+                  >
                     <p className="mb-0">Modified By</p>
                     <div className="d-flex align-items-center">
                       <span className="avatar avatar-xs rounded-circle me-2">

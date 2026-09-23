@@ -46,7 +46,10 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
       <div>
         <h4 className="mb-1">
           {title}
-          <span className="badge badge-soft-primary ms-2">{badgeCount}</span>
+          {/* Pas de compteur quand la page n'en a pas : un badge vide ferait tache. */}
+          {badgeCount ? (
+            <span className="badge badge-soft-primary ms-2">{badgeCount}</span>
+          ) : null}
         </h4>
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb mb-0 p-0">

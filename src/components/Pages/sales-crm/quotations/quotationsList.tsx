@@ -152,7 +152,7 @@ const QuotationsListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Quotations"
-            badgeCount={150}
+            badgeCount={data.length}
             showModuleTile={true}
             moduleTitle="Sales CRM"
             showExport={true}

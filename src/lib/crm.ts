@@ -172,7 +172,9 @@ export interface InvoiceRow {
   id: string;
   number: string | null;
   company_id: string | null;
+  contact_id: string | null;
   quote_id: string | null;
+  dossier_id: string | null;
   project: string | null;
   due_date: string | null;
   amount: number;
@@ -732,6 +734,19 @@ export function toQuotationsListRow(row: QuoteRow) {
   };
 }
 
+/** Factures d'un dossier, pour afficher facturé / encaissé / reste sur sa fiche. */
+export async function fetchInvoicesForDossier(dossierId: string): Promise<InvoiceRow[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("*, companies(name)")
+    .eq("dossier_id", dossierId)
+    .order("created_at", { ascending: true });
+  throwIf(error);
+  return (data ?? []) as InvoiceRow[];
+}
+
 export async function fetchInvoices(): Promise<InvoiceRow[] | null> {
   const supabase = db();
   if (!supabase) return null;
@@ -745,6 +760,8 @@ export async function fetchInvoices(): Promise<InvoiceRow[] | null> {
 
 export async function createInvoice(input: {
   company_id?: string | null;
+  contact_id?: string | null;
+  dossier_id?: string | null;
   project?: string | null;
   amount: number;
   due_date?: string | null;
@@ -756,6 +773,8 @@ export async function createInvoice(input: {
     .insert({
       number: docNumber("INV"),
       company_id: input.company_id || null,
+      contact_id: input.contact_id || null,
+      dossier_id: input.dossier_id || null,
       project: input.project || null,
       amount: input.amount,
       paid_amount: 0,
@@ -1194,6 +1213,7 @@ export interface DossierRow {
   end_at: string | null;
   notes: string | null;
   quote_id: string | null;
+  updated_at?: string | null;
   companies?: { name: string | null } | null;
   dossier_members?: { employee_id: string; employees?: { full_name: string } | null }[];
 }
@@ -1370,6 +1390,8 @@ export async function createDossier(input: {
   quote_id?: string | null;
   start_at?: string | null;
   end_at?: string | null;
+  /** Avance encaissée au démarrage : le solde est facturé automatiquement. */
+  advance?: number | null;
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -1377,9 +1399,11 @@ export async function createDossier(input: {
   const companyId = emptyUuid(input.company_id);
   let quoteId = emptyUuid(input.quote_id);
   const catalogId = emptyUuid(input.catalog_item_id);
+  const catalogItem = catalogId
+    ? ((await fetchCatalogItems()) ?? []).find((c) => c.id === catalogId) ?? null
+    : null;
   if (!quoteId && catalogId) {
-    const catalog = (await fetchCatalogItems()) ?? [];
-    const item = catalog.find((c) => c.id === catalogId);
+    const item = catalogItem;
     if (item) {
       const quote = await createQuote({
         company_id: companyId,
@@ -1405,12 +1429,23 @@ export async function createDossier(input: {
       }
     }
   }
+  /** Le client est une personne : on rattache son contact pour que son nom suive le dossier. */
+  let contactId: string | null = null;
+  if (companyId) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("id")
+      .eq("company_id", companyId)
+      .limit(1);
+    contactId = contactRows?.[0]?.id ?? null;
+  }
   const { data, error } = await supabase
     .from("dossiers")
     .insert({
       title: input.title,
       kind,
       company_id: companyId,
+      contact_id: contactId,
       notes: input.notes || null,
       quote_id: quoteId,
       status: "plan",
@@ -1435,12 +1470,41 @@ export async function createDossier(input: {
       qty: 1,
     });
   }
+  // Prestation vendue : l'avance est facturée et encaissée, le solde est facturé
+  // sans être encaissé. Le déclencheur payments_refresh tient les statuts à jour.
+  const total = Number(catalogItem?.unit_price ?? 0);
+  if (total > 0) {
+    const advance = Math.min(Math.max(Number(input.advance ?? 0), 0), total);
+    const today = new Date().toISOString().slice(0, 10);
+    if (advance > 0) {
+      const invoice = await createInvoice({
+        company_id: companyId,
+        contact_id: contactId,
+        dossier_id: created.id,
+        project: `${input.title} - avance de démarrage`,
+        amount: advance,
+        due_date: today,
+      });
+      await recordPayment({ invoice_id: invoice.id, amount: advance });
+    }
+    const balance = total - advance;
+    if (balance > 0) {
+      await createInvoice({
+        company_id: companyId,
+        contact_id: contactId,
+        dossier_id: created.id,
+        project: `${input.title} - solde à la livraison`,
+        amount: balance,
+        due_date: input.end_at || null,
+      });
+    }
+  }
   if (kind === "visa") {
     await createActivity({
       type: "task",
-      subject: `Echeance ${input.title}`,
+      subject: `Échéance ${input.title}`,
       company_id: companyId,
-      notes: "Dossier visa V2",
+      notes: "Échéance du dossier d'immigration",
       due_at: input.end_at || undefined,
     });
   }

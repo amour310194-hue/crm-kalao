@@ -14,6 +14,12 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 
+/**
+ * Aucune source de notifications n'existe encore côté base : les quatre entrées
+ * du template sont masquées pour ne pas afficher une activité inventée. À passer
+ * à true le jour où les notifications sont alimentées.
+ */
+const HAS_NOTIFICATIONS = false;
 
 const Header = () => {
 
@@ -297,7 +303,9 @@ const Header = () => {
                   aria-expanded="false"
                 >
                   <i className="ti ti-bell-check fs-16 animate-ring" />
-                  <span className="badge rounded-pill">10</span>
+                  <span className={`badge rounded-pill${HAS_NOTIFICATIONS ? "" : " d-none"}`}>
+                    10
+                  </span>
                 </button>
                 <div
                   className="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg"
@@ -318,9 +326,18 @@ const Header = () => {
                     className="notification-body position-relative z-2 rounded-0"
                     data-simplebar=""
                   >
+                    <p
+                      className={`text-center text-muted py-4 mb-0${
+                        HAS_NOTIFICATIONS ? " d-none" : ""
+                      }`}
+                    >
+                      Aucune notification pour le moment.
+                    </p>
                     {/* Item*/}
                     <div
-                      className="dropdown-item notification-item py-3 text-wrap border-bottom"
+                      className={`dropdown-item notification-item py-3 text-wrap border-bottom${
+                        HAS_NOTIFICATIONS ? "" : " d-none"
+                      }`}
                       id="notification-1"
                     >
                       <div className="d-flex">
@@ -365,7 +382,9 @@ const Header = () => {
                     </div>
                     {/* Item*/}
                     <div
-                      className="dropdown-item notification-item py-3 text-wrap border-bottom"
+                      className={`dropdown-item notification-item py-3 text-wrap border-bottom${
+                        HAS_NOTIFICATIONS ? "" : " d-none"
+                      }`}
                       id="notification-2"
                     >
                       <div className="d-flex">
@@ -411,7 +430,9 @@ const Header = () => {
                     </div>
                     {/* Item*/}
                     <div
-                      className="dropdown-item notification-item py-3 text-wrap border-bottom"
+                      className={`dropdown-item notification-item py-3 text-wrap border-bottom${
+                        HAS_NOTIFICATIONS ? "" : " d-none"
+                      }`}
                       id="notification-3"
                     >
                       <div className="d-flex">
@@ -459,7 +480,9 @@ const Header = () => {
                     </div>
                     {/* Item*/}
                     <div
-                      className="dropdown-item notification-item py-3 text-wrap"
+                      className={`dropdown-item notification-item py-3 text-wrap${
+                        HAS_NOTIFICATIONS ? "" : " d-none"
+                      }`}
                       id="notification-4"
                     >
                       <div className="d-flex">

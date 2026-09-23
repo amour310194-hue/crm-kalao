@@ -137,7 +137,7 @@ const ActivitiesComponent = () => {
   {/* Start Content */}
   <div className="content pb-0">
     {/* Page Header */}
-    <PageHeader title="Activities" badgeCount={125} showModuleTile={false} showExport={true}/>
+    <PageHeader title="Activities" badgeCount={data.length} showModuleTile={false} showExport={true}/>
     {/* End Page Header */}
     {/* AI Panel */}
     <div className="ai-embed mb-3" data-ai-embed="">

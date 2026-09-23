@@ -26,7 +26,7 @@ const CompaniesGridComponent = () => {
     {/* Start Content */}
     <div className="content">
       {/* Page Header */}
-     <PageHeader title="Companies" badgeCount={125} showModuleTile={false} showExport={true} />
+     <PageHeader title="Companies" badgeCount={rows.length} showModuleTile={false} showExport={true} />
 
       {/* End Page Header */}
       {/* table header */}

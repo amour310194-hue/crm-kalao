@@ -11,7 +11,32 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { fetchDeals, formatMoney } from "@/lib/crm";
 
+// Les colonnes du template ne portent pas les étapes réelles : on les aligne sur
+// les cinq étapes de la base, dans l'ordre de l'entonnoir.
+const STAGE_COLUMN: Record<string, string> = {
+  qualification: "qualify",
+  proposal: "contact",
+  negotiation: "presentation",
+  won: "proposal",
+  lost: "appointment",
+};
+
+const COLUMN_TITLE: Record<string, string> = {
+  qualify: "Qualification",
+  contact: "Proposition",
+  presentation: "Négociation",
+  proposal: "Gagné",
+  appointment: "Perdu",
+};
+
 const DealsGridComponent = () => {
+  // Compteur d'en-tête : le nombre réel d'affaires en base.
+  const [dealCount, setDealCount] = useState<number | null>(null);
+  useEffect(() => {
+    void fetchDeals().then((rows) => {
+      if (rows) setDealCount(rows.length);
+    });
+  }, []);
   // Kanban data
   const initialColumns = [
     {
@@ -277,40 +302,43 @@ const DealsGridComponent = () => {
 
   function KanbanBoard() {
     const [columns, setColumns] = useState(initialColumns);
+    const [live, setLive] = useState(false);
 
     const reloadDeals = () => {
       void fetchDeals().then((rows) => {
-        if (!rows?.length) return;
+        if (!rows) return;
+        setLive(true);
         setColumns((prev) =>
-          prev.map((col, index) =>
-            index === 0
-              ? {
-                  ...col,
-                  leads: rows.length,
-                  amount: formatMoney(
-                    rows.reduce((s, d) => s + Number(d.amount || 0), 0)
-                  ),
-                  cards: rows.map((deal) => ({
-                    id: deal.id,
-                    avatar: {
-                      text: deal.title.slice(0, 2).toUpperCase(),
-                      color: "success",
-                    },
-                    name: deal.title,
-                    amount: formatMoney(deal.amount),
-                    email: deal.companies?.name ?? "",
-                    phone: "",
-                    location: deal.stage,
-                    owner: {
-                      name: "Kalao",
-                      img: "assets/img/profiles/avatar-01.jpg",
-                    },
-                    progress: { value: deal.probability ?? 10, color: "success" },
-                    date: "",
-                  })),
-                }
-              : col
-          )
+          prev.map((col) => {
+            const colDeals = rows.filter(
+              (deal) => STAGE_COLUMN[deal.stage] === col.id
+            );
+            return {
+              ...col,
+              leads: colDeals.length,
+              amount: formatMoney(
+                colDeals.reduce((s, d) => s + Number(d.amount || 0), 0)
+              ),
+              cards: colDeals.map((deal) => ({
+                id: deal.id,
+                avatar: {
+                  text: deal.title.slice(0, 2).toUpperCase(),
+                  color: "success",
+                },
+                name: deal.title,
+                amount: formatMoney(deal.amount),
+                email: deal.companies?.name ?? "",
+                phone: "",
+                location: deal.stage,
+                owner: {
+                  name: "Kalao",
+                  img: "assets/img/profiles/avatar-01.jpg",
+                },
+                progress: { value: deal.probability ?? 10, color: "success" },
+                date: "",
+              })),
+            };
+          })
         );
       });
     };
@@ -377,10 +405,10 @@ const DealsGridComponent = () => {
                     <div>
                       <h6 className="d-flex align-items-center mb-1">
                         <i className="ti ti-circle-filled fs-10 text-info me-1" />
-                        {col.title}
+                        {live ? COLUMN_TITLE[col.id] ?? col.title : col.title}
                       </h6>
                       <span>
-                        {col.leads} Leads - {col.amount}
+                        {col.leads} {live ? "affaires" : "Leads"} - {col.amount}
                       </span>
                     </div>
                     <div className="d-flex align-items-center">
@@ -560,7 +588,7 @@ const DealsGridComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Deals"
-            badgeCount={125}
+            badgeCount={dealCount}
             showModuleTile={false}
             showExport={true}
           />

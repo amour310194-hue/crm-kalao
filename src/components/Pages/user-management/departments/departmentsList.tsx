@@ -149,7 +149,7 @@ const DepartmentsListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Departments"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={true}
             moduleTitle="User Management"
             showExport={true}

@@ -22,6 +22,7 @@ import {
   emptyUuid,
   fetchCompanies,
   fetchEmployees,
+  parseAmount,
   readForm,
   type DossierRow,
 } from "@/lib/crm";
@@ -84,6 +85,7 @@ const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
         company_id: emptyUuid(vals.company_id),
         employee_id: emptyUuid(vals.employee_id),
         catalog_item_id: emptyUuid(vals.catalog_item_id),
+        advance: parseAmount(vals.advance),
         notes: vals.notes || null,
         start_at: vals.start_at || null,
         end_at: vals.end_at || null,
@@ -447,7 +449,7 @@ const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
               <div className="col-md-6">
                 <div className="mb-3">
                   <label className="form-label">
-                    Project Timing <span className="text-danger">*</span>
+                    Prestation vendue <span className="text-danger">*</span>
                   </label>
                   <CommonSelect
                     name="catalog_item_id"
@@ -459,10 +461,13 @@ const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
               </div>
               <div className="col-md-6">
                 <div className="mb-3">
-                  <label className="form-label">
-                    Price <span className="text-danger">*</span>
-                  </label>
-                  <input className="form-control" type="text" />
+                  <label className="form-label">Avance encaissée (FCFA)</label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    name="advance"
+                    placeholder="0"
+                  />
                 </div>
               </div>
               <div className="col-md-6">

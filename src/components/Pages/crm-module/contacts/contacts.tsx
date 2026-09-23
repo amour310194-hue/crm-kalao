@@ -28,7 +28,7 @@ const ContactsComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Contacts"
-            badgeCount={125}
+            badgeCount={rows.length}
             showModuleTile={false}
             showExport={false}
           />

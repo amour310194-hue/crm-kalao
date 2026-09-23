@@ -210,7 +210,7 @@ const CompaniesListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Companies"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={false}
           />

@@ -225,7 +225,7 @@ const ProjectsListComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Projects"
-            badgeCount={125}
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
           />

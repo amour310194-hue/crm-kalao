@@ -28,7 +28,7 @@ const ContractsComponent = () => {
       {/* Page Header */}
     <PageHeader
                   title="Contracts"
-                  badgeCount={125}
+                  badgeCount={rows.length}
                   showModuleTile={false}
                   showExport={true}
                 />

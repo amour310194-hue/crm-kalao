@@ -27,7 +27,7 @@ const InvoicesGrid = () => {
           {/* Page Header */}
           <PageHeader
             title="Invoices"
-            badgeCount={125}
+            badgeCount={rows.length}
             showModuleTile={false}
             showExport={true}
           />

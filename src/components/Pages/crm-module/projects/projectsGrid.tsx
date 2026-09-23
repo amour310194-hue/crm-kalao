@@ -41,7 +41,7 @@ const ProjectsGridComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Projects"
-            badgeCount={125}
+            badgeCount={rows.length}
             showModuleTile={false}
             showExport={true}
           />

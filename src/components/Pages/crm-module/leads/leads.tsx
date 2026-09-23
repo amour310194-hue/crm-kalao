@@ -22,6 +22,13 @@ const STATUS_COLUMN: Record<string, string> = {
 
 
 const LeadsComponent = () => {
+  // Compteur d'en-tête : le nombre réel de prospects en base.
+  const [leadCount, setLeadCount] = useState<number | null>(null);
+  useEffect(() => {
+    void fetchLeads().then((rows) => {
+      if (rows) setLeadCount(rows.length);
+    });
+  }, []);
   // ...existing code...
 
 const initialLeadsColumns = [
@@ -188,7 +195,7 @@ function LeadsKanbanBoard() {
 
   const reloadLeads = () => {
     void fetchLeads().then((rows) => {
-      if (!rows?.length) return;
+      if (!rows) return;
       setColumns((prev) =>
         prev.map((col) => {
           const colLeads = rows.filter(
@@ -432,7 +439,7 @@ function LeadsKanbanBoard() {
       {/* Page Header */}
     <PageHeader
             title="Leads"
-            badgeCount={125}
+            badgeCount={leadCount}
             showModuleTile={false}
             showExport={true}
           />

@@ -221,7 +221,7 @@ const ContactsListComponent = () => {
         {/* Start Content */}
         <div className="content pb-0">
           {/* Page Header */}
-         <PageHeader title="Contacts" badgeCount={125} showModuleTile={false} showExport={true}/>
+         <PageHeader title="Contacts" badgeCount={data.length} showModuleTile={false} showExport={true}/>
           {/* End Page Header */}
           {/* card start */}
           <div className="card border-0 rounded-0">
