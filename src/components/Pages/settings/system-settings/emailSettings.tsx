@@ -7,6 +7,7 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { FormEvent, useState } from "react";
 import KalaoInboundMail from "@/components/docs/KalaoInboundMail";
+import KalaoMailboxAccess from "@/components/docs/KalaoMailboxAccess";
 import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_EMAIL } from "@/lib/org";
 
 
@@ -111,6 +112,7 @@ const EmailSettingsComponent = () => {
                   Send Test Mail
                 </Link>
               </div>
+              <KalaoMailboxAccess />
               <KalaoInboundMail />
               <div className="row">
                 {/* Email Wrap */}

@@ -5,9 +5,9 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { composeEmail, formatChatTime, remindDueVisaActivities } from "@/lib/inbox";
 import {
   EMAIL_FOLDERS,
-  MAILBOXES,
   countFolder,
   emailParty,
+  fetchAllowedMailboxes,
   fetchCrmEmails,
   fetchSessionMail,
   filterEmails,
@@ -24,7 +24,7 @@ import {
   type SessionMail,
 } from "@/lib/mail";
 import { liveHref } from "@/lib/docs";
-import { inboundResendAlias } from "@/lib/org";
+import KalaoMailboxNav from "@/components/docs/KalaoMailboxNav";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
@@ -42,6 +42,7 @@ const EmailComponent = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [mailbox, setMailbox] = useState<MailboxKey>("contact");
   const [session, setSession] = useState<SessionMail | null>(null);
+  const [allowed, setAllowed] = useState<MailboxKey[]>(["contact", "noreply", "personal"]);
   const [folder, setFolder] = useState<MailFolder>("inbox");
   const loadEmails = useCallback(async () => fetchCrmEmails(), []);
   const { rows: emails, live, reload } = useLiveRows(
@@ -63,9 +64,13 @@ const EmailComponent = () => {
     const params = new URLSearchParams(window.location.search);
     const box = params.get("box");
     const tray = params.get("folder");
-    if (isMailboxKey(box)) setMailbox(box);
     if (isMailFolder(tray)) setFolder(tray);
     else if (tray === null && (box === "inbox" || box === "sent")) setFolder(box);
+    void fetchAllowedMailboxes().then((boxes) => {
+      setAllowed(boxes);
+      if (isMailboxKey(box) && boxes.includes(box)) setMailbox(box);
+      else setMailbox((current) => (boxes.includes(current) ? current : boxes[0] ?? "personal"));
+    });
   }, [live]);
 
 
@@ -133,32 +138,18 @@ const EmailComponent = () => {
                   AI Compose
                 </Link>
                 {live ? (
-                  <div className="mt-3">
-                    <h5 className="mb-2">Boîtes Kalao</h5>
-                    <div className="d-block mb-3 pb-3 border-bottom">
-                      {MAILBOXES.map((item) => (
-                        <Link
-                          key={item.key}
-                          href={mailHref(item.key, folder)}
-                          className={`d-flex align-items-center justify-content-between p-2 rounded ${
-                            mailbox === item.key ? "bg-light active" : ""
-                          }`}
-                          onClick={() => setMailbox(item.key)}
-                        >
-                          <span className="d-flex align-items-center fw-medium">{item.label}</span>
-                          <span className="badge bg-dark rounded-pill badge-xs">
-                            {countFolder(emails, item.key, "all")}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                    {session?.workEmail ? (
-                      <p className="fs-12 text-muted mb-0">
-                        Réception : <code>{inboundResendAlias(session.workEmail)}</code>
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
+                  <KalaoMailboxNav
+                    emails={emails}
+                    mailbox={mailbox}
+                    folder={folder}
+                    allowed={allowed}
+                    workEmail={session?.workEmail}
+                    onSelect={(box, tray) => {
+                      setMailbox(box);
+                      setFolder(tray);
+                    }}
+                  />
+                ) : (
                 <div className="mt-3">
                   <h5 className="mb-2">Emails</h5>
                   <div className="d-block mb-3 pb-3 border-bottom">
@@ -227,12 +218,13 @@ const EmailComponent = () => {
                           className="viewall-button fw-medium"
                           onClick={handleToggle}
                         >
-                          <span>{`${showMore || live ? "Less" : "Show More"}`}</span>
+                          <span>{`${showMore ? "Less" : "Show More"}`}</span>
                         </Link>
                       </div>
                     </div>
                   </div>
                 </div>
+                )}
                 <div className="border-bottom mb-3 pb-3">
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <h5 className="mb-0">Labels</h5>
@@ -1875,11 +1867,17 @@ const EmailComponent = () => {
                   value={mailbox}
                   onChange={(e) => setMailbox(e.target.value as MailboxKey)}
                 >
-                  <option value="contact">Depuis Contact (partagée)</option>
-                  <option value="noreply">Depuis No-reply (partagée)</option>
-                  <option value="personal">
-                    Depuis ma boîte{session ? ` (${session.workEmail})` : ""} — privé
-                  </option>
+                  {allowed.includes("contact") ? (
+                    <option value="contact">Depuis Contact (partagée)</option>
+                  ) : null}
+                  {allowed.includes("noreply") ? (
+                    <option value="noreply">Depuis No-reply (partagée)</option>
+                  ) : null}
+                  {allowed.includes("personal") ? (
+                    <option value="personal">
+                      Depuis ma boîte{session ? ` (${session.workEmail})` : ""} — privé
+                    </option>
+                  ) : null}
                 </select>
               </div>
               <div className="mb-3">

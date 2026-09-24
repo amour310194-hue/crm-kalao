@@ -67,7 +67,23 @@ export type SessionMail = {
   fullName: string;
   loginEmail: string;
   workEmail: string;
+  role: string | null;
 };
+
+export type SharedMailbox = "contact" | "noreply";
+
+export async function fetchAllowedMailboxes(): Promise<MailboxKey[]> {
+  const session = await fetchSessionMail();
+  if (!session) return [];
+  const supabase = db();
+  if (!supabase) return ["personal"];
+  const { data, error } = await supabase.rpc("shared_mailboxes_for_me");
+  if (error) return ["contact", "noreply", "personal"];
+  const shared = (Array.isArray(data) ? data : []).filter(
+    (box): box is "contact" | "noreply" => box === "contact" || box === "noreply"
+  );
+  return [...shared, "personal"];
+}
 
 export type SendCrmResult = {
   dispatched: boolean;
@@ -167,7 +183,7 @@ export async function fetchSessionMail(): Promise<SessionMail | null> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
   const [{ data: profile }, { data: employee }] = await Promise.all([
-    supabase.from("profiles").select("full_name").eq("id", auth.user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name, role").eq("id", auth.user.id).maybeSingle(),
     supabase.from("employees").select("email, full_name").eq("profile_id", auth.user.id).maybeSingle(),
   ]);
   const loginEmail = auth.user.email ?? KALAO_NOREPLY_EMAIL;
@@ -177,6 +193,7 @@ export async function fetchSessionMail(): Promise<SessionMail | null> {
     fullName: employee?.full_name || profile?.full_name || loginEmail.split("@")[0],
     loginEmail,
     workEmail,
+    role: profile?.role ?? null,
   };
 }
 
@@ -229,6 +246,10 @@ export async function sendCrmEmail(input: {
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const session = await fetchSessionMail();
   if (!session) throw new Error("Session expirée");
+  const allowed = await fetchAllowedMailboxes();
+  if (!allowed.includes(input.mailbox)) {
+    throw new Error("Cette boîte partagée ne vous est pas ouverte.");
+  }
   const to = input.to.trim();
   const subject = input.subject.trim() || "Sans objet";
   const body = input.body.trim();

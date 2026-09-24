@@ -6,6 +6,7 @@ import { all_routes } from "@/router/all_routes";
 import { liveHref } from "@/lib/docs";
 import {
   explainSend,
+  fetchAllowedMailboxes,
   fetchPartyEmails,
   fetchSessionMail,
   mailHref,
@@ -31,11 +32,16 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [session, setSession] = useState<SessionMail | null>(null);
+  const [allowed, setAllowed] = useState<MailboxKey[]>(["contact", "noreply", "personal"]);
   const [rows, setRows] = useState<CrmEmailRow[]>([]);
 
   const load = () => {
     void fetchPartyEmails({ companyId, contactId }).then(setRows);
     void fetchSessionMail().then(setSession);
+    void fetchAllowedMailboxes().then((boxes) => {
+      setAllowed(boxes);
+      setMailbox((current) => (boxes.includes(current) ? current : boxes[0] ?? "personal"));
+    });
   };
 
   useEffect(() => {
@@ -72,11 +78,17 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
               value={mailbox}
               onChange={(e) => setMailbox(e.target.value as MailboxKey)}
             >
-              <option value="contact">Contact (tous les employés)</option>
-              <option value="noreply">No-reply (tous les employés)</option>
-              <option value="personal">
-                Ma boîte{session ? ` — ${session.workEmail}` : ""} (privé)
-              </option>
+              {allowed.includes("contact") ? (
+                <option value="contact">Contact (partagée)</option>
+              ) : null}
+              {allowed.includes("noreply") ? (
+                <option value="noreply">No-reply (partagée)</option>
+              ) : null}
+              {allowed.includes("personal") ? (
+                <option value="personal">
+                  Ma boîte{session ? ` — ${session.workEmail}` : ""} (privé)
+                </option>
+              ) : null}
             </select>
           </div>
           <div className="mb-2">

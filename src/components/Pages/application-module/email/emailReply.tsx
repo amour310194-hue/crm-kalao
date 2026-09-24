@@ -9,11 +9,12 @@ import { useCallback, useEffect, useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import KalaoMailReader from "@/components/docs/KalaoMailReader";
+import KalaoMailboxNav from "@/components/docs/KalaoMailboxNav";
 import { useLiveRows } from "@/lib/useLiveRows";
 import {
   EMAIL_FOLDERS,
-  MAILBOXES,
   countFolder,
+  fetchAllowedMailboxes,
   fetchCrmEmails,
   fetchSessionMail,
   isMailFolder,
@@ -34,6 +35,7 @@ const EmailReplyComponent = () => {
   const [mailbox, setMailbox] = useState<MailboxKey>("contact");
   const [folder, setFolder] = useState<MailFolder>("inbox");
   const [session, setSession] = useState<SessionMail | null>(null);
+  const [allowed, setAllowed] = useState<MailboxKey[]>(["contact", "noreply", "personal"]);
   const loadEmails = useCallback(async () => fetchCrmEmails(), []);
   const { rows: emails, live } = useLiveRows([] as CrmEmailRow[], loadEmails);
 
@@ -43,8 +45,12 @@ const EmailReplyComponent = () => {
     const params = new URLSearchParams(window.location.search);
     const box = params.get("box");
     const tray = params.get("folder");
-    if (isMailboxKey(box)) setMailbox(box);
     if (isMailFolder(tray)) setFolder(tray);
+    void fetchAllowedMailboxes().then((boxes) => {
+      setAllowed(boxes);
+      if (isMailboxKey(box) && boxes.includes(box)) setMailbox(box);
+      else setMailbox((current) => (boxes.includes(current) ? current : boxes[0] ?? "personal"));
+    });
   }, [live]);
 
   const slides = [
@@ -110,27 +116,18 @@ const EmailReplyComponent = () => {
                   Compose
                 </Link>
                 {live ? (
-                  <div className="mt-3">
-                    <h5 className="mb-2">Boîtes Kalao</h5>
-                    <div className="d-block mb-3 pb-3 border-bottom">
-                      {MAILBOXES.map((item) => (
-                        <Link
-                          key={item.key}
-                          href={mailHref(item.key, folder)}
-                          className={`d-flex align-items-center justify-content-between p-2 rounded ${
-                            mailbox === item.key ? "bg-light active" : ""
-                          }`}
-                          onClick={() => setMailbox(item.key)}
-                        >
-                          <span className="d-flex align-items-center fw-medium">{item.label}</span>
-                          <span className="badge bg-dark rounded-pill badge-xs">
-                            {countFolder(emails, item.key, "all")}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+                  <KalaoMailboxNav
+                    emails={emails}
+                    mailbox={mailbox}
+                    folder={folder}
+                    allowed={allowed}
+                    workEmail={session?.workEmail}
+                    onSelect={(box, tray) => {
+                      setMailbox(box);
+                      setFolder(tray);
+                    }}
+                  />
+                ) : (
                 <div className="mt-3">
                   <h5 className="mb-2">Emails</h5>
                   <div className="d-block mb-3 pb-3 border-bottom">
@@ -199,12 +196,13 @@ const EmailReplyComponent = () => {
                           className="viewall-button fw-medium"
                           onClick={handleToggle}
                         >
-                          <span>{`${showMore || live ? "Less" : "Show More"}`}</span>
+                          <span>{`${showMore ? "Less" : "Show More"}`}</span>
                         </Link>
                       </div>
                     </div>
                   </div>
                 </div>
+                )}
                 <div className="border-bottom mb-3 pb-3">
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <h5 className="mb-0">Labels</h5>
