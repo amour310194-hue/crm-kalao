@@ -4,11 +4,14 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const RevenueExpenseChart: React.FC = () => {
+const RevenueExpenseChart: React.FC<{
+  data?: number[];
+  categories?: string[];
+}> = ({ data, categories }) => {
   const series = [
     {
       name: 'Amount',
-      data: [80, 45], // Revenue, Expense
+      data: data?.length ? data : [80, 45],
     },
   ];
 
@@ -50,7 +53,7 @@ const RevenueExpenseChart: React.FC = () => {
     },
 
     xaxis: {
-      categories: ['Revenue', 'Expense'],
+      categories: categories?.length ? categories : ['Revenue', 'Expense'],
       min: 0,
       max: 3,
       tickAmount: 6,

@@ -472,3 +472,13 @@ export function useKalaoCalendar() {
 }
 
 export { KIND_FR, formatMoney };
+
+/** Séries Apex à partir des KPI ; null = garder la maquette du graphique. */
+export function kpisChartMonths(kpis: KalaoKpis | null | undefined) {
+  if (!kpis?.months.length) return null;
+  return {
+    categories: kpis.months.map((month) => month.label),
+    invoicedK: kpis.months.map((month) => Math.round(month.invoiced / 1000)),
+    collectedK: kpis.months.map((month) => Math.round(month.collected / 1000)),
+  };
+}

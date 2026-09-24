@@ -10,10 +10,11 @@ import LastChart from "./chats/lastChart";
 import WonChart from "./chats/wonChart";
 import DealsYearChart from "./chats/dealsYearChart";
 import { all_routes } from "@/router/all_routes";
-import { useKalaoKpis } from "@/lib/kpi";
+import { kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const DelasDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
+  const chartMonths = kpisChartMonths(live ? kpis : null);
   return (
     <>
       {/* ========================
@@ -361,7 +362,12 @@ const DelasDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="last-chart">
-                    <LastChart />
+                    <LastChart
+                      categories={
+                        live ? kpis?.leadsByStatus.map((row) => row.label) : undefined
+                      }
+                      data={live ? kpis?.leadsByStatus.map((row) => row.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -426,7 +432,12 @@ const DelasDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="won-chart">
-                    <WonChart />
+                    <WonChart
+                      categories={
+                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
+                      }
+                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -484,7 +495,10 @@ const DelasDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="deals-year">
-                    <DealsYearChart />
+                    <DealsYearChart
+                      categories={chartMonths?.categories}
+                      data={chartMonths?.collectedK}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

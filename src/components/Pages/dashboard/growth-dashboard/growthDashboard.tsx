@@ -9,8 +9,11 @@ import GrowthTrendChart from "./chart/growthTrendChart";
 import CommonFooter from "@/core/common/common-footer/commonFooter";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import { formatMoney, kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const GrowthDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
+  const chartMonths = kpisChartMonths(live ? kpis : null);
   return (
     <>
       {/* ========================
@@ -84,7 +87,9 @@ const GrowthDashboardComponent = () => {
                       <p className="mb-2 fs-13 fw-medium text-dark">
                         Total Revenue Growth
                       </p>
-                      <div className="fs-28 text-dark fw-bold mb-3">FCFA 400k</div>
+                      <div className="fs-28 text-dark fw-bold mb-3">
+                        {live && kpis ? formatMoney(kpis.collected) : "FCFA 400k"}
+                      </div>
                       <div className="fs-13 fw-medium">
                         <span className="text-success">
                           <i className="ti ti-clock" /> +12%
@@ -109,7 +114,9 @@ const GrowthDashboardComponent = () => {
                       <p className="mb-2 fs-13 fw-medium text-dark">
                         Conversion Rate
                       </p>
-                      <div className="fs-28 text-dark fw-bold mb-3">12.2%</div>
+                      <div className="fs-28 text-dark fw-bold mb-3">
+                        {live && kpis ? `${kpis.conversionRate}%` : "12.2%"}
+                      </div>
                       <div className="fs-13 fw-medium">
                         <span className="text-danger">
                           <i className="ti ti-clock" /> +90%
@@ -134,7 +141,9 @@ const GrowthDashboardComponent = () => {
                       <p className="mb-2 fs-13 fw-medium text-dark">
                         New Customers
                       </p>
-                      <div className="fs-28 text-dark fw-bold mb-3">560</div>
+                      <div className="fs-28 text-dark fw-bold mb-3">
+                        {live && kpis ? kpis.companies : 560}
+                      </div>
                       <div className="fs-13 fw-medium">
                         <span className="text-purple">
                           <i className="ti ti-clock" /> +10%
@@ -159,7 +168,9 @@ const GrowthDashboardComponent = () => {
                       <p className="mb-2 fs-13 fw-medium text-dark">
                         Monthly Grow
                       </p>
-                      <div className="fs-28 text-dark fw-bold mb-3">8.9%</div>
+                      <div className="fs-28 text-dark fw-bold mb-3">
+                        {live && kpis ? `${kpis.collectedGrowth}%` : "8.9%"}
+                      </div>
                       <div className="fs-13 fw-medium">
                         <span className="text-warning">
                           <i className="ti ti-clock" /> +24%
@@ -241,7 +252,15 @@ const GrowthDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="revenue-chart2">
-                    <RevenueChart />
+                    <RevenueChart
+                      data={
+                        live && kpis?.invoiced
+                          ? kpis.months.map((month) =>
+                              Math.min(100, Math.round((month.collected / (kpis.invoiced / 6 || 1)) * 100))
+                            )
+                          : undefined
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -275,7 +294,14 @@ const GrowthDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="region-wise-growth">
-                    <RegionWiseGrowthChart />
+                    <RegionWiseGrowthChart
+                      labels={
+                        live ? kpis?.topCompanies.map((row) => row.label) : undefined
+                      }
+                      values={
+                        live ? kpis?.topCompanies.map((row) => row.value) : undefined
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -313,7 +339,7 @@ const GrowthDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="growth-trend">
-                    <GrowthTrendChart />
+                    <GrowthTrendChart data={chartMonths?.collectedK} />
                   </div>
                   <div className="d-flex align-items-center justify-content-center">
                     <span className="position-relative p-1 d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-25 rounded-circle me-1 z-1">

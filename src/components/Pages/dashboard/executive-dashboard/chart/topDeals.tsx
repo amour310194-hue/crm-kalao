@@ -4,11 +4,14 @@ import dynamic from "next/dynamic";
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const TopDealsChart: React.FC = () => {
+const TopDealsChart: React.FC<{ categories?: string[]; data?: number[] }> = ({
+  categories,
+  data,
+}) => {
   const series = [
     {
       name: "Deals",
-      data: [70, 60, 40, 50, 35, 15],
+      data: data?.length ? data : [70, 60, 40, 50, 35, 15],
     },
   ];
 
@@ -70,14 +73,9 @@ const TopDealsChart: React.FC = () => {
     },
 
     xaxis: {
-      categories: [
-        "Brooklyn",
-        "Kathryn",
-        "Richards",
-        "Robert",
-        "Bessie",
-        "Floyd",
-      ],
+      categories: categories?.length
+        ? categories
+        : ["Brooklyn", "Kathryn", "Richards", "Robert", "Bessie", "Floyd"],
     },
   };
 

@@ -7,10 +7,11 @@ import RevenuePerformanceChart from "./chart/revenuePerformanceChart";
 import RevenueExpenseChart from "./chart/revenueExpense";
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
 import Link from "next/link";
-import { formatMoney, useKalaoKpis } from "@/lib/kpi";
+import { formatMoney, kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const RevenueSummaryDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
+  const chartMonths = kpisChartMonths(live ? kpis : null);
   return (
     <>
       {/* ========================
@@ -246,7 +247,7 @@ const RevenueSummaryDashboardComponent = () => {
                             </span>
                           </div>
                           <div id="forecasted-revenue">
-                            <ForecastedRevenue />
+                            <ForecastedRevenue data={chartMonths?.collectedK} />
                           </div>
                           <div className="d-flex align-items-center justify-content-between border p-2 rounded mt-3">
                             <p className="fs-13 fw-medium text-success d-inline-flex align-items-center mb-0">
@@ -283,7 +284,18 @@ const RevenueSummaryDashboardComponent = () => {
                         </Link>
                       </div>
                       <div id="revenue-breakdown-chart">
-                        <RevenueBreakdownChart />
+                        <RevenueBreakdownChart
+                          categories={
+                            live ? kpis?.pipeline.map((stage) => stage.label) : undefined
+                          }
+                          data={
+                            live
+                              ? kpis?.pipeline.map((stage) =>
+                                  Math.round(stage.value / 1_000_000)
+                                )
+                              : undefined
+                          }
+                        />
                       </div>
                       <div className="border rounded">
                         <div className="row">
@@ -418,7 +430,11 @@ const RevenueSummaryDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="revenue-performance-chart">
-                    <RevenuePerformanceChart />
+                    <RevenuePerformanceChart
+                      categories={chartMonths?.categories}
+                      invoiced={chartMonths?.invoicedK}
+                      collected={chartMonths?.collectedK}
+                    />
                   </div>
                   <div className="d-flex align-items-center justify-content-center gap-3 flex-wrap mt-2">
                     <p className="mb-0 d-flex">
@@ -478,7 +494,17 @@ const RevenueSummaryDashboardComponent = () => {
                 </div>
                 <div className="card-body pt-0">
                   <div id="revenue_expense">
-                    <RevenueExpenseChart />
+                    <RevenueExpenseChart
+                      categories={live ? ["Facturé", "Reste"] : undefined}
+                      data={
+                        live && kpis
+                          ? [
+                              Math.round(kpis.invoiced / 1_000_000),
+                              Math.round(kpis.outstanding / 1_000_000),
+                            ]
+                          : undefined
+                      }
+                    />
                   </div>
                   <span>Detailed revenue analysis by product segment</span>
                 </div>

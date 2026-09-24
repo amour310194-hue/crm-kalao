@@ -5,7 +5,13 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const DealsYearChart = () => {
+const DealsYearChart = ({
+  categories,
+  data,
+}: {
+  categories?: string[];
+  data?: number[];
+}) => {
   const options: ApexOptions = {
     chart: {
       type: 'area' as const,
@@ -34,7 +40,9 @@ const DealsYearChart = () => {
       strokeDashArray: 4
     },
     xaxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      categories: categories?.length
+        ? categories
+        : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     },
     yaxis: {
       min: 1,
@@ -54,7 +62,7 @@ const DealsYearChart = () => {
   const series = [
     {
       name: 'Deals',
-      data: [1, 2, 3, 1.5, 2.2, 4, 3.0, 2.0, 3.0, 1.8, 3.0, 6.0]
+      data: data?.length ? data : [1, 2, 3, 1.5, 2.2, 4, 3.0, 2.0, 3.0, 1.8, 3.0, 6.0]
     }
   ];
 

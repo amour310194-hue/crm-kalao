@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
@@ -8,8 +9,10 @@ import LastChart2 from "./chart/lastChart2";
 import LeadsChart from "./chart/leadsChart";
 import LastChart from "../../dashboard/deals-dashboard/chats/lastChart";
 import { all_routes } from "@/router/all_routes";
+import { useKalaoKpis } from "@/lib/kpi";
 
 const Analytics = () => {
+  const { kpis, live } = useKalaoKpis();
   return (
     <>
       {/* ========================
@@ -276,7 +279,12 @@ const Analytics = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="won-chart">
-                    <WonChart />
+                    <WonChart
+                      categories={
+                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
+                      }
+                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -459,7 +467,12 @@ const Analytics = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="last-chart-2">
-                    <LastChart2 />
+                    <LastChart2
+                      categories={
+                        live ? kpis?.leadsByStatus.map((row) => row.label) : undefined
+                      }
+                      data={live ? kpis?.leadsByStatus.map((row) => row.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -521,7 +534,16 @@ const Analytics = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="leads-chart">
-                    <LeadsChart />
+                    <LeadsChart
+                      points={
+                        live
+                          ? kpis?.leadsByStatus.map((row) => ({
+                              x: row.label,
+                              y: row.count,
+                            }))
+                          : undefined
+                      }
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -785,7 +807,12 @@ const Analytics = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="deals-chart">
-                    <DealsChart />
+                    <DealsChart
+                      categories={
+                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
+                      }
+                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -1130,7 +1157,12 @@ const Analytics = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="last-chart">
-                    <LastChart />
+                    <LastChart
+                      categories={
+                        live ? kpis?.leadsByStatus.map((row) => row.label) : undefined
+                      }
+                      data={live ? kpis?.leadsByStatus.map((row) => row.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

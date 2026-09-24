@@ -5,8 +5,11 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
-const TrafficSourcesChart: React.FC = () => {
-  const series = [6598, 2458, 1456, 845];
+const TrafficSourcesChart: React.FC<{ labels?: string[]; values?: number[] }> = ({
+  labels,
+  values,
+}) => {
+  const series = values?.length ? values : [6598, 2458, 1456, 845];
 
   const options: ApexOptions = {
     chart: {
@@ -14,12 +17,14 @@ const TrafficSourcesChart: React.FC = () => {
       height: 250,
     },
 
-    labels: [
-      "Organic Search",
-      "Direct Traffic",
-      "Referral Traffic",
-      "Social Media",
-    ],
+    labels: labels?.length
+      ? labels
+      : [
+          "Organic Search",
+          "Direct Traffic",
+          "Referral Traffic",
+          "Social Media",
+        ],
 
     colors: ["#2EAD5F", "#3B82F6", "#F59E0B", "#8B0A8B"],
 

@@ -10,11 +10,12 @@ import ProfitChart from "./chart/profitChart";
 import CommonFooter from "@/core/common/common-footer/commonFooter";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import { formatMoney, useKalaoKpis } from "@/lib/kpi";
+import { formatMoney, kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const MainDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
   const months = kpis?.months ?? [];
+  const chartMonths = kpisChartMonths(live ? kpis : null);
   const collectedWindow = months.reduce((sum, month) => sum + month.collected, 0);
   // Répartition de la barre « Deals Overview » : part réelle de chaque état.
   const dealsShare = (count: number) =>
@@ -109,7 +110,7 @@ const MainDashboardComponent = () => {
           {/* start row */}
           <div className="row">
             <div
-              className={`${live ? "col-12" : "col-xxl-8 col-xl-7"} d-flex`}
+              className="col-xxl-8 col-xl-7 d-flex"
             >
               <div className="card flex-fill">
                 <div className="card-body pb-0">
@@ -198,7 +199,7 @@ const MainDashboardComponent = () => {
               {/* end card */}
             </div>{" "}
             {/* end col */}
-            <div className={live ? "d-none" : "col-xxl-4 col-xl-5 d-flex"}>
+            <div className="col-xxl-4 col-xl-5 d-flex">
               <div className="card flex-fill">
                 <div className="card-body">
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0">
@@ -214,7 +215,16 @@ const MainDashboardComponent = () => {
                     </Link>
                   </div>
                   <div id="traffic-sources-chart">
-                    <TrafficSourcesChart />
+                    <TrafficSourcesChart
+                      labels={
+                        live
+                          ? kpis?.leadsByPole.map((pole) => pole.label)
+                          : undefined
+                      }
+                      values={
+                        live ? kpis?.leadsByPole.map((pole) => pole.count) : undefined
+                      }
+                    />
                   </div>
                 </div>
                 <div className="mb-1">
@@ -375,8 +385,8 @@ const MainDashboardComponent = () => {
                       </div>
                       <p className="fw-medium mb-1">Total Contacts</p>
                     </div>
-                    <div id="contact-chart" className={live ? "d-none" : ""}>
-                      <ContactChart />
+                    <div id="contact-chart">
+                      <ContactChart data={chartMonths?.invoicedK} />
                     </div>
                   </div>
                   <div className="d-flex alig-items-center gap-2">
@@ -711,8 +721,11 @@ const MainDashboardComponent = () => {
                       </div>
                     </div>
                   </div>
-                  <div id="pipelineChart" className={live ? "d-none" : ""}>
-                    <PipelineChart />
+                  <div id="pipelineChart">
+                    <PipelineChart
+                      categories={live ? kpis?.pipeline.map((stage) => stage.label) : undefined}
+                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
+                    />
                   </div>
                 </div>
               </div>
@@ -747,7 +760,7 @@ const MainDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="profit-chart">
-                    <ProfitChart />
+                    <ProfitChart data={chartMonths?.collectedK} />
                   </div>
                 </div>
               </div>{" "}

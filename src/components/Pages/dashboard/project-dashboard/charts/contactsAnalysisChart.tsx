@@ -5,14 +5,20 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const ContactsAnalysisChart = () => {
+const ContactsAnalysisChart = ({
+  labels,
+  values,
+}: {
+  labels?: string[];
+  values?: number[];
+}) => {
   const options: ApexOptions = {
     chart: {
       type: 'donut' as const,
       height: 450
     },
     colors: ['#4A00E5', '#FFA201', '#0092E4', '#E41F07'],
-    labels: ['Campaigns', 'Google', 'Referrals', 'Paid Social'],
+    labels: labels?.length ? labels : ['Campaigns', 'Google', 'Referrals', 'Paid Social'],
     plotOptions: {
       pie: {
         startAngle: -90,
@@ -54,7 +60,7 @@ const ContactsAnalysisChart = () => {
     ]
   };
 
-  const series = [44, 55, 41, 17];
+  const series = values?.length ? values : [44, 55, 41, 17];
 
   return (
     <>

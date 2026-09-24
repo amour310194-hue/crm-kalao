@@ -419,7 +419,14 @@ const ProjectDashboardComponent = () => {
                 </div>
                 <div className="card-body">
                   <div id="contacts-analysis">
-                    <ContactsAnalysisChart/>
+                    <ContactsAnalysisChart
+                      labels={
+                        live ? kpis?.leadsByPole.map((pole) => pole.label) : undefined
+                      }
+                      values={
+                        live ? kpis?.leadsByPole.map((pole) => pole.count) : undefined
+                      }
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -611,7 +618,12 @@ const ProjectDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="last-chart">
-                    <LastChart/>
+                    <LastChart
+                      categories={
+                        live ? kpis?.leadsByStatus.map((row) => row.label) : undefined
+                      }
+                      data={live ? kpis?.leadsByStatus.map((row) => row.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -697,7 +709,12 @@ const ProjectDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="won-chart">
-                    <WonChart/>
+                    <WonChart
+                      categories={
+                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
+                      }
+                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

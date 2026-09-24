@@ -3,7 +3,11 @@ import dynamic from 'next/dynamic';
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const LeadsChart = () => {
+const LeadsChart = ({
+  points,
+}: {
+  points?: { x: string; y: number }[];
+}) => {
   const chartOptions = {
     chart: {
       type: "bar" as const,
@@ -37,12 +41,16 @@ const LeadsChart = () => {
     {
       name: 'sales',
       data: [
-        { x: 'Inpipeline', y: 400 },
-        { x: 'Follow Up', y: 30 },
-        { x: 'Schedule', y: 248 },
-        { x: 'Conversation', y: 470 },
-        { x: 'Won', y: 470 },
-        { x: 'Lost', y: 180 },
+        ...(points?.length
+          ? points
+          : [
+              { x: 'Inpipeline', y: 400 },
+              { x: 'Follow Up', y: 30 },
+              { x: 'Schedule', y: 248 },
+              { x: 'Conversation', y: 470 },
+              { x: 'Won', y: 470 },
+              { x: 'Lost', y: 180 },
+            ]),
       ],
     },
   ];

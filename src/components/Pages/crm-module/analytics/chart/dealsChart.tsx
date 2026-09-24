@@ -5,7 +5,13 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const DealsChart = () => {
+const DealsChart = ({
+  categories,
+  data,
+}: {
+  categories?: string[];
+  data?: number[];
+}) => {
   const options: ApexOptions = {
     chart: {
       type: 'bar' as const, // 👈 fix here
@@ -33,14 +39,16 @@ const DealsChart = () => {
     colors: ['#0E9384'],
     xaxis: {
       type: 'category' as const,
-      categories: [
-        'Inpipeline',
-        'Follow Up',
-        'Schedule',
-        'Conversation',
-        'Won',
-        'Lost'
-      ],
+      categories: categories?.length
+        ? categories
+        : [
+            'Inpipeline',
+            'Follow Up',
+            'Schedule',
+            'Conversation',
+            'Won',
+            'Lost'
+          ],
       labels: {
         style: {
           fontSize: '14px',
@@ -58,7 +66,7 @@ const DealsChart = () => {
   const series = [
     {
       name: 'Sales',
-      data: [400, 130, 248, 470, 470, 180]
+      data: data?.length ? data : [400, 130, 248, 470, 470, 180]
     }
   ];
 

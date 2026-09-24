@@ -4,9 +4,9 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const RevenueChart = () => {
+const RevenueChart = ({ data }: { data?: number[] }) => {
   // Actual revenue values (0–100 scale)
-  const revenueData = [50, 30, 75, 60, 40, 55, 42];
+  const revenueData = data?.length ? data : [50, 30, 75, 60, 40, 55, 42];
 
   // Auto-calculate remaining values
   const remainingData = revenueData.map((value) => 100 - value);

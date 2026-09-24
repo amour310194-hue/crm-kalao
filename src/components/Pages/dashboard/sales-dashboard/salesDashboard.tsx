@@ -8,10 +8,11 @@ import YtdRevenueChart from "./chart/ytdRevenueChart";
 import DealSizeChart from "./chart/dealSizeChart";
 import DealChart from "./chart/dealChart";
 import Link from "next/link";
-import { formatMoney, useKalaoKpis } from "@/lib/kpi";
+import { formatMoney, kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const SalesDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
+  const chartMonths = kpisChartMonths(live ? kpis : null);
   return (
     <>
       {/* ========================
@@ -154,7 +155,7 @@ const SalesDashboardComponent = () => {
                               <p className="mb-0">Month Till Date</p>
                             </div>
                             <div id="mtd-revenue">
-                              <MtdRevenueChart />
+                              <MtdRevenueChart data={chartMonths?.collectedK} />
                             </div>
                           </div>
                         </div>
@@ -185,7 +186,7 @@ const SalesDashboardComponent = () => {
                               <p className="mb-0">Year Till Date</p>
                             </div>
                             <div id="ytd-revenue">
-                              <YtdRevenueChart />
+                              <YtdRevenueChart data={chartMonths?.invoicedK} />
                             </div>
                           </div>
                         </div>
@@ -560,7 +561,14 @@ const SalesDashboardComponent = () => {
                     </p>
                   </div>
                   <div id="deal-size">
-                    <DealSizeChart />
+                    <DealSizeChart
+                      categories={live ? kpis?.pipeline.map((stage) => stage.label) : undefined}
+                      data={
+                        live
+                          ? kpis?.pipeline.map((stage) => Math.round(stage.value / 1000))
+                          : undefined
+                      }
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}
@@ -599,7 +607,10 @@ const SalesDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="deal-chart">
-                    <DealChart/>
+                    <DealChart
+                      categories={chartMonths?.categories}
+                      data={chartMonths?.collectedK}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

@@ -4,21 +4,10 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const GrowthTrendChart = () => {
-  const revenueData = [
-    700,
-    180,
-    320,
-    210,
-    410,
-    120,
-    580,
-    160,
-    590,
-    540,
-    920,
-    430,
-  ];
+const GrowthTrendChart = ({ data }: { data?: number[] }) => {
+  const revenueData = data?.length
+    ? data
+    : [700, 180, 320, 210, 410, 120, 580, 160, 590, 540, 920, 430];
 
   const series = [
     {

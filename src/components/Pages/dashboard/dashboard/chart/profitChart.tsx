@@ -5,11 +5,11 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
-const ProfitChart: React.FC = () => {
+const ProfitChart: React.FC<{ data?: number[] }> = ({ data }) => {
   const series = [
     {
       name: "Profit",
-      data: [30, 35, 38, 90, 40, 38, 30, 20, 30, 80, 85, 85],
+      data: data?.length ? data : [30, 35, 38, 90, 40, 38, 30, 20, 30, 80, 85, 85],
     },
   ];
 

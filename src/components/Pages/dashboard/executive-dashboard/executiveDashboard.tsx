@@ -11,8 +11,11 @@ import SalespersonChart from "./chart/salespersonChart";
 import TopDealsChart from "./chart/topDeals";
 import ForecastChart from "./chart/forecastChart";
 import Link from "next/link";
+import { formatMoney, kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const ExecutiveDashboardComponent = () => {
+  const { kpis, live } = useKalaoKpis();
+  const chartMonths = kpisChartMonths(live ? kpis : null);
   return (
     <>
       {/* ========================
@@ -96,7 +99,9 @@ const ExecutiveDashboardComponent = () => {
                           </div>
                           <div className="border rounded p-3 d-flex align-items-sm-center gap-2 justify-content-between flex-sm-row flex-column">
                             <div>
-                              <h2 className="mb-2 text-success">FCFA 400k</h2>
+                              <h2 className="mb-2 text-success">
+                                {live && kpis ? formatMoney(kpis.collected) : "FCFA 400k"}
+                              </h2>
                               <p className="fs-13 fw-medium mb-0">
                                 <span className="text-success">+12%</span> vs
                                 Last Year
@@ -105,7 +110,7 @@ const ExecutiveDashboardComponent = () => {
                             <i className="ti ti-arrow-big-up-filled text-success"></i>
                             <div className="border-bottom px-1 pb-2 border-bottom-dashed border-top-0 border-start-0 border-end-0">
                               <div id="sales-revenue">
-                                <SalesRevenueChart />
+                                <SalesRevenueChart data={chartMonths?.collectedK} />
                               </div>
                             </div>
                           </div>
@@ -126,7 +131,9 @@ const ExecutiveDashboardComponent = () => {
                           </div>
                           <div className="border rounded p-3 d-flex align-items-sm-center gap-2 justify-content-between flex-sm-row flex-column">
                             <div>
-                              <h2 className="mb-2 text-purple">450</h2>
+                              <h2 className="mb-2 text-purple">
+                                {live && kpis ? kpis.companies : 450}
+                              </h2>
                               <p className="fs-13 fw-medium mb-0">
                                 <span className="text-purple">+8.2%</span> vs
                                 Last Year
@@ -135,7 +142,7 @@ const ExecutiveDashboardComponent = () => {
                             <i className="ti ti-arrow-big-up-filled text-purple" />
                             <div className="border-bottom px-1 pb-2 border-bottom-dashed border-top-0 border-start-0 border-end-0">
                               <div id="customer-revenue">
-                                <CustomerRevenueChart />
+                                <CustomerRevenueChart data={chartMonths?.invoicedK} />
                               </div>
                             </div>
                           </div>
@@ -156,7 +163,9 @@ const ExecutiveDashboardComponent = () => {
                           </div>
                           <div className="border rounded p-3 d-flex align-items-sm-center gap-2 justify-content-between flex-sm-row flex-column">
                             <div>
-                              <h2 className="mb-2 text-secondary">68%</h2>
+                              <h2 className="mb-2 text-secondary">
+                                {live && kpis ? `${kpis.conversionRate}%` : "68%"}
+                              </h2>
                               <p className="fs-13 fw-medium mb-0">
                                 <span className="text-secondary">-1.2%</span> vs
                                 Last Year
@@ -165,7 +174,7 @@ const ExecutiveDashboardComponent = () => {
                             <i className="ti ti-arrow-big-down-filled text-secondary" />
                             <div className="border-bottom px-1 pb-2 border-bottom-dashed border-top-0 border-start-0 border-end-0">
                               <div id="target-revenue">
-                                <TargetRevenueChart />
+                                <TargetRevenueChart data={chartMonths?.invoicedK} />
                               </div>
                             </div>
                           </div>
@@ -190,7 +199,11 @@ const ExecutiveDashboardComponent = () => {
                           </div>
                           <div className="border rounded p-3 d-flex align-items-sm-center gap-2 justify-content-between flex-sm-row flex-column">
                             <div>
-                              <h2 className="mb-2 text-info">40%</h2>
+                              <h2 className="mb-2 text-info">
+                                {live && kpis && kpis.invoiced
+                                  ? `${Math.round((kpis.collected / kpis.invoiced) * 100)}%`
+                                  : "40%"}
+                              </h2>
                               <p className="fs-13 fw-medium mb-0">
                                 <span className="text-info">+1.2%</span> vs Last
                                 Year
@@ -199,7 +212,7 @@ const ExecutiveDashboardComponent = () => {
                             <i className="ti ti-arrow-big-up-filled text-info" />
                             <div className="border-bottom px-1 pb-2 border-bottom-dashed border-top-0 border-start-0 border-end-0">
                               <div id="profit-revenue">
-                                <ProfitRevenueChart />
+                                <ProfitRevenueChart data={chartMonths?.collectedK} />
                               </div>
                             </div>
                           </div>
@@ -404,7 +417,16 @@ const ExecutiveDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="top-deals">
-                    <TopDealsChart />
+                    <TopDealsChart
+                      categories={
+                        live ? kpis?.topCompanies.map((row) => row.label) : undefined
+                      }
+                      data={
+                        live
+                          ? kpis?.topCompanies.map((row) => Math.round(row.value / 1000))
+                          : undefined
+                      }
+                    />
                   </div>
                 </div>
               </div>{" "}
@@ -557,7 +579,11 @@ const ExecutiveDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="forecast-chart">
-                    <ForecastChart />
+                    <ForecastChart
+                      categories={chartMonths?.categories}
+                      collected={chartMonths?.collectedK}
+                      invoiced={chartMonths?.invoicedK}
+                    />
                   </div>
                 </div>
               </div>{" "}

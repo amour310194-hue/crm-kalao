@@ -123,45 +123,47 @@ const RevenueMiniChart: React.FC<RevenueMiniChartProps> = ({
   );
 };
 
-export const SalesRevenueChart: React.FC = () => {
+const dummyMini = [10, 40, 25, 27, 23, 28, 25, 80, 15];
+
+export const SalesRevenueChart: React.FC<{ data?: number[] }> = ({ data }) => {
   return (
     <RevenueMiniChart
       id="sales-revenue"
       label="Hours"
-      data={[10, 40, 25, 27, 23, 28, 25, 80, 15]}
+      data={data?.length ? data : dummyMini}
       color="#3AB37E"
     />
   );
 };
 
-export const CustomerRevenueChart: React.FC = () => {
+export const CustomerRevenueChart: React.FC<{ data?: number[] }> = ({ data }) => {
   return (
     <RevenueMiniChart
       id="customer-revenue"
       label="Customer"
-      data={[10, 40, 25, 27, 23, 28, 25, 80, 15]}
+      data={data?.length ? data : dummyMini}
       color="#7F24E3"
     />
   );
 };
 
-export const TargetRevenueChart: React.FC = () => {
+export const TargetRevenueChart: React.FC<{ data?: number[] }> = ({ data }) => {
   return (
     <RevenueMiniChart
       id="target-revenue"
       label="Target"
-      data={[5, 40, 35, 30, 23, 28, 25, 80, 15]}
+      data={data?.length ? data : [5, 40, 35, 30, 23, 28, 25, 80, 15]}
       color="#F07019"
     />
   );
 };
 
-export const ProfitRevenueChart: React.FC = () => {
+export const ProfitRevenueChart: React.FC<{ data?: number[] }> = ({ data }) => {
   return (
     <RevenueMiniChart
       id="profit-revenue"
       label="Hours"
-      data={[10, 30, 25, 27, 20, 28, 25, 80, 15]}
+      data={data?.length ? data : [10, 30, 25, 27, 20, 28, 25, 80, 15]}
       color="#175FFF"
     />
   );

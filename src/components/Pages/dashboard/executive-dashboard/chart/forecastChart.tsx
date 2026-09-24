@@ -5,17 +5,27 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
-const ForecastChart: React.FC = () => {
-  const series = [
-    {
-      name: "Forecast",
-      data: [170, 40, 80, 50, 90, 60, 80, 70, 120, 110, 200, 90],
-    },
-    {
-      name: "Target",
-      data: [260, 170, 170, 250, 150, 120, 100, 100, 320, 330, 340, 120],
-    },
-  ];
+const ForecastChart: React.FC<{
+  categories?: string[];
+  collected?: number[];
+  invoiced?: number[];
+}> = ({ categories, collected, invoiced }) => {
+  const live = Boolean(collected?.length && invoiced?.length);
+  const series = live
+    ? [
+        { name: "Encaissé", data: collected as number[] },
+        { name: "Facturé", data: invoiced as number[] },
+      ]
+    : [
+        {
+          name: "Forecast",
+          data: [170, 40, 80, 50, 90, 60, 80, 70, 120, 110, 200, 90],
+        },
+        {
+          name: "Target",
+          data: [260, 170, 170, 250, 150, 120, 100, 100, 320, 330, 340, 120],
+        },
+      ];
 
   const options: ApexOptions = {
     chart: {
@@ -54,20 +64,22 @@ const ForecastChart: React.FC = () => {
     },
 
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: categories?.length
+        ? categories
+        : [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ],
     },
 
     yaxis: {

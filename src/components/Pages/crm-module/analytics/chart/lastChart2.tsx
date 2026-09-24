@@ -4,7 +4,13 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const LastChart2 = () => {
+const LastChart2 = ({
+  categories,
+  data,
+}: {
+  categories?: string[];
+  data?: number[];
+}) => {
   const chartOptions: ApexOptions = {
     chart: {
       type: 'bar',
@@ -23,13 +29,15 @@ const LastChart2 = () => {
     },
     colors: ['#FC0027'],
     xaxis: {
-      categories: ['Conversation', 'Follow Up', 'Inpipeline'],
+      categories: categories?.length
+        ? categories
+        : ['Conversation', 'Follow Up', 'Inpipeline'],
     },
   };
 
   const chartSeries = [
     {
-      data: [400, 220, 448],
+      data: data?.length ? data : [400, 220, 448],
     },
   ];
 

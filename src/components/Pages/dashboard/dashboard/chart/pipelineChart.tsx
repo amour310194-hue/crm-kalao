@@ -5,11 +5,14 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
-const PipelineChart: React.FC = () => {
+const PipelineChart: React.FC<{ data?: number[]; categories?: string[] }> = ({
+  data,
+  categories,
+}) => {
   const series = [
     {
       name: "Deals",
-      data: [100, 80, 70, 60],
+      data: data?.length ? data : [100, 80, 70, 60],
     },
   ];
 
@@ -39,7 +42,7 @@ const PipelineChart: React.FC = () => {
     colors: ["#E41F07", "#FFA201", "#800080", "#27AE60"],
 
     xaxis: {
-      categories: ["Leads", "Proposal", "Sales", "Won"],
+      categories: categories?.length ? categories : ["Leads", "Proposal", "Sales", "Won"],
       labels: {
         show: false,
       },

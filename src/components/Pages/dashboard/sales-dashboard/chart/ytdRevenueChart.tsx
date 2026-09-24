@@ -4,11 +4,11 @@ import dynamic from "next/dynamic";
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const YtdRevenueChart: React.FC = () => {
+const YtdRevenueChart: React.FC<{ data?: number[] }> = ({ data }) => {
   const series = [
     {
       name: "Revenue",
-      data: [50, 30, 70, 100, 40],
+      data: data?.length ? data : [50, 30, 70, 100, 40],
     },
   ];
 

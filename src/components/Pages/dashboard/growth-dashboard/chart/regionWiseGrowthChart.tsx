@@ -4,8 +4,14 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const RegionWiseGrowthChart = () => {
-  const series = [30, 20, 20, 15, 10];
+const RegionWiseGrowthChart = ({
+  labels,
+  values,
+}: {
+  labels?: string[];
+  values?: number[];
+}) => {
+  const series = values?.length ? values : [30, 20, 20, 15, 10];
 
   const options: ApexOptions = {
     chart: {
@@ -17,13 +23,15 @@ const RegionWiseGrowthChart = () => {
       },
     },
 
-    labels: [
-      'North America',
-      'Europe',
-      'Asia Pacific',
-      'Latin America',
-      'Middle East',
-    ],
+    labels: labels?.length
+      ? labels
+      : [
+          'North America',
+          'Europe',
+          'Asia Pacific',
+          'Latin America',
+          'Middle East',
+        ],
 
     colors: [
       '#5B6EF5',
