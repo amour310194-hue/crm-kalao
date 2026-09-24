@@ -19,7 +19,12 @@ async function authHeaders() {
   const supabase = getSupabaseBrowserClient();
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  if (!token) throw new Error("Session expirée");
+  if (!token) {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    const next = refreshed.session?.access_token;
+    if (!next) throw new Error("Session expirée");
+    return { Authorization: `Bearer ${next}`, "Content-Type": "application/json" };
+  }
   return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 }
 
@@ -42,6 +47,21 @@ export default function KalaoInboundMail() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  if (!setup?.ok && !msg) {
+    return (
+      <div className="border rounded shadow p-3 mb-3">
+        <h6 className="fs-14 fw-medium mb-1">Réception des mails pro</h6>
+        <p className="mb-2 text-muted fs-13">
+          Endpoint : <code>https://crm.groupe-kalao.com/api/email/inbound</code>. Dans N0C, rediriger
+          chaque adresse @groupe-kalao.com vers le même local-part@{KALAO_INBOUND_RESEND}.
+        </p>
+        <button type="button" className="btn btn-light btn-sm" onClick={() => void load()}>
+          Recharger le statut webhook
+        </button>
+      </div>
+    );
+  }
 
   if (!setup?.ok) return null;
 
