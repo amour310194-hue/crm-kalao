@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { KALAO_INBOUND_RESEND } from "@/lib/org";
+import type { MailDnsReport } from "@/lib/mail-deliverability";
 
 type Forward = { from: string; to: string; box: string };
 
@@ -30,10 +31,17 @@ async function authHeaders() {
 
 export default function KalaoInboundMail() {
   const [setup, setSetup] = useState<SetupPayload | null>(null);
+  const [dns, setDns] = useState<MailDnsReport | null>(null);
   const [busy, setBusy] = useState<"hook" | "sync" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    try {
+      const dnsRes = await fetch("/api/email/dns");
+      if (dnsRes.ok) setDns((await dnsRes.json()) as MailDnsReport);
+    } catch {
+      /* DNS public */
+    }
     try {
       const headers = await authHeaders();
       const res = await fetch("/api/email/inbound/setup", { headers });
@@ -48,10 +56,35 @@ export default function KalaoInboundMail() {
     void load();
   }, [load]);
 
+  const dnsBlock = dns ? (
+    <div className={`alert ${dns.mxOk && dns.spfOk ? "alert-success" : "alert-danger"} mb-3`}>
+      <p className="fw-semibold mb-2">
+        {dns.mxOk
+          ? "Le MX pointe bien vers N0C."
+          : "Les mails n’arrivent pas : le MX pointe vers Vercel au lieu du serveur N0C."}
+      </p>
+      <ul className="mb-2 ps-3">
+        {dns.checks.map((check) => (
+          <li key={check.label}>
+            {check.ok ? "OK" : "À corriger"} — {check.label} : {check.current}
+          </li>
+        ))}
+      </ul>
+      {dns.fix.length ? (
+        <ol className="mb-0 ps-3">
+          {dns.fix.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      ) : null}
+    </div>
+  ) : null;
+
   if (!setup?.ok && !msg) {
     return (
       <div className="border rounded shadow p-3 mb-3">
         <h6 className="fs-14 fw-medium mb-1">Réception des mails pro</h6>
+        {dnsBlock}
         <p className="mb-2 text-muted fs-13">
           Endpoint : <code>https://crm.groupe-kalao.com/api/email/inbound</code>. Dans N0C, rediriger
           chaque adresse @groupe-kalao.com vers le même local-part@{KALAO_INBOUND_RESEND}.
@@ -74,14 +107,15 @@ export default function KalaoInboundMail() {
           <h6 className="fs-14 fw-medium mb-1">Réception des mails pro</h6>
           <p className="mb-0 text-muted fs-13">
             Resend Receiving ({setup.receiving || KALAO_INBOUND_RESEND}) pousse chaque mail vers{" "}
-            <code>{setup.endpoint}</code>. Dans N0C, garder le MX racine et créer une redirection
-            vers l’alias ci-dessous (copie conservée si N0C le permet).
+            <code>{setup.endpoint}</code>. Le MX racine doit rester N0C (pas Vercel). Puis
+            redirection vers l’alias ci-dessous, copie conservée.
           </p>
         </div>
         <span className={`badge ${connected ? "badge-soft-success" : "badge-soft-warning"}`}>
           {connected ? "Webhook actif" : "Webhook à activer"}
         </span>
       </div>
+      {dnsBlock}
       <div className="d-flex flex-wrap gap-2 mb-3">
         <button
           type="button"

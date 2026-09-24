@@ -31,6 +31,7 @@ import {
 } from "@/lib/mail";
 import { liveHref } from "@/lib/docs";
 import KalaoMailboxNav from "@/components/docs/KalaoMailboxNav";
+import KalaoMailDnsBanner from "@/components/docs/KalaoMailDnsBanner";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
@@ -451,6 +452,7 @@ const EmailComponent = () => {
                       </div>
                     </div>
                   </div>
+                  {live ? <KalaoMailDnsBanner /> : null}
                   <div className="list-group list-group-flush mails-list">
                     {live && !visible.length ? (
                       <div className="list-group-item p-4 text-muted">

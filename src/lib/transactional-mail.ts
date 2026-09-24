@@ -1,3 +1,4 @@
+import { crmMailHeaders, crmMailHtml } from "@/lib/mail-deliverability";
 import { KALAO_NOREPLY_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://crm.groupe-kalao.com";
@@ -24,9 +25,12 @@ export async function sendNoreplyMail(input: {
       to: [input.to],
       subject: input.subject,
       text: input.body,
+      html: crmMailHtml(input.body),
+      reply_to: KALAO_NOREPLY_EMAIL,
       headers: {
         "Auto-Submitted": "auto-generated",
         "X-Auto-Response-Suppress": "All",
+        ...crmMailHeaders(KALAO_NOREPLY_EMAIL),
       },
     }),
   });

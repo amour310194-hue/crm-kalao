@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { crmMailHeaders, crmMailHtml, fromAddress } from "@/lib/mail-deliverability";
 import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
 
 type MailboxKey = "noreply" | "contact" | "personal";
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
 
   const from = resolveFrom(payload.mailbox, payload.from);
   const automatic = payload.mailbox !== "contact" && payload.mailbox !== "personal";
+  const replyTo = fromAddress(from);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -56,14 +58,15 @@ export async function POST(request: NextRequest) {
       to: [to],
       subject,
       text,
-      ...(automatic
+      html: crmMailHtml(text),
+      reply_to: replyTo,
+      headers: automatic
         ? {
-            headers: {
-              "Auto-Submitted": "auto-generated",
-              "X-Auto-Response-Suppress": "All",
-            },
+            "Auto-Submitted": "auto-generated",
+            "X-Auto-Response-Suppress": "All",
+            ...crmMailHeaders(from),
           }
-        : { reply_to: from }),
+        : crmMailHeaders(from),
     }),
   });
 
