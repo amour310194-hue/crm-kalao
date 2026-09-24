@@ -249,26 +249,18 @@ function pickRecipient(
   const company = companies?.find(
     (c) => c.email && needle.includes(c.email.toLowerCase())
   );
+  const typed = tags.map((tag) => tag.trim()).find((tag) => tag.includes("@"));
   if (contact || company) {
     return {
       contact,
       company,
-      email: contact?.email || company?.email || tags[0] || "",
+      email: contact?.email || company?.email || typed || "",
     };
   }
-  const fallbackCompany =
-    companies?.find((c) => c.name === "Bâtir Ensemble SARL") ?? companies?.[0];
-  const fallbackContact = contacts?.find(
-    (c) => c.company_id === fallbackCompany?.id
-  );
   return {
-    contact: fallbackContact,
-    company: fallbackCompany,
-    email:
-      tags[0] ||
-      fallbackContact?.email ||
-      fallbackCompany?.email ||
-      "",
+    contact: undefined,
+    company: undefined,
+    email: typed || "",
   };
 }
 
@@ -309,6 +301,7 @@ export async function composeEmail(input: {
     fetchConversations("email"),
   ]);
   const recipient = pickRecipient(input.tags, contacts, companies);
+  if (!recipient.email) throw new Error("Indiquez une adresse e-mail dans À.");
   let conv =
     existing?.find(
       (c) =>

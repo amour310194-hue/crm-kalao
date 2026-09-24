@@ -7,9 +7,14 @@ import {
   EMAIL_FOLDERS,
   countFolder,
   emailParty,
+  explainSend,
   fetchAllowedMailboxes,
   fetchCrmEmails,
   fetchSessionMail,
+  firstMailAddress,
+  restoreTray,
+  saveCrmDraft,
+  sendCrmEmail,
   syncInboundEmails,
   filterEmails,
   folderLabel,
@@ -45,6 +50,11 @@ const EmailComponent = () => {
   const [session, setSession] = useState<SessionMail | null>(null);
   const [allowed, setAllowed] = useState<MailboxKey[]>(["contact", "noreply", "personal"]);
   const [folder, setFolder] = useState<MailFolder>("inbox");
+  const [composeMsg, setComposeMsg] = useState<string | null>(null);
+  const [composeBusy, setComposeBusy] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [composeSubject, setComposeSubject] = useState("");
+  const [composeBody, setComposeBody] = useState("");
   const loadEmails = useCallback(async () => fetchCrmEmails(), []);
   const { rows: emails, live, reload } = useLiveRows(
     [] as CrmEmailRow[],
@@ -77,6 +87,25 @@ const EmailComponent = () => {
     });
   }, [live, reload]);
 
+
+  const resetCompose = () => {
+    setShow(false);
+    setComposeMsg(null);
+    setDraftId(null);
+    setComposeSubject("");
+    setComposeBody("");
+    setTags([]);
+  };
+
+  const openDraft = (row: CrmEmailRow) => {
+    setDraftId(row.id);
+    setMailbox(row.mailbox);
+    setTags(row.to_email.includes("@") ? [row.to_email] : []);
+    setComposeSubject(row.subject === "Sans objet" ? "" : row.subject);
+    setComposeBody(row.body === "(brouillon)" ? "" : row.body);
+    setComposeMsg(null);
+    setShow(true);
+  };
 
   const handleToggle = () => {
     setShowMore((prev) => !prev);
@@ -129,7 +158,14 @@ const EmailComponent = () => {
                   href="#"
                   className="btn btn-primary w-100"
                   id="compose_mail"
-                   onClick={() => setShow(true)}
+                   onClick={() => {
+                    setDraftId(null);
+                    setComposeMsg(null);
+                    setComposeSubject("");
+                    setComposeBody("");
+                    setTags([]);
+                    setShow(true);
+                  }}
                 >
                   <i className="ti ti-edit me-2" />
                   Compose
@@ -416,6 +452,11 @@ const EmailComponent = () => {
                     </div>
                   </div>
                   <div className="list-group list-group-flush mails-list">
+                    {live && !visible.length ? (
+                      <div className="list-group-item p-4 text-muted">
+                        Aucun courrier dans {folderLabel(folder)}.
+                      </div>
+                    ) : null}
                     {live
                       ? visible.map((row) => (
                           <div className="list-group-item p-3" key={row.id}>
@@ -456,9 +497,28 @@ const EmailComponent = () => {
                             <div className="d-flex align-items-center justify-content-between">
                               <span className="badge badge-soft-info d-inline-flex align-items-center p-1">
                                 <i className="ti ti-square me-1" />
-                                {row.direction === "out" ? "Envoyé" : "Reçu"} · {mailboxLabel(row.mailbox)}
+                                {trayOf(row) === "drafts"
+                                  ? "Brouillon"
+                                  : trayOf(row) === "spam"
+                                    ? "Spam"
+                                    : trayOf(row) === "deleted"
+                                      ? "Supprimé"
+                                      : row.direction === "out"
+                                        ? "Envoyé"
+                                        : "Reçu"}{" "}
+                                · {mailboxLabel(row.mailbox)}
                               </span>
                               <div className="d-flex align-items-center gap-2">
+                                {trayOf(row) === "drafts" ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-link p-0"
+                                    title="Ouvrir le brouillon"
+                                    onClick={() => openDraft(row)}
+                                  >
+                                    <i className="ti ti-pencil" />
+                                  </button>
+                                ) : null}
                                 <button
                                   type="button"
                                   className="btn btn-link p-0"
@@ -482,15 +542,23 @@ const EmailComponent = () => {
                                 <button
                                   type="button"
                                   className="btn btn-link p-0"
-                                  title={trayOf(row) === "deleted" ? "Restore" : "Deleted"}
+                                  title={trayOf(row) === "spam" ? "Retirer du spam" : "Spam"}
+                                  onClick={() =>
+                                    void patchCrmEmail(row.id, {
+                                      folder: trayOf(row) === "spam" ? restoreTray(row) : "spam",
+                                    }).then(reload)
+                                  }
+                                >
+                                  <i className="ti ti-info-octagon" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-link p-0"
+                                  title={trayOf(row) === "deleted" ? "Restaurer" : "Supprimer"}
                                   onClick={() =>
                                     void patchCrmEmail(row.id, {
                                       folder:
-                                        trayOf(row) === "deleted"
-                                          ? row.direction === "out"
-                                            ? "sent"
-                                            : "inbox"
-                                          : "deleted",
+                                        trayOf(row) === "deleted" ? restoreTray(row) : "deleted",
                                     }).then(reload)
                                   }
                                 >
@@ -1826,7 +1894,7 @@ const EmailComponent = () => {
                 type="button"
                 className="btn-close custom-btn-close bg-transparent fs-12 text-white position-static"
                 id="compose-close"
-                onClick={() => setShow(false)}
+                onClick={resetCompose}
               >
               </button>
             </div>
@@ -1834,14 +1902,41 @@ const EmailComponent = () => {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              const data = new FormData(e.currentTarget);
-              const subject = String(data.get("subject") ?? "");
-              const body = String(data.get("body") ?? "");
-              await composeEmail({ tags, subject, body, mailbox });
-              e.currentTarget.reset();
-              setTags([]);
-              setShow(false);
-              await reload();
+              const to = firstMailAddress(tags);
+              if (!to) {
+                setComposeMsg("Indiquez une adresse e-mail dans À, puis Entrée.");
+                return;
+              }
+              if (!composeBody.trim()) {
+                setComposeMsg("Message vide.");
+                return;
+              }
+              setComposeBusy(true);
+              setComposeMsg(null);
+              try {
+                const result = await sendCrmEmail({
+                  mailbox,
+                  to,
+                  subject: composeSubject,
+                  body: composeBody,
+                  draftId,
+                });
+                try {
+                  await composeEmail({ tags, subject: composeSubject, body: composeBody, mailbox });
+                } catch {
+                  /* historique Chat facultatif */
+                }
+                setComposeMsg(explainSend(result));
+                if (result.dispatched || result.id) {
+                  setFolder("sent");
+                  resetCompose();
+                  await reload();
+                }
+              } catch (err) {
+                setComposeMsg(err instanceof Error ? err.message : "Erreur d'envoi");
+              } finally {
+                setComposeBusy(false);
+              }
             }}
           >
             <div className="p-3 position-relative pb-2 border-bottom chip-with-image">
@@ -1849,8 +1944,10 @@ const EmailComponent = () => {
                 <div className="tag-with-img d-flex align-items-center">
                   <label className="form-label me-2">To</label>
                   <CommonTagInputs
+                    key={draftId ?? "new"}
                     initialTags={tags}
                     onTagsChange={handleTagsChange }
+                    placeholder="e-mail puis Entrée"
                   />
 
                 </div>
@@ -1890,6 +1987,8 @@ const EmailComponent = () => {
                   className="form-control"
                   name="subject"
                   placeholder="Subject"
+                  value={composeSubject}
+                  onChange={(e) => setComposeSubject(e.target.value)}
                 />
               </div>
               <div className="mb-0">
@@ -1898,7 +1997,8 @@ const EmailComponent = () => {
                   className="form-control"
                   name="body"
                   placeholder="Compose Email"
-                  defaultValue={""}
+                  value={composeBody}
+                  onChange={(e) => setComposeBody(e.target.value)}
                 />
               </div>
             </div>
@@ -1924,17 +2024,63 @@ const EmailComponent = () => {
                 <Link href="#" className="btn btn-icon btn-sm rounded-circle">
                   <i className="ti ti-calendar-repeat" />
                 </Link>
-                <Link href="#" className="btn btn-icon btn-sm rounded-circle">
+                <button
+                  type="button"
+                  className="btn btn-icon btn-sm rounded-circle"
+                  title="Supprimer le brouillon"
+                  onClick={() => {
+                    if (draftId) {
+                      void patchCrmEmail(draftId, { folder: "deleted" }).then(() => {
+                        setFolder("deleted");
+                        resetCompose();
+                        void reload();
+                      });
+                      return;
+                    }
+                    resetCompose();
+                  }}
+                >
                   <i className="ti ti-trash" />
-                </Link>
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-light d-inline-flex align-items-center ms-2"
+                  disabled={composeBusy}
+                  onClick={async () => {
+                    setComposeBusy(true);
+                    try {
+                      const saved = await saveCrmDraft({
+                        mailbox,
+                        to: firstMailAddress(tags),
+                        subject: composeSubject,
+                        body: composeBody,
+                        draftId,
+                      });
+                      setDraftId(saved.id);
+                      setComposeMsg("Brouillon enregistré.");
+                      setFolder("drafts");
+                      await reload();
+                    } catch (err) {
+                      setComposeMsg(err instanceof Error ? err.message : "Brouillon impossible");
+                    } finally {
+                      setComposeBusy(false);
+                    }
+                  }}
+                >
+                  Brouillon
+                </button>
                 <button
                   type="submit"
                   className="btn btn-primary d-inline-flex align-items-center ms-2"
+                  disabled={composeBusy}
                 >
                   Send <i className="ti ti-arrow-right ms-2" />
                 </button>
               </div>
             </div>
+            {composeMsg ? (
+              <p className="px-3 pb-3 mb-0 text-muted">{composeMsg}</p>
+            ) : null}
           </form>
         </div>
       </div>

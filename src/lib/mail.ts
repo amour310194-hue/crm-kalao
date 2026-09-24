@@ -129,6 +129,23 @@ export function trayOf(row: CrmEmailRow): MailTray {
   return row.direction === "out" ? "sent" : "inbox";
 }
 
+/** Dossier d’origine après un spam / une suppression. */
+export function restoreTray(row: CrmEmailRow): MailTray {
+  if (row.direction === "out" && (row.status === "stored" || !row.resend_id)) {
+    return "drafts";
+  }
+  if (row.direction === "out") return "sent";
+  return "inbox";
+}
+
+export function firstMailAddress(values: string[]): string {
+  return (
+    values
+      .map((value) => value.trim())
+      .find((value) => value.includes("@") && !value.includes(" ")) ?? ""
+  );
+}
+
 export function mailboxFrom(key: MailboxKey, session: SessionMail): { from: string; address: string } {
   if (key === "contact") {
     return { from: `Contact Kalao <${KALAO_CONTACT_EMAIL}>`, address: KALAO_CONTACT_EMAIL };
@@ -248,6 +265,83 @@ export async function fetchPartyEmails(input: {
   );
 }
 
+async function upsertOutgoing(
+  session: SessionMail,
+  input: {
+    mailbox: MailboxKey;
+    to: string;
+    subject: string;
+    body: string;
+    companyId?: string | null;
+    contactId?: string | null;
+    invoiceId?: string | null;
+    draftId?: string | null;
+    folder: MailTray;
+    status: CrmEmailRow["status"];
+    resendId?: string | null;
+  }
+): Promise<string> {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const box = mailboxFrom(input.mailbox, session);
+  const payload = {
+    mailbox: input.mailbox,
+    owner_id: input.mailbox === "personal" ? session.userId : null,
+    direction: "out" as const,
+    from_email: box.address,
+    to_email: input.to,
+    subject: input.subject,
+    body: input.body,
+    company_id: input.companyId || null,
+    contact_id: input.contactId || null,
+    invoice_id: input.invoiceId || null,
+    resend_id: input.resendId ?? null,
+    status: input.status,
+    folder: input.folder,
+  };
+  if (input.draftId) {
+    const { error } = await supabase.from("crm_emails").update(payload).eq("id", input.draftId);
+    throwIf(error);
+    return input.draftId;
+  }
+  const { data, error } = await supabase
+    .from("crm_emails")
+    .insert({ ...payload, starred: false, important: false })
+    .select("id")
+    .single();
+  throwIf(error);
+  return data?.id ?? "";
+}
+
+export async function saveCrmDraft(input: {
+  mailbox: MailboxKey;
+  to?: string;
+  subject?: string;
+  body?: string;
+  companyId?: string | null;
+  contactId?: string | null;
+  draftId?: string | null;
+}): Promise<{ id: string }> {
+  const session = await fetchSessionMail();
+  if (!session) throw new Error("Session expirée");
+  const allowed = await fetchAllowedMailboxes();
+  if (!allowed.includes(input.mailbox)) {
+    throw new Error("Cette boîte partagée ne vous est pas ouverte.");
+  }
+  const id = await upsertOutgoing(session, {
+    mailbox: input.mailbox,
+    to: input.to?.trim() || "(destinataire à préciser)",
+    subject: input.subject?.trim() || "Sans objet",
+    body: input.body?.trim() || "(brouillon)",
+    companyId: input.companyId,
+    contactId: input.contactId,
+    draftId: input.draftId,
+    folder: "drafts",
+    status: "stored",
+  });
+  return { id };
+}
+
 export async function sendCrmEmail(input: {
   mailbox: MailboxKey;
   to: string;
@@ -256,6 +350,7 @@ export async function sendCrmEmail(input: {
   companyId?: string | null;
   contactId?: string | null;
   invoiceId?: string | null;
+  draftId?: string | null;
 }): Promise<SendCrmResult> {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -289,34 +384,25 @@ export async function sendCrmEmail(input: {
     id?: string;
   };
   const dispatched = Boolean(json.dispatched);
-  const { data, error } = await supabase
-    .from("crm_emails")
-    .insert({
-      mailbox: input.mailbox,
-      owner_id: input.mailbox === "personal" ? session.userId : null,
-      direction: "out",
-      from_email: box.address,
-      to_email: to,
-      subject,
-      body,
-      company_id: input.companyId || null,
-      contact_id: input.contactId || null,
-      invoice_id: input.invoiceId || null,
-      resend_id: json.id ?? null,
-      status: dispatched ? "sent" : "failed",
-      folder: "sent",
-      starred: false,
-      important: false,
-    })
-    .select("id")
-    .single();
-  throwIf(error);
+  const id = await upsertOutgoing(session, {
+    mailbox: input.mailbox,
+    to,
+    subject,
+    body,
+    companyId: input.companyId,
+    contactId: input.contactId,
+    invoiceId: input.invoiceId,
+    draftId: input.draftId,
+    folder: "sent",
+    status: dispatched ? "sent" : "failed",
+    resendId: json.id ?? null,
+  });
   return {
     dispatched,
     to,
     reason: json.reason ?? (dispatched ? "sent" : "resend_error"),
     detail: json.detail,
-    id: data?.id,
+    id,
   };
 }
 

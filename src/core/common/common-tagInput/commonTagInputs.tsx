@@ -4,9 +4,14 @@ import { Input, type InputRef, Tag, theme } from 'antd';
 interface TagInputProps {
   initialTags?: string[];
   onTagsChange?: (tags: string[]) => void;
+  placeholder?: string;
 }
 
-const CommonTagInputs: React.FC<TagInputProps> = ({ initialTags = [], onTagsChange }) => {
+const CommonTagInputs: React.FC<TagInputProps> = ({
+  initialTags = [],
+  onTagsChange,
+  placeholder = "Add a tag",
+}) => {
   const {  } = theme.useToken();
   const [tags, setTags] = useState<string[]>(initialTags);
   const [inputValue, setInputValue] = useState('');
@@ -64,7 +69,7 @@ const CommonTagInputs: React.FC<TagInputProps> = ({ initialTags = [], onTagsChan
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onBlur={handleInputConfirm}
-        placeholder="Add a tag"
+        placeholder={placeholder}
         autoFocus={inputVisible}
       />
     </div>

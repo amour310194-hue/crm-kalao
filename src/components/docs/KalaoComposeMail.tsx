@@ -11,6 +11,7 @@ import {
   fetchSessionMail,
   mailHref,
   mailboxLabel,
+  saveCrmDraft,
   sendCrmEmail,
   type CrmEmailRow,
   type MailboxKey,
@@ -113,6 +114,32 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
             />
           </div>
           <div className="d-flex align-items-center gap-2">
+            <button
+              type="button"
+              className="btn btn-outline-light"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await saveCrmDraft({
+                    mailbox,
+                    to: recipient,
+                    subject,
+                    body,
+                    companyId,
+                    contactId,
+                  });
+                  setMsg("Brouillon enregistré dans la boîte CRM.");
+                  load();
+                } catch (err) {
+                  setMsg(err instanceof Error ? err.message : "Erreur");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Brouillon
+            </button>
             <button
               type="button"
               className="btn btn-dark"
