@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { all_routes } from "@/router/all_routes";
-import { liveHref } from "@/lib/docs";
+import { formatChatTime } from "@/lib/inbox";
+import { filesToMailPayload, repairMailText } from "@/lib/mail-text";
+import { CRM_MAIL_TEMPLATES, fillMailTemplate } from "@/lib/mail-templates";
 import {
   explainSend,
   fetchAllowedMailboxes,
@@ -17,6 +18,7 @@ import {
   type MailboxKey,
   type SessionMail,
 } from "@/lib/mail";
+import KalaoMailReader from "@/components/docs/KalaoMailReader";
 
 type Props = {
   to?: string | null;
@@ -35,9 +37,11 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
   const [session, setSession] = useState<SessionMail | null>(null);
   const [allowed, setAllowed] = useState<MailboxKey[]>(["contact", "noreply", "personal"]);
   const [rows, setRows] = useState<CrmEmailRow[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [openedId, setOpenedId] = useState<string | null>(null);
 
   const load = () => {
-    void fetchPartyEmails({ companyId, contactId }).then(setRows);
+    void fetchPartyEmails({ companyId, contactId, email: to }).then(setRows);
     void fetchSessionMail().then(setSession);
     void fetchAllowedMailboxes().then((boxes) => {
       setAllowed(boxes);
@@ -47,7 +51,7 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
 
   useEffect(() => {
     load();
-  }, [companyId, contactId]);
+  }, [companyId, contactId, to]);
 
   const recipient = (to ?? "").trim();
 
@@ -72,6 +76,27 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
       {open ? (
         <div className="border rounded p-3 bg-white">
           <p className="mb-2 fw-semibold">Écrire à {partyName}</p>
+          <div className="mb-2">
+            <label className="form-label mb-1">Modèle</label>
+            <select
+              className="form-select"
+              defaultValue=""
+              onChange={(e) => {
+                const tpl = CRM_MAIL_TEMPLATES.find((item) => item.id === e.target.value);
+                if (!tpl) return;
+                const filled = fillMailTemplate(tpl, { name: partyName, email: recipient });
+                setSubject(filled.subject);
+                setBody(filled.body);
+              }}
+            >
+              <option value="">Sans modèle — écrire librement</option>
+              {CRM_MAIL_TEMPLATES.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="mb-2">
             <label className="form-label mb-1">Depuis</label>
             <select
@@ -107,10 +132,18 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
           <div className="mb-2">
             <textarea
               className="form-control"
-              rows={5}
+              rows={6}
               placeholder="Message"
               value={body}
               onChange={(e) => setBody(e.target.value)}
+            />
+          </div>
+          <div className="mb-2">
+            <input
+              type="file"
+              multiple
+              className="form-control"
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
             />
           </div>
           <div className="d-flex align-items-center gap-2">
@@ -147,6 +180,7 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
               onClick={async () => {
                 setBusy(true);
                 try {
+                  const attachments = files.length ? await filesToMailPayload(files) : [];
                   const result = await sendCrmEmail({
                     mailbox,
                     to: recipient,
@@ -154,11 +188,13 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
                     body,
                     companyId,
                     contactId,
+                    attachments,
                   });
                   setMsg(explainSend(result));
                   if (result.dispatched) {
                     setSubject("");
                     setBody("");
+                    setFiles([]);
                     load();
                   }
                 } catch (err) {
@@ -179,17 +215,33 @@ export default function KalaoComposeMail({ to, contactId, companyId, partyName }
       ) : null}
       {rows.length ? (
         <div className="border rounded p-3 bg-light">
-          <p className="mb-2 fw-semibold">Courrier lié</p>
-          {rows.slice(0, 6).map((row) => (
-            <div key={row.id} className="d-flex justify-content-between gap-2 mb-1">
-              <Link href={liveHref(all_routes.emailReply, row.id)}>
+          <p className="mb-2 fw-semibold">Courriers échangés ({rows.length})</p>
+          {rows.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              className="btn btn-link text-start w-100 p-0 mb-2 text-decoration-none"
+              onClick={() => setOpenedId(row.id === openedId ? null : row.id)}
+            >
+              <span className="d-block fw-semibold">
                 {row.direction === "out" ? "Envoyé" : "Reçu"} · {mailboxLabel(row.mailbox)} ·{" "}
-                {row.subject}
-              </Link>
-              <span className="text-muted">{row.status}</span>
-            </div>
+                {repairMailText(row.subject)}
+              </span>
+              <span className="d-block text-muted">
+                {formatChatTime(row.created_at)} · {repairMailText(row.body).slice(0, 90)}
+              </span>
+            </button>
           ))}
         </div>
+      ) : (
+        <p className="mb-0 text-muted">Aucun courrier échangé avec ce client pour le moment.</p>
+      )}
+      {openedId ? (
+        <KalaoMailReader
+          id={openedId}
+          onClose={() => setOpenedId(null)}
+          onChanged={load}
+        />
       ) : null}
     </div>
   );

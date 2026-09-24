@@ -6,6 +6,7 @@ import {
   fetchReceivedEmail,
   type InboundResolved,
 } from "@/lib/inbound-mail";
+import { repairMailText } from "@/lib/mail-text";
 
 const INGEST_SECRET =
   process.env.INBOUND_INGEST_SECRET || "kloa_inb_v17_9f3c2a7e1b84d0c6e5a2f8b1d4c7e0a3";
@@ -79,7 +80,8 @@ export async function storeInboundEmail(input: {
   resendId?: string | null;
 }): Promise<{ stored: boolean; reason: string; mailbox?: string }> {
   const from = extractAddresses(input.from)[0] || input.from.trim();
-  const body = input.body.trim() || "(sans contenu)";
+  const body = repairMailText(input.body.trim()) || "(sans contenu)";
+  const subject = repairMailText(input.subject.trim()) || "Sans objet";
   if (!from) return { stored: false, reason: "empty" };
 
   const supabase = service();
@@ -101,19 +103,29 @@ export async function storeInboundEmail(input: {
     const resolved = await resolveMailbox([...(input.to ?? []), ...(input.receivedFor ?? [])]);
     if (!resolved) return { stored: false, reason: "unknown_mailbox" };
 
+    const { data: contact } = await supabase
+      .from("contacts")
+      .select("id, company_id")
+      .ilike("email", from)
+      .limit(1)
+      .maybeSingle();
+
     const { error } = await supabase.from("crm_emails").insert({
       mailbox: resolved.mailbox,
       owner_id: resolved.ownerId,
       direction: "in",
       from_email: from,
       to_email: resolved.toEmail,
-      subject: input.subject.trim() || "Sans objet",
+      subject,
       body,
+      company_id: contact?.company_id ?? null,
+      contact_id: contact?.id ?? null,
       resend_id: input.resendId ?? null,
       status: "stored",
       folder: "inbox",
       starred: false,
       important: false,
+      unread: true,
     });
     if (error) return { stored: false, reason: error.message };
     return { stored: true, reason: "stored", mailbox: resolved.mailbox };
@@ -126,7 +138,7 @@ export async function storeInboundEmail(input: {
     p_from: from,
     p_to: input.to ?? [],
     p_received_for: input.receivedFor ?? [],
-    p_subject: input.subject.trim() || "Sans objet",
+    p_subject: subject,
     p_body: body,
     p_resend_id: input.resendId ?? null,
   });

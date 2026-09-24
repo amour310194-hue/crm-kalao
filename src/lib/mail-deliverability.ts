@@ -124,7 +124,7 @@ export function crmMailHtml(body: string): string {
     .split(/\n{2,}/)
     .map((block) => `<p style="margin:0 0 12px;line-height:1.5">${block.replace(/\n/g, "<br/>")}</p>`)
     .join("");
-  return `<!DOCTYPE html><html lang="fr"><body style="margin:0;background:#f4f4f5;font-family:Arial,sans-serif;color:#18181b">
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/></head><body style="margin:0;background:#f4f4f5;font-family:Arial,sans-serif;color:#18181b">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px">
 <tr><td align="center">
 <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px">

@@ -4,6 +4,7 @@ import {
   KALAO_NOREPLY_EMAIL,
   KALAO_NOREPLY_FROM,
 } from "@/lib/org";
+import { repairMailText } from "@/lib/mail-text";
 
 export type MailboxKey = "noreply" | "contact" | "personal";
 export type MailTray = "inbox" | "sent" | "drafts" | "deleted" | "spam";
@@ -57,10 +58,26 @@ export type CrmEmailRow = {
   folder: MailTray;
   starred: boolean;
   important: boolean;
+  unread?: boolean;
+  in_reply_to?: string | null;
   created_at: string;
   companies?: { name: string | null } | null;
   contacts?: { first_name: string; last_name: string; email: string | null } | null;
 };
+
+export type MailAttachmentPayload = {
+  filename: string;
+  content: string;
+  contentType?: string;
+};
+
+function decorateEmail(row: CrmEmailRow): CrmEmailRow {
+  return {
+    ...row,
+    subject: repairMailText(row.subject),
+    body: repairMailText(row.body),
+  };
+}
 
 export type SessionMail = {
   userId: string;
@@ -237,7 +254,7 @@ export async function fetchCrmEmails(): Promise<CrmEmailRow[] | null> {
     .select("*, companies(name), contacts(first_name, last_name, email)")
     .order("created_at", { ascending: false });
   if (error) return [];
-  return (data ?? []) as CrmEmailRow[];
+  return ((data ?? []) as CrmEmailRow[]).map(decorateEmail);
 }
 
 export async function fetchCrmEmail(id: string): Promise<CrmEmailRow | null> {
@@ -249,20 +266,30 @@ export async function fetchCrmEmail(id: string): Promise<CrmEmailRow | null> {
     .eq("id", id)
     .maybeSingle();
   throwIf(error);
-  return (data as CrmEmailRow | null) ?? null;
+  return data ? decorateEmail(data as CrmEmailRow) : null;
 }
 
 export async function fetchPartyEmails(input: {
   companyId?: string | null;
   contactId?: string | null;
+  email?: string | null;
 }): Promise<CrmEmailRow[]> {
   const rows = await fetchCrmEmails();
   if (!rows) return [];
-  return rows.filter(
-    (row) =>
-      (input.contactId && row.contact_id === input.contactId) ||
-      (input.companyId && row.company_id === input.companyId)
-  );
+  const email = (input.email ?? "").trim().toLowerCase();
+  return rows.filter((row) => {
+    if (input.contactId && row.contact_id === input.contactId) return true;
+    if (input.companyId && row.company_id === input.companyId) return true;
+    if (
+      email &&
+      (row.from_email.toLowerCase() === email ||
+        row.to_email.toLowerCase() === email ||
+        row.contacts?.email?.toLowerCase() === email)
+    ) {
+      return true;
+    }
+    return false;
+  });
 }
 
 async function upsertOutgoing(
@@ -276,6 +303,7 @@ async function upsertOutgoing(
     contactId?: string | null;
     invoiceId?: string | null;
     draftId?: string | null;
+    inReplyTo?: string | null;
     folder: MailTray;
     status: CrmEmailRow["status"];
     resendId?: string | null;
@@ -298,6 +326,8 @@ async function upsertOutgoing(
     resend_id: input.resendId ?? null,
     status: input.status,
     folder: input.folder,
+    unread: false,
+    in_reply_to: input.inReplyTo ?? null,
   };
   if (input.draftId) {
     const { error } = await supabase.from("crm_emails").update(payload).eq("id", input.draftId);
@@ -351,6 +381,8 @@ export async function sendCrmEmail(input: {
   contactId?: string | null;
   invoiceId?: string | null;
   draftId?: string | null;
+  inReplyTo?: string | null;
+  attachments?: MailAttachmentPayload[];
 }): Promise<SendCrmResult> {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -375,6 +407,7 @@ export async function sendCrmEmail(input: {
       body,
       mailbox: input.mailbox,
       from: box.from,
+      attachments: input.attachments ?? [],
     }),
   });
   const json = (await res.json()) as {
@@ -393,6 +426,7 @@ export async function sendCrmEmail(input: {
     contactId: input.contactId,
     invoiceId: input.invoiceId,
     draftId: input.draftId,
+    inReplyTo: input.inReplyTo,
     folder: "sent",
     status: dispatched ? "sent" : "failed",
     resendId: json.id ?? null,
@@ -408,7 +442,7 @@ export async function sendCrmEmail(input: {
 
 export async function patchCrmEmail(
   id: string,
-  patch: Partial<Pick<CrmEmailRow, "folder" | "starred" | "important">>
+  patch: Partial<Pick<CrmEmailRow, "folder" | "starred" | "important" | "unread">>
 ): Promise<void> {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");

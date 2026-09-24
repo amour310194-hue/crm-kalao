@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     body?: string;
     mailbox?: MailboxKey;
     from?: string;
+    attachments?: { filename?: string; content?: string; contentType?: string }[];
   } = {};
   try {
     payload = (await request.json()) as typeof payload;
@@ -47,11 +48,19 @@ export async function POST(request: NextRequest) {
   const from = resolveFrom(payload.mailbox, payload.from);
   const automatic = payload.mailbox !== "contact" && payload.mailbox !== "personal";
   const replyTo = fromAddress(from);
+  const attachments = (payload.attachments ?? [])
+    .filter((file) => file.filename && file.content)
+    .slice(0, 8)
+    .map((file) => ({
+      filename: String(file.filename),
+      content: String(file.content),
+      content_type: file.contentType || undefined,
+    }));
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
+      "Content-Type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
       from,
@@ -60,6 +69,7 @@ export async function POST(request: NextRequest) {
       text,
       html: crmMailHtml(text),
       reply_to: replyTo,
+      attachments: attachments.length ? attachments : undefined,
       headers: automatic
         ? {
             "Auto-Submitted": "auto-generated",

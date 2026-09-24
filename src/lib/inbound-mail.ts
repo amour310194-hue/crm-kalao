@@ -4,6 +4,7 @@ import {
   KALAO_INBOUND_RESEND,
   KALAO_NOREPLY_EMAIL,
 } from "@/lib/org";
+import { repairMailText } from "@/lib/mail-text";
 
 export type InboundMailbox = "noreply" | "contact" | "personal";
 
@@ -114,8 +115,8 @@ export async function fetchReceivedEmail(emailId: string): Promise<ReceivedEmail
     from: extractAddresses(json.from)[0] || String(json.from ?? "").trim(),
     to: extractAddresses(json.to),
     receivedFor: [...extractAddresses(json.received_for), ...headerTargets],
-    subject: String(json.subject ?? "Sans objet").trim(),
-    text: text || "(sans contenu)",
+    subject: repairMailText(String(json.subject ?? "Sans objet").trim()),
+    text: repairMailText(text) || "(sans contenu)",
   };
 }
 

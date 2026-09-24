@@ -32,6 +32,9 @@ import {
 import { liveHref } from "@/lib/docs";
 import KalaoMailboxNav from "@/components/docs/KalaoMailboxNav";
 import KalaoMailDnsBanner from "@/components/docs/KalaoMailDnsBanner";
+import KalaoMailReader from "@/components/docs/KalaoMailReader";
+import { filesToMailPayload, repairMailText } from "@/lib/mail-text";
+import { CRM_MAIL_TEMPLATES, fillMailTemplate } from "@/lib/mail-templates";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
@@ -56,15 +59,22 @@ const EmailComponent = () => {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [composeSubject, setComposeSubject] = useState("");
   const [composeBody, setComposeBody] = useState("");
+  const [composeFiles, setComposeFiles] = useState<File[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openedId, setOpenedId] = useState<string | null>(null);
   const loadEmails = useCallback(async () => fetchCrmEmails(), []);
   const { rows: emails, live, reload } = useLiveRows(
     [] as CrmEmailRow[],
     loadEmails
   );
-  const visible = useMemo(
-    () => filterEmails(emails, mailbox, folder),
-    [emails, mailbox, folder]
-  );
+  const visible = useMemo(() => {
+    const tray = filterEmails(emails, mailbox, folder);
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return tray;
+    return tray.filter((row) =>
+      `${row.subject} ${row.body} ${row.from_email} ${row.to_email}`.toLowerCase().includes(q)
+    );
+  }, [emails, mailbox, folder, searchQuery]);
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
   };
@@ -95,6 +105,7 @@ const EmailComponent = () => {
     setDraftId(null);
     setComposeSubject("");
     setComposeBody("");
+    setComposeFiles([]);
     setTags([]);
   };
 
@@ -424,6 +435,10 @@ const EmailComponent = () => {
                             className="form-control"
                             placeholder="Search..."
                             autoComplete="off"
+                            value={live ? searchQuery : undefined}
+                            onChange={(e) => {
+                              if (live) setSearchQuery(e.target.value);
+                            }}
                           />
                         </div>
                         <div className="d-flex align-items-center">
@@ -453,6 +468,13 @@ const EmailComponent = () => {
                     </div>
                   </div>
                   {live ? <KalaoMailDnsBanner /> : null}
+                  {live && openedId ? (
+                    <KalaoMailReader
+                      id={openedId}
+                      onClose={() => setOpenedId(null)}
+                      onChanged={() => void reload()}
+                    />
+                  ) : null}
                   <div className="list-group list-group-flush mails-list">
                     {live && !visible.length ? (
                       <div className="list-group-item p-4 text-muted">
@@ -461,15 +483,25 @@ const EmailComponent = () => {
                     ) : null}
                     {live
                       ? visible.map((row) => (
-                          <div className="list-group-item p-3" key={row.id}>
+                          <div
+                            className={`list-group-item p-3 ${openedId === row.id ? "bg-light" : ""}`}
+                            key={row.id}
+                            role="button"
+                            onClick={() => setOpenedId(row.id)}
+                          >
                             <div className="d-flex align-items-center mb-2">
                               <div className="form-check form-check-md d-flex align-items-center flex-shrink-0 me-2">
-                                <input className="form-check-input" type="checkbox" />
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
                               </div>
                               <div className="d-flex align-items-center flex-wrap row-gap-2 flex-fill">
                                 <Link
                                   href={liveHref(all_routes.emailReply, row.id)}
                                   className="avatar bg-primary avatar-rounded me-2"
+                                  onClick={(e) => e.stopPropagation()}
                                 >
                                   <span className="avatar-title">
                                     {emailParty(row).slice(0, 2).toUpperCase()}
@@ -478,12 +510,18 @@ const EmailComponent = () => {
                                 <div className="flex-fill">
                                   <div className="d-flex align-items-start justify-content-between">
                                     <div>
-                                      <h6 className="fs-16 mb-1">
-                                        <Link href={liveHref(all_routes.emailReply, row.id)}>
+                                      <h6 className={`fs-16 mb-1 ${row.unread ? "fw-bold" : ""}`}>
+                                        <Link
+                                          href={liveHref(all_routes.emailReply, row.id)}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            setOpenedId(row.id);
+                                          }}
+                                        >
                                           {emailParty(row)}
                                         </Link>
                                       </h6>
-                                      <span className="fw-semibold">{row.subject}</span>
+                                      <span className="fw-semibold">{repairMailText(row.subject)}</span>
                                     </div>
                                     <div className="d-flex align-items-center">
                                       <span className="d-inline-flex align-items-center">
@@ -492,7 +530,7 @@ const EmailComponent = () => {
                                       </span>
                                     </div>
                                   </div>
-                                  <p className="mb-0">{row.body.slice(0, 120)}</p>
+                                  <p className="mb-0">{repairMailText(row.body).slice(0, 120)}</p>
                                 </div>
                               </div>
                             </div>
@@ -510,7 +548,10 @@ const EmailComponent = () => {
                                         : "Reçu"}{" "}
                                 · {mailboxLabel(row.mailbox)}
                               </span>
-                              <div className="d-flex align-items-center gap-2">
+                              <div
+                                className="d-flex align-items-center gap-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 {trayOf(row) === "drafts" ? (
                                   <button
                                     type="button"
@@ -1916,12 +1957,16 @@ const EmailComponent = () => {
               setComposeBusy(true);
               setComposeMsg(null);
               try {
+                const attachments = composeFiles.length
+                  ? await filesToMailPayload(composeFiles)
+                  : [];
                 const result = await sendCrmEmail({
                   mailbox,
                   to,
                   subject: composeSubject,
                   body: composeBody,
                   draftId,
+                  attachments,
                 });
                 try {
                   await composeEmail({ tags, subject: composeSubject, body: composeBody, mailbox });
@@ -1984,6 +2029,30 @@ const EmailComponent = () => {
                 </select>
               </div>
               <div className="mb-3">
+                <select
+                  className="form-select"
+                  defaultValue=""
+                  onChange={(e) => {
+                    const tpl = CRM_MAIL_TEMPLATES.find((item) => item.id === e.target.value);
+                    if (!tpl) return;
+                    const name = firstMailAddress(tags).split("@")[0] || "";
+                    const filled = fillMailTemplate(tpl, {
+                      name,
+                      email: firstMailAddress(tags),
+                    });
+                    setComposeSubject(filled.subject);
+                    setComposeBody(filled.body);
+                  }}
+                >
+                  <option value="">Modèle — écrire librement</option>
+                  {CRM_MAIL_TEMPLATES.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-3">
                 <input
                   type="text"
                   className="form-control"
@@ -2006,9 +2075,15 @@ const EmailComponent = () => {
             </div>
             <div className="p-3 d-flex align-items-center justify-content-between">
               <div className="d-flex align-items-center">
-                <Link href="#" className="btn btn-icon btn-sm rounded-circle">
+                <label className="btn btn-icon btn-sm rounded-circle mb-0" title="Joindre un fichier">
                   <i className="ti ti-paperclip" />
-                </Link>
+                  <input
+                    type="file"
+                    multiple
+                    className="d-none"
+                    onChange={(e) => setComposeFiles(Array.from(e.target.files ?? []))}
+                  />
+                </label>
                 <Link href="#" className="btn btn-icon btn-sm rounded-circle">
                   <i className="ti ti-photo" />
                 </Link>
@@ -2080,6 +2155,9 @@ const EmailComponent = () => {
                 </button>
               </div>
             </div>
+            {composeFiles.length ? (
+              <p className="px-3 mb-0 text-muted">{composeFiles.length} fichier(s) joint(s)</p>
+            ) : null}
             {composeMsg ? (
               <p className="px-3 pb-3 mb-0 text-muted">{composeMsg}</p>
             ) : null}
