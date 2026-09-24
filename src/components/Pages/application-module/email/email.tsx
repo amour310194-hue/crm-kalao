@@ -10,6 +10,7 @@ import {
   fetchAllowedMailboxes,
   fetchCrmEmails,
   fetchSessionMail,
+  syncInboundEmails,
   filterEmails,
   folderLabel,
   isMailFolder,
@@ -71,7 +72,10 @@ const EmailComponent = () => {
       if (isMailboxKey(box) && boxes.includes(box)) setMailbox(box);
       else setMailbox((current) => (boxes.includes(current) ? current : boxes[0] ?? "personal"));
     });
-  }, [live]);
+    void syncInboundEmails().then((count) => {
+      if (count > 0) void reload();
+    });
+  }, [live, reload]);
 
 
   const handleToggle = () => {

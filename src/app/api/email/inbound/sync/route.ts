@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   if (!(await inboundSyncAllowed(request))) {
     return Response.json({ ok: false, reason: "auth" }, { status: 401 });
   }
-  const ids = await listReceivedEmailIds(30);
+  const ids = await listReceivedEmailIds(50);
   const results = [];
   for (const id of ids) {
     results.push({ id, ...(await ingestReceivedEmail(id)) });

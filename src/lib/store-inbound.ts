@@ -14,28 +14,50 @@ function service() {
   return createClient(url, key);
 }
 
+function isPlaceholderBody(body: string) {
+  return !body || body === "(sans contenu)" || body === "(contenu à récupérer)";
+}
+
 export async function resolveMailbox(addresses: string[]): Promise<InboundResolved | null> {
   const targets = expandInboundAliases(addresses);
-  if (targets.some((addr) => addr === KALAO_CONTACT_EMAIL)) {
+  if (
+    targets.some(
+      (addr) => addr === KALAO_CONTACT_EMAIL || addr.startsWith("contact@")
+    )
+  ) {
     return { mailbox: "contact", toEmail: KALAO_CONTACT_EMAIL, ownerId: null };
   }
-  if (targets.some((addr) => addr === KALAO_NOREPLY_EMAIL)) {
+  if (
+    targets.some(
+      (addr) =>
+        addr === KALAO_NOREPLY_EMAIL ||
+        addr.startsWith("no-reply@") ||
+        addr.startsWith("noreply@")
+    )
+  ) {
     return { mailbox: "noreply", toEmail: KALAO_NOREPLY_EMAIL, ownerId: null };
   }
   const supabase = service();
-  if (!supabase || !targets.length) return null;
-  const { data: employee } = await supabase
-    .from("employees")
-    .select("email, profile_id")
-    .in("email", targets)
-    .not("profile_id", "is", null)
-    .maybeSingle();
-  if (!employee?.profile_id) return null;
-  return {
-    mailbox: "personal",
-    toEmail: String(employee.email ?? targets[0]).toLowerCase(),
-    ownerId: employee.profile_id,
-  };
+  if (supabase && targets.length) {
+    const { data: employee } = await supabase
+      .from("employees")
+      .select("email, profile_id")
+      .in("email", targets)
+      .not("profile_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (employee?.profile_id) {
+      return {
+        mailbox: "personal",
+        toEmail: String(employee.email ?? targets[0]).toLowerCase(),
+        ownerId: employee.profile_id,
+      };
+    }
+  }
+  if (targets.length) {
+    return { mailbox: "contact", toEmail: KALAO_CONTACT_EMAIL, ownerId: null };
+  }
+  return null;
 }
 
 export async function storeInboundEmail(input: {
@@ -55,10 +77,15 @@ export async function storeInboundEmail(input: {
   if (input.resendId) {
     const { data: existing } = await supabase
       .from("crm_emails")
-      .select("id")
+      .select("id, body")
       .eq("resend_id", input.resendId)
       .maybeSingle();
-    if (existing) return { stored: true, reason: "duplicate" };
+    if (existing) {
+      if (!isPlaceholderBody(body) && isPlaceholderBody(String(existing.body ?? ""))) {
+        await supabase.from("crm_emails").update({ body }).eq("id", existing.id);
+      }
+      return { stored: true, reason: "duplicate" };
+    }
   }
 
   const resolved = await resolveMailbox([...(input.to ?? []), ...(input.receivedFor ?? [])]);
@@ -82,15 +109,39 @@ export async function storeInboundEmail(input: {
   return { stored: true, reason: "stored", mailbox: resolved.mailbox };
 }
 
-export async function ingestReceivedEmail(emailId: string) {
+export async function ingestReceivedEmail(
+  emailId: string,
+  fallback?: {
+    from?: string;
+    to?: string[] | string;
+    receivedFor?: string[] | string;
+    subject?: string;
+    body?: string;
+  }
+) {
   const email = await fetchReceivedEmail(emailId);
-  if (!email) return { stored: false, reason: "fetch_failed" };
-  return storeInboundEmail({
-    from: email.from,
-    to: email.to,
-    receivedFor: email.receivedFor,
-    subject: email.subject,
-    body: email.text,
-    resendId: emailId,
-  });
+  if (email) {
+    return storeInboundEmail({
+      from: email.from,
+      to: email.to,
+      receivedFor: email.receivedFor,
+      subject: email.subject,
+      body: email.text,
+      resendId: emailId,
+    });
+  }
+  const from = String(fallback?.from ?? "").trim();
+  const to = extractAddresses(fallback?.to);
+  const receivedFor = extractAddresses(fallback?.receivedFor);
+  if (from && (to.length || receivedFor.length)) {
+    return storeInboundEmail({
+      from,
+      to,
+      receivedFor,
+      subject: String(fallback?.subject ?? "Sans objet"),
+      body: String(fallback?.body ?? "").trim() || "(contenu à récupérer)",
+      resendId: emailId,
+    });
+  }
+  return { stored: false, reason: "fetch_failed" };
 }

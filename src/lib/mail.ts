@@ -197,6 +197,21 @@ export async function fetchSessionMail(): Promise<SessionMail | null> {
   };
 }
 
+export async function syncInboundEmails(): Promise<number> {
+  const supabase = db();
+  if (!supabase) return 0;
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return 0;
+  const res = await fetch("/api/email/inbound/sync", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return 0;
+  const json = (await res.json()) as { count?: number };
+  return json.count ?? 0;
+}
+
 export async function fetchCrmEmails(): Promise<CrmEmailRow[] | null> {
   const supabase = db();
   if (!supabase) return null;
