@@ -20,7 +20,11 @@ const BOXES: { key: "contact" | "noreply"; label: string }[] = [
 async function authHeaders() {
   const supabase = getSupabaseBrowserClient();
   const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  let token = data.session?.access_token;
+  if (!token) {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    token = refreshed.session?.access_token;
+  }
   if (!token) throw new Error("Session expirée");
   return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 }
@@ -49,9 +53,26 @@ export default function KalaoMailboxAccess() {
 
   useEffect(() => {
     void load();
+    const retry = window.setTimeout(() => {
+      void load();
+    }, 800);
+    return () => window.clearTimeout(retry);
   }, [load]);
 
-  if (!payload?.ok || !draft) return null;
+  if (!payload?.ok || !draft) {
+    return (
+      <div className="border rounded shadow p-3 mb-3">
+        <h6 className="fs-14 fw-medium mb-1">Accès aux boîtes partagées</h6>
+        <p className="text-muted fs-13 mb-2">
+          Choisissez qui peut ouvrir Contact et No-reply. Un admin, un manager ou un RH peut toujours y
+          accéder.
+        </p>
+        <button type="button" className="btn btn-light btn-sm" onClick={() => void load()}>
+          Charger les accès
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="border rounded shadow p-3 mb-3">
