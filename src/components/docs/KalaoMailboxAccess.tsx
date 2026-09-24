@@ -2,77 +2,70 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { canCreateStaffAccount } from "@/lib/authz";
 
-type Person = { id: string; name: string; email: string; role: string };
+type Person = { id: string; name: string; email: string };
 type BoxAccess = { open: boolean; profileIds: string[] };
-
-type Payload = {
-  ok?: boolean;
-  people?: Person[];
-  access?: { contact: BoxAccess; noreply: BoxAccess };
-};
 
 const BOXES: { key: "contact" | "noreply"; label: string }[] = [
   { key: "contact", label: "Contact (partagée)" },
   { key: "noreply", label: "No-reply (partagée)" },
 ];
 
-async function authHeaders() {
-  const supabase = getSupabaseBrowserClient();
-  const { data } = await supabase.auth.getSession();
-  let token = data.session?.access_token;
-  if (!token) {
-    const { data: refreshed } = await supabase.auth.refreshSession();
-    token = refreshed.session?.access_token;
-  }
-  if (!token) throw new Error("Session expirée");
-  return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
-}
-
 export default function KalaoMailboxAccess() {
-  const [payload, setPayload] = useState<Payload | null>(null);
+  const [allowed, setAllowed] = useState(false);
+  const [people, setPeople] = useState<Person[]>([]);
   const [draft, setDraft] = useState<Record<"contact" | "noreply", BoxAccess> | null>(null);
   const [busy, setBusy] = useState<"contact" | "noreply" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    try {
-      const headers = await authHeaders();
-      const res = await fetch("/api/email/mailbox-access", { headers });
-      const json = (await res.json()) as Payload;
-      if (!res.ok || !json.ok) {
-        setPayload(null);
-        return;
-      }
-      setPayload(json);
-      setDraft(json.access ?? null);
-    } catch {
-      setPayload(null);
+    const supabase = getSupabaseBrowserClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", auth.user.id)
+      .maybeSingle();
+    if (!canCreateStaffAccount(profile?.role)) {
+      setAllowed(false);
+      return;
     }
+    setAllowed(true);
+    const [{ data: staff }, { data: acl }, { data: settings }] = await Promise.all([
+      supabase
+        .from("employees")
+        .select("full_name, email, profile_id")
+        .not("profile_id", "is", null)
+        .order("full_name"),
+      supabase.from("crm_mailbox_acl").select("mailbox, profile_id"),
+      supabase.from("crm_mailbox_settings").select("mailbox, restricted"),
+    ]);
+    setPeople(
+      (staff ?? []).map((row) => ({
+        id: String(row.profile_id),
+        name: String(row.full_name ?? row.email ?? "Employé"),
+        email: String(row.email ?? ""),
+      }))
+    );
+    setDraft({
+      contact: {
+        open: !settings?.find((row) => row.mailbox === "contact")?.restricted,
+        profileIds: (acl ?? []).filter((row) => row.mailbox === "contact").map((row) => String(row.profile_id)),
+      },
+      noreply: {
+        open: !settings?.find((row) => row.mailbox === "noreply")?.restricted,
+        profileIds: (acl ?? []).filter((row) => row.mailbox === "noreply").map((row) => String(row.profile_id)),
+      },
+    });
   }, []);
 
   useEffect(() => {
     void load();
-    const retry = window.setTimeout(() => {
-      void load();
-    }, 800);
-    return () => window.clearTimeout(retry);
   }, [load]);
 
-  if (!payload?.ok || !draft) {
-    return (
-      <div className="border rounded shadow p-3 mb-3">
-        <h6 className="fs-14 fw-medium mb-1">Accès aux boîtes partagées</h6>
-        <p className="text-muted fs-13 mb-2">
-          Choisissez qui peut ouvrir Contact et No-reply. Un admin, un manager ou un RH peut toujours y
-          accéder.
-        </p>
-        <button type="button" className="btn btn-light btn-sm" onClick={() => void load()}>
-          Charger les accès
-        </button>
-      </div>
-    );
-  }
+  if (!allowed || !draft) return null;
 
   return (
     <div className="border rounded shadow p-3 mb-3">
@@ -110,7 +103,7 @@ export default function KalaoMailboxAccess() {
                 </div>
                 {!access.open ? (
                   <div className="d-flex flex-column gap-1 mb-2" style={{ maxHeight: 220, overflow: "auto" }}>
-                    {(payload.people ?? []).map((person) => {
+                    {people.map((person) => {
                       const checked = access.profileIds.includes(person.id);
                       return (
                         <label key={person.id} className="form-check mb-0">
@@ -132,8 +125,7 @@ export default function KalaoMailboxAccess() {
                             }
                           />
                           <span className="form-check-label fs-13">
-                            {person.name}{" "}
-                            <span className="text-muted">{person.email}</span>
+                            {person.name} <span className="text-muted">{person.email}</span>
                           </span>
                         </label>
                       );
@@ -150,18 +142,18 @@ export default function KalaoMailboxAccess() {
                     setBusy(box.key);
                     setMsg(null);
                     try {
-                      const headers = await authHeaders();
-                      const res = await fetch("/api/email/mailbox-access", {
-                        method: "POST",
-                        headers,
-                        body: JSON.stringify({
-                          mailbox: box.key,
-                          open: access.open,
-                          profileIds: access.profileIds,
-                        }),
-                      });
-                      const json = (await res.json()) as { ok?: boolean; reason?: string };
-                      if (!res.ok || !json.ok) throw new Error(json.reason || "Enregistrement impossible");
+                      const supabase = getSupabaseBrowserClient();
+                      const { error: settingErr } = await supabase
+                        .from("crm_mailbox_settings")
+                        .upsert({ mailbox: box.key, restricted: !access.open });
+                      if (settingErr) throw new Error(settingErr.message);
+                      await supabase.from("crm_mailbox_acl").delete().eq("mailbox", box.key);
+                      if (!access.open && access.profileIds.length) {
+                        const { error } = await supabase.from("crm_mailbox_acl").insert(
+                          access.profileIds.map((profile_id) => ({ mailbox: box.key, profile_id }))
+                        );
+                        if (error) throw new Error(error.message);
+                      }
                       setMsg(`${box.label} : accès enregistré.`);
                       await load();
                     } catch (err) {
