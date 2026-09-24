@@ -245,19 +245,28 @@ function leadPoles(leads: LeadRow[]): CountValue[] {
   return [...map.values()].sort((a, b) => b.count - a.count);
 }
 
+async function safeFetch<T>(label: string, fn: () => Promise<T | null>): Promise<T | null> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error(`[crm] kpis ${label}`, err);
+    return null;
+  }
+}
+
 export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
   const [deals, invoices, payments, quotes, leads, contacts, companies, dossiers, payRuns, activities] =
     await Promise.all([
-      fetchDeals(),
-      fetchInvoices(),
-      fetchPayments(),
-      fetchQuotes(),
-      fetchLeads(),
-      fetchContacts(),
-      fetchCompanies(),
-      fetchDossiers(),
-      fetchPayRuns(),
-      fetchActivities(),
+      safeFetch("deals", fetchDeals),
+      safeFetch("invoices", fetchInvoices),
+      safeFetch("payments", fetchPayments),
+      safeFetch("quotes", fetchQuotes),
+      safeFetch("leads", fetchLeads),
+      safeFetch("contacts", fetchContacts),
+      safeFetch("companies", fetchCompanies),
+      safeFetch("dossiers", fetchDossiers),
+      safeFetch("pay_runs", fetchPayRuns),
+      safeFetch("activities", fetchActivities),
     ]);
 
   if (!deals || !invoices || !payments) return null;

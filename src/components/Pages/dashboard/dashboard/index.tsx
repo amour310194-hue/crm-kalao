@@ -205,7 +205,7 @@ const MainDashboardComponent = () => {
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0">
                     <h5 className="mb-0 fs-16 fw-bold d-inline-flex items-center">
                       <span className="line-title d-block me-2" />
-                      Traffic Sources
+                      {live ? "Leads par pôle" : "Traffic Sources"}
                     </h5>
                     <Link
                       href={all_routes.dealsGrid}
@@ -218,16 +218,42 @@ const MainDashboardComponent = () => {
                     <TrafficSourcesChart
                       labels={
                         live
-                          ? kpis?.leadsByPole.map((pole) => pole.label)
+                          ? kpis?.leadsByPole.length
+                            ? kpis.leadsByPole.map((pole) => pole.label)
+                            : ["Sans lead"]
                           : undefined
                       }
                       values={
-                        live ? kpis?.leadsByPole.map((pole) => pole.count) : undefined
+                        live
+                          ? kpis?.leadsByPole.length
+                            ? kpis.leadsByPole.map((pole) => pole.count)
+                            : [0]
+                          : undefined
                       }
                     />
                   </div>
                 </div>
                 <div className="mb-1">
+                  {live && kpis?.leadsByPole.length
+                    ? kpis.leadsByPole.map((pole, index) => (
+                        <div
+                          className={`px-3 py-2 d-flex align-items-center justify-content-between${
+                            index === kpis.leadsByPole.length - 1 ? "" : " border-bottom"
+                          }`}
+                          key={pole.key}
+                        >
+                          <p className="text-dark d-flex align-items-center mb-0">
+                            <i className="ti ti-circle-filled text-success fs-8 me-1" />
+                            {pole.label}
+                          </p>
+                          <p className="text-dark fw-semibold mb-0">{pole.count}</p>
+                        </div>
+                      ))
+                    : null}
+                  {live && kpis && !kpis.leadsByPole.length ? (
+                    <p className="px-3 py-2 mb-0">Aucun lead par pôle pour l’instant.</p>
+                  ) : null}
+                  <div className={live ? "d-none" : ""}>
                   <div className="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
                     <p className="text-dark d-flex align-items-center mb-0">
                       <i className="ti ti-circle-filled text-success fs-8 me-1" />
@@ -255,6 +281,7 @@ const MainDashboardComponent = () => {
                       Social Media
                     </p>
                     <p className="text-dark fw-semibold mb-0">845</p>
+                  </div>
                   </div>
                 </div>
               </div>{" "}
