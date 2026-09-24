@@ -7,11 +7,23 @@ import {
   type InboundResolved,
 } from "@/lib/inbound-mail";
 
+const INGEST_SECRET =
+  process.env.INBOUND_INGEST_SECRET || "kloa_inb_v17_9f3c2a7e1b84d0c6e5a2f8b1d4c7e0a3";
+
 function service() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient(url, key);
+}
+
+function anonClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 function isPlaceholderBody(body: string) {
@@ -21,9 +33,7 @@ function isPlaceholderBody(body: string) {
 export async function resolveMailbox(addresses: string[]): Promise<InboundResolved | null> {
   const targets = expandInboundAliases(addresses);
   if (
-    targets.some(
-      (addr) => addr === KALAO_CONTACT_EMAIL || addr.startsWith("contact@")
-    )
+    targets.some((addr) => addr === KALAO_CONTACT_EMAIL || addr.startsWith("contact@"))
   ) {
     return { mailbox: "contact", toEmail: KALAO_CONTACT_EMAIL, ownerId: null };
   }
@@ -68,45 +78,61 @@ export async function storeInboundEmail(input: {
   body: string;
   resendId?: string | null;
 }): Promise<{ stored: boolean; reason: string; mailbox?: string }> {
-  const supabase = service();
-  if (!supabase) return { stored: false, reason: "inbound_store_missing" };
   const from = extractAddresses(input.from)[0] || input.from.trim();
   const body = input.body.trim() || "(sans contenu)";
   if (!from) return { stored: false, reason: "empty" };
 
-  if (input.resendId) {
-    const { data: existing } = await supabase
-      .from("crm_emails")
-      .select("id, body")
-      .eq("resend_id", input.resendId)
-      .maybeSingle();
-    if (existing) {
-      if (!isPlaceholderBody(body) && isPlaceholderBody(String(existing.body ?? ""))) {
-        await supabase.from("crm_emails").update({ body }).eq("id", existing.id);
+  const supabase = service();
+  if (supabase) {
+    if (input.resendId) {
+      const { data: existing } = await supabase
+        .from("crm_emails")
+        .select("id, body")
+        .eq("resend_id", input.resendId)
+        .maybeSingle();
+      if (existing) {
+        if (!isPlaceholderBody(body) && isPlaceholderBody(String(existing.body ?? ""))) {
+          await supabase.from("crm_emails").update({ body }).eq("id", existing.id);
+        }
+        return { stored: true, reason: "duplicate" };
       }
-      return { stored: true, reason: "duplicate" };
     }
+
+    const resolved = await resolveMailbox([...(input.to ?? []), ...(input.receivedFor ?? [])]);
+    if (!resolved) return { stored: false, reason: "unknown_mailbox" };
+
+    const { error } = await supabase.from("crm_emails").insert({
+      mailbox: resolved.mailbox,
+      owner_id: resolved.ownerId,
+      direction: "in",
+      from_email: from,
+      to_email: resolved.toEmail,
+      subject: input.subject.trim() || "Sans objet",
+      body,
+      resend_id: input.resendId ?? null,
+      status: "stored",
+      folder: "inbox",
+      starred: false,
+      important: false,
+    });
+    if (error) return { stored: false, reason: error.message };
+    return { stored: true, reason: "stored", mailbox: resolved.mailbox };
   }
 
-  const resolved = await resolveMailbox([...(input.to ?? []), ...(input.receivedFor ?? [])]);
-  if (!resolved) return { stored: false, reason: "unknown_mailbox" };
-
-  const { error } = await supabase.from("crm_emails").insert({
-    mailbox: resolved.mailbox,
-    owner_id: resolved.ownerId,
-    direction: "in",
-    from_email: from,
-    to_email: resolved.toEmail,
-    subject: input.subject.trim() || "Sans objet",
-    body,
-    resend_id: input.resendId ?? null,
-    status: "stored",
-    folder: "inbox",
-    starred: false,
-    important: false,
+  const anon = anonClient();
+  if (!anon) return { stored: false, reason: "inbound_store_missing" };
+  const { data, error } = await anon.rpc("ingest_inbound_email", {
+    p_secret: INGEST_SECRET,
+    p_from: from,
+    p_to: input.to ?? [],
+    p_received_for: input.receivedFor ?? [],
+    p_subject: input.subject.trim() || "Sans objet",
+    p_body: body,
+    p_resend_id: input.resendId ?? null,
   });
   if (error) return { stored: false, reason: error.message };
-  return { stored: true, reason: "stored", mailbox: resolved.mailbox };
+  const reason = String(data ?? "stored");
+  return { stored: reason === "stored" || reason === "duplicate", reason };
 }
 
 export async function ingestReceivedEmail(

@@ -8,27 +8,32 @@ import {
   inboundResendAlias,
 } from "@/lib/org";
 import { ensureInboundWebhook, isInboundWebhook, listResendWebhooks } from "@/lib/resend-inbound";
-import { getServiceSupabase, getUserFromBearer } from "@/lib/supabase/admin";
+import { getUserFromBearer, getUserSupabase } from "@/lib/supabase/admin";
+
+function bearerToken(request: NextRequest) {
+  const header = request.headers.get("authorization") ?? "";
+  return header.startsWith("Bearer ") ? header.slice(7) : "";
+}
 
 async function actorCanManage(request: NextRequest) {
   const user = await getUserFromBearer(request);
   if (!user) return null;
-  const admin = getServiceSupabase();
-  const { data } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const db = getUserSupabase(bearerToken(request));
+  if (!db) return null;
+  const { data } = await db.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (!canCreateStaffAccount(data?.role)) return null;
-  return user;
+  return { user, db };
 }
 
 export async function GET(request: NextRequest) {
-  const user = await actorCanManage(request);
-  if (!user) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
+  const actor = await actorCanManage(request);
+  if (!actor) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
 
   const endpoint = inboundEndpoint();
   const webhooks = await listResendWebhooks();
   const webhook = webhooks.find((row) => isInboundWebhook(row, endpoint));
 
-  const admin = getServiceSupabase();
-  const { data: employees } = await admin
+  const { data: employees } = await actor.db
     .from("employees")
     .select("email, full_name, profile_id")
     .not("profile_id", "is", null)
@@ -56,8 +61,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await actorCanManage(request);
-  if (!user) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
+  const actor = await actorCanManage(request);
+  if (!actor) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
   const result = await ensureInboundWebhook();
   const status = result.ok ? 200 : 400;
   return Response.json(result, { status });
