@@ -1841,6 +1841,17 @@ const ContactsDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live && contact ? (
+                        <div className="mb-3">
+                          <KalaoComposeMail
+                            layout="panel"
+                            to={contact.email}
+                            contactId={contact.id}
+                            companyId={contact.company_id}
+                            partyName={contactName}
+                          />
+                        </div>
+                      ) : null}
                       <div className="card border mb-0">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">

@@ -1750,6 +1750,17 @@ const CompaniesDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="card-body">
+                      {live && company ? (
+                        <div className="mb-3">
+                          <KalaoComposeMail
+                            layout="panel"
+                            to={company.email || contact?.email}
+                            companyId={company.id}
+                            contactId={contact?.id}
+                            partyName={company.name}
+                          />
+                        </div>
+                      ) : null}
                       <div className="card border mb-0">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
