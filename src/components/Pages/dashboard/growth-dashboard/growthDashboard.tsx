@@ -196,26 +196,40 @@ const GrowthDashboardComponent = () => {
                 <div className="card-body pt-0">
                   <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
                     <div id="retained-chart">
-                      <RetainedChart />
+                      <RetainedChart data={chartMonths?.collectedK} />
                     </div>
                     <div className="text-end">
                       <div className="fs-24 text-dark fw-semibold mb-1 d-flex align-items-center gap-1">
-                        82%{" "}
+                        {live && kpis ? `${kpis.conversionRate}%` : "82%"}{" "}
                         <i className="ti ti-arrow-big-up-filled text-success fs-16" />
                       </div>
-                      <p className="mb-0 fs-13 fw-medium">Retained </p>
+                      <p className="mb-0 fs-13 fw-medium">
+                        {live ? "Gagnés" : "Retained"}
+                      </p>
                     </div>
                   </div>
                   <div className="d-flex align-items-center justify-content-between">
                     <div id="churned-chart">
-                      <ChurnedChart />
+                      <ChurnedChart
+                        data={
+                          chartMonths
+                            ? chartMonths.invoicedK.map((invoiced, index) =>
+                                Math.max(0, invoiced - (chartMonths.collectedK[index] ?? 0))
+                              )
+                            : undefined
+                        }
+                      />
                     </div>
                     <div className="text-end">
                       <div className="fs-24 text-dark fw-semibold mb-1 d-flex align-items-center gap-1">
-                        18%{" "}
+                        {live && kpis
+                          ? `${Math.max(0, Math.round((100 - kpis.conversionRate) * 10) / 10)}%`
+                          : "18%"}{" "}
                         <i className="ti ti-arrow-big-down-filled text-danger fs-16" />
                       </div>
-                      <p className="mb-0 fs-13 fw-medium">Churned</p>
+                      <p className="mb-0 fs-13 fw-medium">
+                        {live ? "Perdus / reste" : "Churned"}
+                      </p>
                     </div>
                   </div>
                 </div>

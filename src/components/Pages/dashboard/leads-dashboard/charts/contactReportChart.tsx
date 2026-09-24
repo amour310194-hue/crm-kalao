@@ -4,7 +4,13 @@ import type { ApexOptions } from "apexcharts";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const ContactReportChart = () => {
+const ContactReportChart = ({
+  categories,
+  data,
+}: {
+  categories?: string[];
+  data?: number[];
+}) => {
   const options: ApexOptions = {
     chart: {
       type: 'area' as const,
@@ -23,12 +29,14 @@ const ContactReportChart = () => {
       strokeDashArray: 4
     },
     xaxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      categories: categories?.length
+        ? categories
+        : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     },
     yaxis: {
-      min: 1,
-      max: 6,
+      min: 0,
+      max: data?.length ? undefined : 6,
       tickAmount: 5,
       labels: {
         offsetX: -15,
@@ -44,7 +52,7 @@ const ContactReportChart = () => {
   const series = [
     {
       name: 'Reports',
-      data: [3, 4.5, 2.0, 3.0, 2.5, 4, 2, 4, 3.5, 5, 3, 2]
+      data: data?.length ? data : [3, 4.5, 2.0, 3.0, 2.5, 4, 2, 4, 3.5, 5, 3, 2]
     }
   ];
 

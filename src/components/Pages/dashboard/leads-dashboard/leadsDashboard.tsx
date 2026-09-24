@@ -12,10 +12,11 @@ import PredefinedDatePicker from "@/core/common/common-dateRangePicker/Predefine
 import CollapseIcons from "@/core/common/collapse-icons/collapseIcons";
 import Datatable from "@/core/common/dataTable";
 import Footer from "@/core/common/footer/footer";
-import { useKalaoKpis } from "@/lib/kpi";
+import { kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
 
 const LeadsDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
+  const chartMonths = kpisChartMonths(live ? kpis : null);
 
   return (
     <>
@@ -445,7 +446,10 @@ const LeadsDashboardComponent = () => {
                 </div>
                 <div className="card-body py-0">
                   <div id="contact-report">
-                    <ContactReportChart/>
+                    <ContactReportChart
+                      categories={chartMonths?.categories}
+                      data={chartMonths?.collectedK}
+                    />
                   </div>
                 </div>{" "}
                 {/* end card body */}

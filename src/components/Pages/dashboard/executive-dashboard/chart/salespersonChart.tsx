@@ -5,77 +5,39 @@ import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const SalespersonChart: React.FC = () => {
+
+interface SalespersonChartProps {
+  /** Top clients live (valeur en M FCFA) ; absent, la maquette reste affichée. */
+  points?: { x: string; y: number }[];
+}
+
+const DUMMY_POINTS = [
+  { x: "Arlene", y: 0.8 },
+  { x: "Robert", y: 3.2 },
+  { x: "Henry", y: 2.0 },
+  { x: "Fox", y: 2.8 },
+  { x: "Devon", y: 4.0 },
+];
+
+const SalespersonChart: React.FC<SalespersonChartProps> = ({ points }) => {
+  const livePoints = points?.length ? points : DUMMY_POINTS;
+  const maxY = Math.max(1, ...livePoints.map((point) => point.y));
   const series = [
     {
       name: "Revenue",
-      data: [
-        {
-          x: "Arlene",
-          y: 0.8,
-          goals: [
-            {
-              value: 0.8,
-              name: "Sales",
-              strokeHeight: 3,
-              strokeColor: "#F9934D",
-              strokeLineCap: "round" as const,
-            },
-          ],
-        },
-        {
-          x: "Robert",
-          y: 3.2,
-          goals: [
-            {
-              value: 3.2,
-              name: "Sales",
-              strokeHeight: 3,
-              strokeColor: "#F9934D",
-              strokeLineCap: "round" as const,
-            },
-          ],
-        },
-        {
-          x: "Henry",
-          y: 2.0,
-          goals: [
-            {
-              value: 2.0,
-              name: "Sales",
-              strokeHeight: 3,
-              strokeColor: "#F9934D",
-              strokeLineCap: "round" as const,
-            },
-          ],
-        },
-        {
-          x: "Fox",
-          y: 2.8,
-          goals: [
-            {
-              value: 2.8,
-              name: "Sales",
-              strokeHeight: 3,
-              strokeColor: "#F9934D",
-              strokeLineCap: "round" as const,
-            },
-          ],
-        },
-        {
-          x: "Devon",
-          y: 4.0,
-          goals: [
-            {
-              value: 4.0,
-              name: "Sales",
-              strokeHeight: 3,
-              strokeColor: "#F9934D",
-              strokeLineCap: "round" as const,
-            },
-          ],
-        },
-      ],
+      data: livePoints.map((point) => ({
+        x: point.x,
+        y: point.y,
+        goals: [
+          {
+            value: point.y,
+            name: "Sales",
+            strokeHeight: 3,
+            strokeColor: "#F9934D",
+            strokeLineCap: "round" as const,
+          },
+        ],
+      })),
     },
   ];
 
@@ -140,13 +102,7 @@ const SalespersonChart: React.FC = () => {
     },
 
     xaxis: {
-      categories: [
-        "Arlene",
-        "Robert",
-        "Henry",
-        "Fox",
-        "Devon",
-      ],
+      categories: livePoints.map((point) => point.x),
 
       axisBorder: {
         show: false,
@@ -191,7 +147,7 @@ const SalespersonChart: React.FC = () => {
 
     yaxis: {
       min: 0,
-      max: 5,
+      max: Math.ceil(maxY * 1.2 * 10) / 10 || 5,
 
       labels: {
         offsetX: -10,
@@ -220,7 +176,7 @@ const SalespersonChart: React.FC = () => {
           <div class="apex-tooltip p-2">
             <span>${name}</span>
             <br />
-            <strong>{value}M FCFA</strong>
+            <strong>${value}M FCFA</strong>
           </div>
         `;
       },

@@ -209,7 +209,9 @@ const SalesDashboardComponent = () => {
                     </div>
                   </div>
                   <div>
-                    <StorageRequestChart />
+                    <StorageRequestChart
+                      percentage={live && kpis ? kpis.conversionRate : undefined}
+                    />
                   </div>
                   <div className="d-flex align-items-center gap-1 flex-wrap">
                     <h3 className="sub-title mb-0">

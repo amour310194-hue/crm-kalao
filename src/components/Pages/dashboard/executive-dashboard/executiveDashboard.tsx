@@ -381,7 +381,16 @@ const ExecutiveDashboardComponent = () => {
                     </div>
                   </div>
                   <div id="salesperson-chart">
-                    <SalespersonChart />
+                    <SalespersonChart
+                      points={
+                        live
+                          ? kpis?.topCompanies.map((row) => ({
+                              x: row.label,
+                              y: Math.round((row.value / 1_000_000) * 10) / 10,
+                            }))
+                          : undefined
+                      }
+                    />
                   </div>
                 </div>
               </div>{" "}

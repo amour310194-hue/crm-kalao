@@ -4,11 +4,11 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const RetainedChart = () => {
+const RetainedChart = ({ data }: { data?: number[] }) => {
   const series = [
     {
       name: 'Retained',
-      data: [20, 35, 28, 45, 38, 55],
+      data: data?.length ? data : [20, 35, 28, 45, 38, 55],
     },
   ];
 

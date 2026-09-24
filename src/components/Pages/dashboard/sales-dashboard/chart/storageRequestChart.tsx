@@ -14,72 +14,75 @@ import { Doughnut } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const gaugeNeedle: Plugin<"doughnut"> = {
-  id: "gaugeNeedle",
-  afterDatasetDraw(chart) {
-    const { ctx, chartArea } = chart;
-    const meta = chart.getDatasetMeta(0);
-    const arc = meta.data[0] as ArcElement | undefined;
+function makeGaugeNeedle(needleValue: number): Plugin<"doughnut"> {
+  return {
+    id: "gaugeNeedle",
+    afterDatasetDraw(chart) {
+      const { ctx, chartArea } = chart;
+      const meta = chart.getDatasetMeta(0);
+      const arc = meta.data[0] as ArcElement | undefined;
 
-    if (!arc) return;
+      if (!arc) return;
 
-    const cx = (chartArea.left + chartArea.right) / 2;
-    const cy = arc.y;
-    const innerRadius = arc.innerRadius;
+      const cx = (chartArea.left + chartArea.right) / 2;
+      const cy = arc.y;
+      const innerRadius = arc.innerRadius;
 
-    ctx.save();
+      ctx.save();
 
-    // Labels
-    const min = 0;
-    const max = 100;
-    const steps = 5;
+      const min = 0;
+      const max = 100;
+      const steps = 5;
 
-    ctx.font = "bold 12px sans-serif";
-    ctx.fillStyle = "#6B7280";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+      ctx.font = "bold 12px sans-serif";
+      ctx.fillStyle = "#6B7280";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-    for (let i = 0; i <= steps; i++) {
-      const value = min + (i * (max - min)) / steps;
-      const angle = Math.PI + (i / steps) * Math.PI;
+      for (let i = 0; i <= steps; i++) {
+        const value = min + (i * (max - min)) / steps;
+        const angle = Math.PI + (i / steps) * Math.PI;
 
-      const x = cx + Math.cos(angle) * innerRadius;
-      const y = cy + Math.sin(angle) * innerRadius;
+        const x = cx + Math.cos(angle) * innerRadius;
+        const y = cy + Math.sin(angle) * innerRadius;
 
-      ctx.fillText(String(value), x, y);
-    }
+        ctx.fillText(String(value), x, y);
+      }
 
-    // Needle
-    const needleValue = 55.6;
-    const needleAngle = Math.PI + (needleValue / 100) * Math.PI;
+      const needleAngle = Math.PI + (needleValue / 100) * Math.PI;
 
-    ctx.translate(cx, cy);
-    ctx.rotate(needleAngle);
+      ctx.translate(cx, cy);
+      ctx.rotate(needleAngle);
 
-    ctx.beginPath();
-    ctx.moveTo(0, -2);
-    ctx.lineTo(innerRadius - 10, 0);
-    ctx.lineTo(0, 2);
-    ctx.closePath();
-    ctx.fillStyle = "#3F3F46";
-    ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(0, -2);
+      ctx.lineTo(innerRadius - 10, 0);
+      ctx.lineTo(0, 2);
+      ctx.closePath();
+      ctx.fillStyle = "#3F3F46";
+      ctx.fill();
 
-    // Center cap
-    ctx.beginPath();
-    ctx.arc(0, 0, 6, 0, Math.PI * 2);
-    ctx.fillStyle = "#3F3F46";
-    ctx.fill();
-    ctx.strokeStyle = "#FFFFFF";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#3F3F46";
+      ctx.fill();
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-    ctx.restore();
-  },
-};
+      ctx.restore();
+    },
+  };
+}
 
-export default function StorageRequestChart() {
+export default function StorageRequestChart({
+  percentage = 60,
+}: {
+  percentage?: number;
+}) {
   const totalSegments = 25;
-  const percentage = 60;
+  const needleValue = Math.max(0, Math.min(100, percentage));
+  const gaugeNeedle = useMemo(() => makeGaugeNeedle(needleValue), [needleValue]);
 
   const { data, options } = useMemo(() => {
     const filledSegments = Math.round((percentage / 100) * totalSegments);

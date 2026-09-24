@@ -3,11 +3,11 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import Chart with SSR disabled
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-const ChurnedChart = () => {
+const ChurnedChart = ({ data }: { data?: number[] }) => {
   const series = [
     {
       name: 'Churned',
-      data: [30, 25, 5, 25, 20, 45],
+      data: data?.length ? data : [30, 25, 5, 25, 20, 45],
     },
   ];
 

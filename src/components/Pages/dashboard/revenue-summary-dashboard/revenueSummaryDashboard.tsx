@@ -204,11 +204,17 @@ const RevenueSummaryDashboardComponent = () => {
                                 </h5>
                               </div>
                             </div>
-                            <div
-                              id="deal-value-chart"
-                              className={live ? "d-none" : ""}
-                            >
-                              <DealValueChart />
+                            <div id="deal-value-chart">
+                              <DealValueChart
+                                data={
+                                  live && kpis
+                                    ? [
+                                        Math.round(kpis.avgDealValue / 1000),
+                                        Math.round(kpis.quotesPendingValue / 1000),
+                                      ]
+                                    : undefined
+                                }
+                              />
                             </div>
                           </div>
                           <div className="d-flex align-items-center gap-2 flex-wrap">
