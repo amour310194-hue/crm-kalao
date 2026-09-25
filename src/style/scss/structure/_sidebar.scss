@@ -633,18 +633,38 @@
             margin-left: 0;
         }
     }
-     #toggle_btn{
-        opacity: 0;
+    #toggle_btn {
+        opacity: 1;
+        z-index: 3;
+        i {
+            transform: rotate(180deg);
+        }
+    }
+    .navbar-header #toggle_btn2 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .sidebar {
         .sidebar-logo {
             width: $sidenav-width-sm;
+            overflow: visible;
+            #toggle_btn {
+                top: 0;
+                right: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: none;
+                border-radius: 0;
+            }
             .logo {
                 display: none;
             }
             .logo-small {
                 display: block;
                 text-align: center;
+                pointer-events: none;
             }
             @include respond-below(lg) {                
                 width: 240px;

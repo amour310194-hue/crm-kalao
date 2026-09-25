@@ -6,7 +6,8 @@ import ImageWithBasePath from "../imageWithBasePath";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { all_routes } from "@/router/all_routes";
-import { setMobileSidebar } from "@/core/redux/sidebarSlice";
+import { setMiniSidebar, setMobileSidebar } from "@/core/redux/sidebarSlice";
+import { toggleMiniSidebarDom } from "@/lib/mini-sidebar";
 import { updateTheme } from "@/core/redux/themeSlice";
 import Link from "next/link";
 import {
@@ -35,6 +36,18 @@ const Header = () => {
 
   const toggleMobileSidebar = () => {
     dispatch(setMobileSidebar(!mobileSidebar));
+  };
+
+  const miniSidebar = useSelector((state: any) => state.sidebarSlice.miniSidebar);
+  const handleMiniSidebar = () => {
+    const next = toggleMiniSidebarDom();
+    dispatch(setMiniSidebar(next));
+    dispatch(
+      updateTheme({
+        "data-layout": next ? "mini" : "default",
+        "data-size": "default",
+      })
+    );
   };
 
   // Identité du compte connecté : le template affiche sinon un utilisateur fictif.
@@ -98,6 +111,7 @@ const Header = () => {
   useEffect(() => {
     const htmlElement: any = document.documentElement;
     Object.entries(themeSettings).forEach(([key, value]) => {
+      if (key === "data-layout") return;
       htmlElement.setAttribute(key, value);
     });
   }, [themeSettings]);
@@ -142,8 +156,15 @@ const Header = () => {
               <i className="ti ti-menu-deep fs-24" />
             </Link>
             <button
+              type="button"
               className="sidenav-toggle-btn btn border-0 p-0"
               id="toggle_btn2"
+              aria-label={miniSidebar || themeSettings["data-layout"] === "mini" ? "Agrandir le menu" : "Réduire le menu"}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleMiniSidebar();
+              }}
             >
               <i className="ti ti-arrow-bar-to-right" />
             </button>

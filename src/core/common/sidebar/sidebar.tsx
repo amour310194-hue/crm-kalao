@@ -11,7 +11,8 @@ import { fetchSessionRole } from "@/lib/roles";
 import React from "react";
 import { all_routes } from "@/router/all_routes";
 import { updateTheme } from "@/core/redux/themeSlice";
-import { setExpandMenu, setMobileSidebar } from "@/core/redux/sidebarSlice";
+import { setExpandMenu, setMiniSidebar, setMobileSidebar } from "@/core/redux/sidebarSlice";
+import { toggleMiniSidebarDom } from "@/lib/mini-sidebar";
 import Link from "next/link";
 import Cookies from "js-cookie";
 
@@ -65,21 +66,17 @@ const Sidebar = () => {
   };
 
   const themeSettings = useSelector((state: any) => state.theme.themeSettings);
+  const miniSidebar = useSelector((state: any) => state.sidebarSlice.miniSidebar);
 
   const handleMiniSidebar = () => {
-    const rootElement = document.documentElement;
-    const isMini = rootElement.getAttribute("data-layout") === "mini";
-    const updatedLayout = isMini ? "default" : "mini";
+    const next = toggleMiniSidebarDom();
+    dispatch(setMiniSidebar(next));
     dispatch(
       updateTheme({
-        "data-layout": updatedLayout,
+        "data-layout": next ? "mini" : "default",
+        "data-size": "default",
       })
     );
-    if (isMini) {
-      rootElement.classList.remove("mini-sidebar");
-    } else {
-      rootElement.classList.add("mini-sidebar");
-    }
   };
   const onMouseEnter = () => {
     dispatch(setExpandMenu(true));
@@ -195,9 +192,15 @@ const Sidebar = () => {
             </Link>
           </div>
           <button
+            type="button"
             className="sidenav-toggle-btn btn border-0 p-0 active"
             id="toggle_btn"
-            onClick={handleMiniSidebar}
+            aria-label={miniSidebar || themeSettings["data-layout"] === "mini" ? "Agrandir le menu" : "Réduire le menu"}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleMiniSidebar();
+            }}
           >
             <i className="ti ti-arrow-bar-to-left" />
           </button>
