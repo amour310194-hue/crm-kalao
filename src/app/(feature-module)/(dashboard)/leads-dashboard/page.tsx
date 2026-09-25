@@ -1,7 +1,7 @@
-import LeadsDashboardComponent from "@/components/Pages/dashboard/leads-dashboard/leadsDashboard";
+﻿import LeadsDashboardComponent from "@/components/Pages/dashboard/leads-dashboard/leadsDashboard";
 
 export const metadata = {
-  title: "Leads Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Leads Dashboard",
 };
 
 export default function LeadsDashboard(){

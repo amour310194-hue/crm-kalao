@@ -1,7 +1,7 @@
-import StatesComponent from "@/components/Pages/content/location/states";
+﻿import StatesComponent from "@/components/Pages/content/location/states";
 
 export const metadata = {
-  title: "States | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "States",
 };
 
 export default function States(){

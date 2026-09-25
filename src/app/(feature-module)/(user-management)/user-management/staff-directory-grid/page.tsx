@@ -1,7 +1,7 @@
-import StaffDirectoryGridComponent from "@/components/Pages/user-management/staff-directory/staffDirectoryGrid";
+﻿import StaffDirectoryGridComponent from "@/components/Pages/user-management/staff-directory/staffDirectoryGrid";
 
 export const metadata = {
-  title: "Staff Directory | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Staff Directory",
 };
 
 export default function StaffDirectoryGrid(){

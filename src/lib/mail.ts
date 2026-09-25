@@ -398,9 +398,10 @@ export async function sendCrmEmail(input: {
   if (!to) return { dispatched: false, to, reason: "missing_to" };
   if (!body) throw new Error("Message vide");
   const box = mailboxFrom(input.mailbox, session);
+  const { authJsonHeaders } = await import("@/lib/auth-headers");
   const res = await fetch("/api/email/send", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authJsonHeaders(),
     body: JSON.stringify({
       to,
       subject,

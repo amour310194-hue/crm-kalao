@@ -1,7 +1,7 @@
-import AutomationRulesComponent from "@/components/Pages/crm-module/relationship-map/automationRules";
+﻿import AutomationRulesComponent from "@/components/Pages/crm-module/relationship-map/automationRules";
 
 export const metadata = {
-  title: "Automation Rules | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Automation Rules",
 };
 
 export default function AutomationRules(){

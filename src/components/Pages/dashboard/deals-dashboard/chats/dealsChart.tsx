@@ -1,78 +1,38 @@
-import dynamic from 'next/dynamic';
-import type { ApexOptions } from 'apexcharts';
+import dynamic from "next/dynamic";
+import type { ApexOptions } from "apexcharts";
 
-// Dynamically import Chart with SSR disabled
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface DealsChartProps {
-  /** Étapes live du pipeline ; absentes, la maquette reste affichée. */
   categories?: string[];
   data?: number[];
 }
 
 const DealsChart = ({ categories, data }: DealsChartProps) => {
+  const cats = categories?.length ? categories : [];
+  const values = data?.length ? data : [];
   const options: ApexOptions = {
-    chart: {
-      type: 'bar' as const,
-      height: 385,
-      toolbar: {
-        show: false
-      }
-    },
-    dataLabels: {
-      enabled: false
-    },
-    grid: {
-      borderColor: '#E8E8E8',
-      strokeDashArray: 4,
-      padding: {
-        right: -20
-      }
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: '50%'
-      }
-    },
-    colors: ['#0E9384'],
+    chart: { type: "bar", height: 385, toolbar: { show: false } },
+    dataLabels: { enabled: false },
+    grid: { borderColor: "#E8E8E8", strokeDashArray: 4, padding: { right: -20 } },
+    plotOptions: { bar: { borderRadius: 4, columnWidth: "50%" } },
+    colors: ["#0E9384"],
+    noData: { text: "Pas encore de données à afficher" },
     xaxis: {
-      type: 'category' as const,
-      categories: categories?.length
-        ? categories
-        : [
-            'Inpipeline',
-            'Follow Up',
-            'Schedule',
-            'Conversation',
-            'Won',
-            'Lost'
-          ],
-      labels: {
-        style: {
-          fontSize: '14px',
-          fontWeight: 600
-        }
-      }
+      type: "category",
+      categories: cats,
+      labels: { style: { fontSize: "14px", fontWeight: 600 } },
     },
-    yaxis: {
-      labels: {
-        offsetX: -13
-      }
-    }
+    yaxis: { labels: { offsetX: -13 } },
   };
 
-  const series = [
-    {
-      name: 'Sales',
-      data: data?.length ? data : [400, 130, 248, 470, 470, 180]
-    }
-  ];
-
   return (
-    <>
-      <Chart options={options} series={series} type="bar" height={385} />
-    </>
+    <Chart
+      options={options}
+      series={[{ name: "Affaires", data: values }]}
+      type="bar"
+      height={385}
+    />
   );
 };
 

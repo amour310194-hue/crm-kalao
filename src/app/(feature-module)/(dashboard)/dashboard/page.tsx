@@ -1,7 +1,7 @@
-import MainDashboardComponent from "@/components/Pages/dashboard/dashboard";
+﻿import MainDashboardComponent from "@/components/Pages/dashboard/dashboard";
 
 export const metadata = {
-  title: "Deals Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Tableau de bord",
 };
 
 export default function Dashboard() {

@@ -70,7 +70,7 @@ const PaymentsComponent = () => {
       sorter: (a: any, b: any) => a.Amount.length - b.Amount.length,
     },
     {
-      title: "Due Date",
+      title: "Date de paiement",
       dataIndex: "Due_Date",
       sorter: (a: any, b: any) => a.Due_Date.length - b.Due_Date.length,
     },
@@ -328,7 +328,7 @@ const PaymentsComponent = () => {
                                 aria-expanded="false"
                                 aria-controls="date"
                               >
-                                Due Date
+                                Date de paiement
                               </Link>
                             </div>
                             <div
@@ -538,7 +538,7 @@ const PaymentsComponent = () => {
                           <i className="ti ti-columns me-1" />
                           <div className="form-check form-switch w-100 ps-0">
                             <label className="form-check-label d-flex align-items-center gap-2 w-100">
-                              <span>Due Date</span>
+                              <span>Date de paiement</span>
                               <input
                                 className="form-check-input switchCheckDefault ms-auto"
                                 type="checkbox"

@@ -1,7 +1,7 @@
-import WhatsappCampaignComponent from "@/components/Pages/marketing/whatsapp-campaign/whatsappCampaign";
+﻿import WhatsappCampaignComponent from "@/components/Pages/marketing/whatsapp-campaign/whatsappCampaign";
 
 export const metadata = {
-  title: "WhatsApp Campaign | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "WhatsApp Campaign",
 };
 
 export default function WhatsappCampaign(){

@@ -1,7 +1,7 @@
-import EmailMarketingComponent from "@/components/Pages/marketing/email-marketing/emailMarketing";
+﻿import EmailMarketingComponent from "@/components/Pages/marketing/email-marketing/emailMarketing";
 
 export const metadata = {
-  title: "Email Marketing | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email Marketing",
 };
 
 export default function EmailMarketing(){

@@ -1,7 +1,7 @@
-import FileManagerComponent from "@/components/Pages/application-module/file-manager/fileManager";
+﻿import FileManagerComponent from "@/components/Pages/application-module/file-manager/fileManager";
 
 export const metadata = {
-  title: "File Manager | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "File Manager",
 };
 
 export default function FileManager(){

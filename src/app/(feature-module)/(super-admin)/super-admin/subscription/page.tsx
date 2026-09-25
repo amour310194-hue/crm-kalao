@@ -1,7 +1,7 @@
-import SubscriptionComponent from "@/components/Pages/super-admin/subscription";
+﻿import SubscriptionComponent from "@/components/Pages/super-admin/subscription";
 
 export const metadata = {
-  title: "Subscription | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Subscription",
 }
 
 export default function Subscription(){

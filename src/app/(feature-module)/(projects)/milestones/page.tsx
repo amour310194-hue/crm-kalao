@@ -1,7 +1,7 @@
-import MilestonesComponent from "@/components/Pages/projects/milestones/milestones";
+﻿import MilestonesComponent from "@/components/Pages/projects/milestones/milestones";
 
 export const metadata = {
-  title: "Milestones | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Milestones",
 };
 
 export default function Milestones(){

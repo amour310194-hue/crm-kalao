@@ -472,7 +472,7 @@ const InvoicesGrid = () => {
                         </p>
                         <p className="text-default d-inline-flex align-items-center mb-1">
                           <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                          Due Date :{" "}
+                          Échéance :{" "}
                           <span className="text-dark ms-1">{invoice.Due_Date}</span>
                         </p>
                         <p className="text-default d-inline-flex align-items-center mb-1">
@@ -610,7 +610,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">22 Jun 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -747,7 +747,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">20 May 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -884,7 +884,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">30 Apr 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1019,7 +1019,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">21 Apr 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1154,7 +1154,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">19 Mar 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1290,7 +1290,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">11 Mar 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1425,7 +1425,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">17 Feb 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1560,7 +1560,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">07 Feb 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1695,7 +1695,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">20 Jan 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1831,7 +1831,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">18 Jan 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -1970,7 +1970,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">19 Jan 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
@@ -2102,7 +2102,7 @@ const InvoicesGrid = () => {
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">
                         <i className="ti ti-calendar-event text-dark fs-16 me-1" />
-                        Due Date :{" "}
+                        Échéance :{" "}
                         <span className="text-dark ms-1">17 Feb 2025</span>
                       </p>
                       <p className="text-default d-inline-flex align-items-center mb-1">

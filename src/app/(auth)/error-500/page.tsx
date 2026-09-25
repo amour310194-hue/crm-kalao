@@ -1,7 +1,7 @@
-import Error500Component from "@/components/Authentication/error-500/error500";
+﻿import Error500Component from "@/components/Authentication/error-500/error500";
 
 export const metadata = {
-  title: "Error 500 | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Error 500",
 };
 
 export default function Error500(){

@@ -1,7 +1,7 @@
-import AutomationLogsComponent from "@/components/Pages/crm-module/relationship-map/automationLogs";
+﻿import AutomationLogsComponent from "@/components/Pages/crm-module/relationship-map/automationLogs";
 
 export const metadata = {
-  title: "Automation Logs | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Automation Logs",
 };
 
 export default function AutomationLogs(){

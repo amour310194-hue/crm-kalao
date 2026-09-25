@@ -18,8 +18,12 @@ export const ROLE_LABEL: Record<string, string> = {
   super_admin: "Super-admin",
   admin: "Admin",
   manager: "Manager",
+  direction: "Direction",
+  finance: "Finance",
+  commercial: "Commercial",
   rh: "RH",
   staff: "Secrétaire",
+  agent: "Agent",
 };
 
 export type KalaoEntityKey = "groupe" | "globe" | "consulting";

@@ -1,7 +1,7 @@
-import TablesBasicComponent from "@/components/Pages/ui-module/table/tables-basic";
+﻿import TablesBasicComponent from "@/components/Pages/ui-module/table/tables-basic";
 
 export const metadata = {
-  title: "Tables Basic | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Tables Basic",
 }
 
 export default function TablesBasic(){

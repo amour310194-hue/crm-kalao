@@ -1,7 +1,7 @@
-import PermissionComponent from "@/components/Pages/user-management/permission/permission";
+﻿import PermissionComponent from "@/components/Pages/user-management/permission/permission";
 
 export const metadata = {
-  title: "Permission | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Permission",
 };
 
 export default function Permission(){

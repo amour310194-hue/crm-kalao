@@ -8,16 +8,17 @@ import "bootstrap-daterangepicker/daterangepicker.css";
 import "@/index.scss"; // Adjust path if needed
 
 export const metadata = {
-  title: "Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
-  description: "Streamline your business with our advanced CRM template...",
-  keywords: "Advanced CRM template, customer relationship management...",
-  author: "Dreams Technologies",
-  icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png", // Add shortcut icon for better support
-    apple: "/apple-icon.png", // Optional: for Apple devices (place in `public/`)
+  title: {
+    default: "Kalao CRM",
+    template: "%s | Kalao CRM",
   },
-
+  description: "CRM Groupe Kalao — dossiers, facturation et suivi client.",
+  authors: [{ name: "Groupe Kalao" }],
+  icons: {
+    icon: "/assets/img/kalao-logo.jpg",
+    shortcut: "/assets/img/kalao-logo.jpg",
+    apple: "/assets/img/kalao-logo.jpg",
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="fr">
        <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

@@ -1,7 +1,7 @@
-import Account360Component from "@/components/Pages/crm-module/account-360/account360";
+﻿import Account360Component from "@/components/Pages/crm-module/account-360/account360";
 
 export const metadata = {
-  title: "Account 360 | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Account 360",
 };
 
 export default function Account360(){

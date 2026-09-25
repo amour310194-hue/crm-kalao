@@ -1,7 +1,7 @@
-import TeamsListComponent from "@/components/Pages/user-management/teams/teamsList";
+﻿import TeamsListComponent from "@/components/Pages/user-management/teams/teamsList";
 
 export const metadata = {
-  title: "Teams | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Teams",
 };
 
 export default function TeamsList(){

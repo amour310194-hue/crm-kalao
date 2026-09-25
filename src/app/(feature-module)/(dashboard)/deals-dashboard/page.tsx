@@ -1,7 +1,7 @@
-import DelasDashboardComponent from "@/components/Pages/dashboard/deals-dashboard/delasDashboard";
+﻿import DelasDashboardComponent from "@/components/Pages/dashboard/deals-dashboard/delasDashboard";
 
 export const metadata = {
-  title: "Deals Dashboard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Deals Dashboard",
 };
 
 export default function DealsDashboard() {

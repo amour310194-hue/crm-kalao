@@ -1,7 +1,7 @@
-import UiAlertsComponent from "@/components/Pages/ui-module/base-ui/uiAlerts";
+﻿import UiAlertsComponent from "@/components/Pages/ui-module/base-ui/uiAlerts";
 
 export const metadata = {
-  title: "Alerts | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Alerts",
 }
 
 export default function Uialerts(){

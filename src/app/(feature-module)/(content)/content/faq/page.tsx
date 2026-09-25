@@ -1,7 +1,7 @@
-import FaqComponent from "@/components/Pages/content/faq";
+﻿import FaqComponent from "@/components/Pages/content/faq";
 
 export const metadata = {
-  title: "Faq | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Faq",
 };
 
 export default function Faq(){

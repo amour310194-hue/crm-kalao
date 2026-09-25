@@ -1,7 +1,7 @@
-import CitiesComponent from "@/components/Pages/content/location/cities";
+﻿import CitiesComponent from "@/components/Pages/content/location/cities";
 
 export const metadata = {
-  title: "Cities | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Cities",
 };
 
 export default function Cities(){

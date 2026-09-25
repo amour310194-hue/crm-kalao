@@ -1,7 +1,7 @@
-import FormPickersComponent from "@/components/Pages/ui-module/forms/form-pickers/formPickers";
+﻿import FormPickersComponent from "@/components/Pages/ui-module/forms/form-pickers/formPickers";
 
 export const metadata = {
-  title: "Pickers | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Pickers",
 }
 
 export default function FormPickers(){

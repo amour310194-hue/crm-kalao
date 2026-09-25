@@ -1,7 +1,7 @@
-import SocialCampaignComponent from "@/components/Pages/marketing/social-campaign/socialCampaign";
+﻿import SocialCampaignComponent from "@/components/Pages/marketing/social-campaign/socialCampaign";
 
 export const metadata = {
-  title: "Social Campaign | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Social Campaign",
 };
 
 export default function SocialCampaign(){

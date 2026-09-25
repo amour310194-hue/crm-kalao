@@ -1,7 +1,7 @@
-import CallSummaryComponent from "@/components/Pages/ai-crm/callSummary";
+﻿import CallSummaryComponent from "@/components/Pages/ai-crm/callSummary";
 
 export const metadata = {
-  title: "Call Summary | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Call Summary",
 };
 
 export default function CallSummary(){

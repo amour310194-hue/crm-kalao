@@ -1,7 +1,7 @@
-import UserActivityReportComponent from "@/components/Pages/reports/user-activity-report/userActivityReport";
+﻿import UserActivityReportComponent from "@/components/Pages/reports/user-activity-report/userActivityReport";
 
 export const metadata = {
-  title: "User Activity Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "User Activity Report",
 };
 
 export default function UserActivityReport(){

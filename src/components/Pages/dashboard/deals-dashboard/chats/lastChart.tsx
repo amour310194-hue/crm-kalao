@@ -1,8 +1,7 @@
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 
-// Dynamically import Chart with SSR disabled
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const LastChart = ({
   categories,
@@ -12,41 +11,22 @@ const LastChart = ({
   data?: number[];
 }) => {
   const options: ApexOptions = {
-    chart: {
-      type: 'bar' as const,
-      height: 180,
-      toolbar: {
-        show: false
-      }
-    },
-    plotOptions: {
-      bar: {
-        horizontal: true
-      }
-    },
-    dataLabels: {
-      enabled: false
-    },
-    colors: ['#EF1E1E'],
-    grid: {
-      borderColor: '#E8E8E8',
-      strokeDashArray: 4
-    },
-    xaxis: {
-      categories: categories?.length ? categories : ['Conversation', 'Follow Up', 'Inpipeline']
-    }
+    chart: { type: "bar", height: 180, toolbar: { show: false } },
+    plotOptions: { bar: { horizontal: true } },
+    dataLabels: { enabled: false },
+    colors: ["#EF1E1E"],
+    grid: { borderColor: "#E8E8E8", strokeDashArray: 4 },
+    noData: { text: "Pas encore de données à afficher" },
+    xaxis: { categories: categories?.length ? categories : [] },
   };
 
-  const series = [
-    {
-      data: data?.length ? data : [400, 220, 448]
-    }
-  ];
-
   return (
-    <>
-      <Chart options={options} series={series} type="bar" height={180} />
-    </>
+    <Chart
+      options={options}
+      series={[{ data: data?.length ? data : [] }]}
+      type="bar"
+      height={180}
+    />
   );
 };
 

@@ -1,7 +1,7 @@
-import LeadConversionTimeReportComponent from "@/components/Pages/reports/lead-conversion-time-report/leadConversionTimeReport";
+﻿import LeadConversionTimeReportComponent from "@/components/Pages/reports/lead-conversion-time-report/leadConversionTimeReport";
 
 export const metadata = {
-  title: "Lead Conversion Time Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Lead Conversion Time Report",
 };
 
 export default function LeadConversionTimeReport(){

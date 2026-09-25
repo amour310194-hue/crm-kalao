@@ -1,7 +1,7 @@
-import EmailCampaignCompletedComponent from "@/components/Pages/marketing/email-campaign/emailCampaignCompleted";
+﻿import EmailCampaignCompletedComponent from "@/components/Pages/marketing/email-campaign/emailCampaignCompleted";
 
 export const metadata = {
-  title: "Email Campaign Completed | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email Campaign Completed",
 };
 
 export default function EmailCampaignCompleted(){

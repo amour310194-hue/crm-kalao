@@ -1,7 +1,7 @@
-import DomainComponent from "@/components/Pages/super-admin/domain";
+﻿import DomainComponent from "@/components/Pages/super-admin/domain";
 
 export const metadata = {
-  title: "Domain | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Domain",
 }
 
 export default function Domain(){

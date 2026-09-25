@@ -1,7 +1,7 @@
-import PurchaseTransactionComponent from "@/components/Pages/super-admin/purchaseTransaction";
+﻿import PurchaseTransactionComponent from "@/components/Pages/super-admin/purchaseTransaction";
 
 export const metadata = {
-  title: "Purchase Transaction | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Purchase Transaction",
 }
 
 export default function PurchaseTransaction(){

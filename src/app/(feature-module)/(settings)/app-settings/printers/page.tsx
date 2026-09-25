@@ -1,7 +1,7 @@
-import PrintersSettingsComponent from "@/components/Pages/settings/app-settings/printersSettings";
+﻿import PrintersSettingsComponent from "@/components/Pages/settings/app-settings/printersSettings";
 
 export const metadata = {
-  title: "Settings - Printers | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Printers",
 };
 
 

@@ -1,7 +1,7 @@
-import EmailCampaignArchievedComponent from "@/components/Pages/marketing/email-campaign/emailCampaignArchieved";
+﻿import EmailCampaignArchievedComponent from "@/components/Pages/marketing/email-campaign/emailCampaignArchieved";
 
 export const metadata = {
-  title: "Email Campaign Archived | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email Campaign Archived",
 };
 
 export default function EmailCampaignArchieved(){

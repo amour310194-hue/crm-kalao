@@ -1,7 +1,7 @@
-import AddPageComponent from "@/components/Pages/content/addPage";
+﻿import AddPageComponent from "@/components/Pages/content/addPage";
 
 export const metadata = {
-  title: "Add Page | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Add Page",
 };
 
 

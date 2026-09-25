@@ -1,7 +1,7 @@
-import QuotationsListComponent from "@/components/Pages/sales-crm/quotations/quotationsList";
+﻿import QuotationsListComponent from "@/components/Pages/sales-crm/quotations/quotationsList";
 
 export const metadata = {
-  title: "Quotations | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Quotations",
 };
 
 export default function QuotationsList(){

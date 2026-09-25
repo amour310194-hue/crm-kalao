@@ -1,7 +1,7 @@
-import EmailReplyComponent from "@/components/Pages/application-module/email/emailReply";
+﻿import EmailReplyComponent from "@/components/Pages/application-module/email/emailReply";
 
 export const metadata = {
-  title: "Email | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email",
 };
 
 export default function EMailReply(){

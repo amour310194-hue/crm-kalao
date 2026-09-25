@@ -1,7 +1,7 @@
-import PreferenceSettingsComponent from "@/components/Pages/settings/website-settings/preferenceSettings";
+﻿import PreferenceSettingsComponent from "@/components/Pages/settings/website-settings/preferenceSettings";
 
 export const metadata = {
-  title: "Settings - Preferences | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Preferences",
 };
 
 export default function Preferences(){

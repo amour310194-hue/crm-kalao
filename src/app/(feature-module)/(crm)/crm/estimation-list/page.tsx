@@ -1,7 +1,7 @@
-import EstimationsListComponent from "@/components/Pages/crm-module/estimations/estimationsList";
+﻿import EstimationsListComponent from "@/components/Pages/crm-module/estimations/estimationsList";
 
 export const metadata = {
-  title: "Estimation List | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Estimation List",
 };
 
 export default function EstimationList(){

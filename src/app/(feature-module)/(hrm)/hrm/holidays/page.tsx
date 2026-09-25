@@ -1,7 +1,7 @@
-import HolidaysComponent from "@/components/Pages/hrm/holidays/holidays";
+﻿import HolidaysComponent from "@/components/Pages/hrm/holidays/holidays";
 
 export const metadata = {
-  title: "Holidays | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Holidays",
 };
 
 export default function Holidays(){

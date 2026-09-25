@@ -1,7 +1,7 @@
-import BlogCommentsComponent from "@/components/Pages/content/blogs/blogComments";
+﻿import BlogCommentsComponent from "@/components/Pages/content/blogs/blogComments";
 
 export const metadata = {
-  title: "Blog Comments | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Blog Comments",
 };
 
 export default function BLogComments(){

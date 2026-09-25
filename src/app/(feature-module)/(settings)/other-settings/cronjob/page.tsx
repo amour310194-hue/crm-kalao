@@ -1,7 +1,7 @@
-import CronjobComponent from "@/components/Pages/settings/other-settings/cronjob";
+﻿import CronjobComponent from "@/components/Pages/settings/other-settings/cronjob";
 
 export const metadata = {
-  title: "Settings - Cronjob | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Cronjob",
 };
 
 export default function Cronjob(){

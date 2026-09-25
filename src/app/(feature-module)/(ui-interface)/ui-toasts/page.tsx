@@ -1,7 +1,7 @@
-import UiToastsComponent from "@/components/Pages/ui-module/base-ui/uiToasts";
+﻿import UiToastsComponent from "@/components/Pages/ui-module/base-ui/uiToasts";
 
 export const metadata = {
-  title: "Toasts | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Toasts",
 }
 
 export default function Uitoasts(){

@@ -1,7 +1,7 @@
-import LeadFunnelReportComponent from "@/components/Pages/reports/lead-funnel-report/leadFunnelReport";
+﻿import LeadFunnelReportComponent from "@/components/Pages/reports/lead-funnel-report/leadFunnelReport";
 
 export const metadata = {
-  title: "Lead Funnel Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Lead Funnel Report",
 };
 
 export default function LeadFunnelReport(){

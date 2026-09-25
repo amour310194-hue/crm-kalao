@@ -1,7 +1,7 @@
-import DeviceManagementComponent from "@/components/Pages/user-management/device-management/deviceManagement";
+﻿import DeviceManagementComponent from "@/components/Pages/user-management/device-management/deviceManagement";
 
 export const metadata = {
-  title: "Device Management | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Device Management",
 };
 
 export default function DeviceManagement(){

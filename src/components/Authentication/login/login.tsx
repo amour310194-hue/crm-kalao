@@ -16,6 +16,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fails, setFails] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(0);
   const [loading, setLoading] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState({
     password: false,
@@ -40,6 +42,10 @@ const Login = () => {
       return;
     }
 
+    if (Date.now() < lockedUntil) {
+      setError("Trop d’essais. Réessayez dans un moment.");
+      return;
+    }
     setLoading(true);
     try {
       const supabase = getSupabaseBrowserClient();
@@ -48,9 +54,13 @@ const Login = () => {
         password,
       });
       if (signInError) {
+        const next = fails + 1;
+        setFails(next);
+        if (next >= 5) setLockedUntil(Date.now() + 30_000);
         setError("Email ou mot de passe incorrect.");
         return;
       }
+      setFails(0);
       router.push(all_routes.dashboard);
     } catch {
       setError("Impossible de se connecter. Vérifiez la configuration Supabase.");
@@ -73,14 +83,14 @@ const Login = () => {
               >
                 <div className="text-center mb-4 auth-logo">
                   <ImageWithBasePath
-                    src="assets/img/logo.svg"
+                    src="assets/img/kalao-logo.jpg"
                     className="img-fluid"
-                    alt="Logo"
+                    alt="Groupe Kalao"
                   />
                 </div>
                 <div>
                   <div className="mb-3">
-                    <h3 className="mb-2">Sign In</h3>
+                    <h3 className="mb-2">Se connecter</h3>
                     <p className="mb-0">
                       {supabaseEnabled
                         ? "Connectez-vous avec votre compte Kalao."
@@ -93,7 +103,7 @@ const Login = () => {
                     </div>
                   ) : null}
                   <div className="mb-3">
-                    <label className="form-label">Email Address</label>
+                    <label className="form-label">Adresse email</label>
                     <div className="input-group input-group-flat">
                       <input
                         type="email"
@@ -109,7 +119,7 @@ const Login = () => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Password</label>
+                    <label className="form-label">Mot de passe</label>
                     <div className="input-group input-group-flat pass-group">
                       <input
                         type={passwordVisibility.password ? "text" : "password"}
@@ -133,15 +143,14 @@ const Login = () => {
                       <input
                         className="form-check-input mt-0"
                         type="checkbox"
-                        defaultValue=""
+                        defaultChecked={false}
                         id="checkebox-md"
-                        defaultChecked
                       />
                       <label
                         className="form-check-label text-dark ms-1"
                         htmlFor="checkebox-md"
                       >
-                        Remember Me
+                        Se souvenir de moi
                       </label>
                     </div>
                     <div className="text-end">
@@ -149,7 +158,7 @@ const Login = () => {
                         href={all_routes.forgotPassword}
                         className="link-danger fw-medium link-hover"
                       >
-                        Forgot Password?
+                        Mot de passe oublié ?
                       </Link>
                     </div>
                   </div>
@@ -159,7 +168,7 @@ const Login = () => {
                       className="btn btn-primary w-100"
                       disabled={loading}
                     >
-                      {loading ? "Connexion…" : "Sign In"}
+                      {loading ? "Connexion…" : "Se connecter"}
                     </button>
                   </div>
                   <div className="mb-3">
@@ -170,7 +179,9 @@ const Login = () => {
                   </div>
                 </div>
                 <div className="text-center pb-4">
-                  <p className="text-dark mb-0">Copyright © 2025 - CRMS</p>
+                  <p className="text-dark mb-0">
+                    Copyright © {new Date().getFullYear()} — Groupe Kalao
+                  </p>
                 </div>
               </form>
             </div>{" "}

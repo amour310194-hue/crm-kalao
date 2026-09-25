@@ -1,7 +1,7 @@
-import ContractsListComponent from "@/components/Pages/crm-module/contracts/contractsList";
+﻿import ContractsListComponent from "@/components/Pages/crm-module/contracts/contractsList";
 
 export const metadata = {
-  title: "Contracts List | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Contracts List",
 };
 
 export default function ContractsList() {

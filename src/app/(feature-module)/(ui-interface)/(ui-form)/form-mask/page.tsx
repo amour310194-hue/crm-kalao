@@ -1,7 +1,7 @@
-import FormMaskComponent from "@/components/Pages/ui-module/forms/input-masks/inputMasks";
+﻿import FormMaskComponent from "@/components/Pages/ui-module/forms/input-masks/inputMasks";
 
 export const metadata = {
-  title: "Form Mask | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Form Mask",
 }
 
 export default function Formmask(){

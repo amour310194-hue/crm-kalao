@@ -1,7 +1,7 @@
-import IconMaterialComponent from "@/components/Pages/ui-module/icons/iconMaterial";
+﻿import IconMaterialComponent from "@/components/Pages/ui-module/icons/iconMaterial";
 
 export const metadata = {
-  title: "Material Icon | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Material Icon",
 }
 
 export default function UiMaterialIcon(){

@@ -1,7 +1,7 @@
-import UiSweetAlertsComponent from "@/components/Pages/ui-module/ui-advance/uiSweetAlerts";
+﻿import UiSweetAlertsComponent from "@/components/Pages/ui-module/ui-advance/uiSweetAlerts";
 
 export const metadata = {
-  title: "Sweet Alert | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Sweet Alert",
 };
 
 export default function UiSweetAlerts(){

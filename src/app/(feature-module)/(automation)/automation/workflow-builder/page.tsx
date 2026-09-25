@@ -1,7 +1,7 @@
-import WorkflowBuilderComponent from "@/components/Pages/automation/workflowBuilder";
+﻿import WorkflowBuilderComponent from "@/components/Pages/automation/workflowBuilder";
 
 export const metadata = {
-  title: "Workflow Builder | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Workflow Builder",
 };
 
 export default function WorkflowBuilder(){

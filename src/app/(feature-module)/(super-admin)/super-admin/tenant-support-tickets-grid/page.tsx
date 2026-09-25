@@ -1,6 +1,6 @@
-import TenantSupportTicketsGridComponent from "@/components/Pages/super-admin/tenantSupportTicketsGrid";
+﻿import TenantSupportTicketsGridComponent from "@/components/Pages/super-admin/tenantSupportTicketsGrid";
 export const metadata = {
-  title: "Tenant Support Tickets | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Tenant Support Tickets",
 };
 export default function TenantSupportTicketsGrid(){
     return(

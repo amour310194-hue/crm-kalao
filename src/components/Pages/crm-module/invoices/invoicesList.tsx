@@ -95,7 +95,7 @@ const InvoicesListComponent = () => {
       sorter: (a: any, b: any) => a.project.length - b.project.length,
     },
     {
-      title: "Due Date",
+      title: "Échéance",
       dataIndex: "Due_Date",
       sorter: (a: any, b: any) => a.Due_Date.length - b.Due_Date.length,
     },
@@ -687,7 +687,7 @@ const InvoicesListComponent = () => {
                           <i className="ti ti-columns me-1" />
                           <div className="form-check form-switch w-100 ps-0">
                             <label className="form-check-label d-flex align-items-center gap-2 w-100">
-                              <span>Due Date</span>
+                              <span>Échéance</span>
                               <input
                                 className="form-check-input switchCheckDefault ms-auto"
                                 type="checkbox"

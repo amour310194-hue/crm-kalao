@@ -1,7 +1,7 @@
-import LeaveBalanceSummaryReportComponent from "@/components/Pages/reports/leave-balance-summary-report/leaveBalanceSummaryReport";
+﻿import LeaveBalanceSummaryReportComponent from "@/components/Pages/reports/leave-balance-summary-report/leaveBalanceSummaryReport";
 
 export const metadata = {
-  title: "Leave Balance Summary Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Leave Balance Summary Report",
 };
 
 export default function LeaveBalanceSummaryReport(){

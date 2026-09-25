@@ -1,7 +1,7 @@
-import InvoicesListComponent from "@/components/Pages/crm-module/invoices/invoicesList";
+﻿import InvoicesListComponent from "@/components/Pages/crm-module/invoices/invoicesList";
 
 export const metadata = {
-  title: "Invoices List | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Invoices List",
 };
 
 export default function InvoicesList(){

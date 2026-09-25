@@ -1,7 +1,7 @@
-import LeaveRequestsComponent from "@/components/Pages/hrm/leave-requests/leaveRequests";
+﻿import LeaveRequestsComponent from "@/components/Pages/hrm/leave-requests/leaveRequests";
 
 export const metadata = {
-  title: "Leave Requests | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Leave Requests",
 };
 
 export default function LeaveRequests(){

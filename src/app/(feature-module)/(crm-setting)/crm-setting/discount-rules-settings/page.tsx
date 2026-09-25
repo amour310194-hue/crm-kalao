@@ -1,7 +1,7 @@
-import DiscountRulesSettingsComponent from "@/components/Pages/crm-settings/discount-rules-settings/discountRulesSettings";
+﻿import DiscountRulesSettingsComponent from "@/components/Pages/crm-settings/discount-rules-settings/discountRulesSettings";
 
 export const metadata = {
-  title: "Discount Rules | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Discount Rules",
 };
 
 export default function DiscountRulesSettings(){

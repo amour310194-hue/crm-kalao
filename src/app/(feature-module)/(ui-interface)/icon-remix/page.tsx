@@ -1,7 +1,7 @@
-import IconRemixComponent from "@/components/Pages/ui-module/icons/iconRemix";
+﻿import IconRemixComponent from "@/components/Pages/ui-module/icons/iconRemix";
 
 export const metadata = {
-  title: "Remix | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Remix",
 }
 
 export default function IconRemix(){

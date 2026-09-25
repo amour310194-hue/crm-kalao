@@ -1,7 +1,7 @@
-import InvoicesGridComponent from "@/components/Pages/crm-module/invoices/invoicesGrid";
+﻿import InvoicesGridComponent from "@/components/Pages/crm-module/invoices/invoicesGrid";
 
 export const metadata = {
-  title: "invoice Grid | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "invoice Grid",
 };
 
 export default function invoiceGrid(){

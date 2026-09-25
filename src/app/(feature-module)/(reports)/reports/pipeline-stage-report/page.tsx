@@ -1,7 +1,7 @@
-import PipelineStageReportComponent from "@/components/Pages/reports/pipeline-stage-report/pipelineStageReport";
+﻿import PipelineStageReportComponent from "@/components/Pages/reports/pipeline-stage-report/pipelineStageReport";
 
 export const metadata = {
-  title: "Pipeline Stage Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Pipeline Stage Report",
 };
 
 export default function PipelineStageReport(){

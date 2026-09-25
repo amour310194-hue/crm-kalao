@@ -1,7 +1,7 @@
-import TasksImportantComponent from "@/components/Pages/crm-module/tasks/tasksImportant";
+﻿import TasksImportantComponent from "@/components/Pages/crm-module/tasks/tasksImportant";
 
 export const metadata = {
-  title: "Tasks | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Tasks",
 };
 
 export default function TaskImportant(){

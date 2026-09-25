@@ -1,7 +1,7 @@
-import UiAccordionComponent from "@/components/Pages/ui-module/base-ui/uiAccordion";
+﻿import UiAccordionComponent from "@/components/Pages/ui-module/base-ui/uiAccordion";
 
 export const metadata = {
-  title: "Accordion | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Accordion",
 }
 
 export default function UiAccordion(){

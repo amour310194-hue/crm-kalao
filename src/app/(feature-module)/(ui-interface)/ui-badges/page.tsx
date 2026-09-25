@@ -1,7 +1,7 @@
-import UiBadgesComponents from "@/components/Pages/ui-module/base-ui/uiBadges";
+﻿import UiBadgesComponents from "@/components/Pages/ui-module/base-ui/uiBadges";
 
 export const metadata = {
-  title: "Badges | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Badges",
 }
 
 

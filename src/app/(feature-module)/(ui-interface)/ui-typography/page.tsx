@@ -1,7 +1,7 @@
-import UiTypographyComponent from "@/components/Pages/ui-module/base-ui/uiTypography";
+﻿import UiTypographyComponent from "@/components/Pages/ui-module/base-ui/uiTypography";
 
 export const metadata = {
-  title: "Typography | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Typography",
 }
 
 export default function Uitypography(){

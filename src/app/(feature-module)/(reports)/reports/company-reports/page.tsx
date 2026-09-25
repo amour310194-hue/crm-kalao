@@ -1,7 +1,7 @@
-import CompanyReportsComponent from "@/components/Pages/reports/company-reports/companyReports";
+﻿import CompanyReportsComponent from "@/components/Pages/reports/company-reports/companyReports";
 
 export const metadata = {
-  title: "Company Reports | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Company Reports",
 };
 
 

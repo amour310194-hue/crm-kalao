@@ -1,7 +1,7 @@
-import UiPaginationComponent from "@/components/Pages/ui-module/base-ui/uiPagination";
+﻿import UiPaginationComponent from "@/components/Pages/ui-module/base-ui/uiPagination";
 
 export const metadata = {
-  title: "Pagination | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Pagination",
 }
 
 export default function UiPagination(){

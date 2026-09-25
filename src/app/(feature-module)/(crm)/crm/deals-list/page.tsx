@@ -1,7 +1,7 @@
-import DealsListComponent from "@/components/Pages/crm-module/deals/dealsList";
+﻿import DealsListComponent from "@/components/Pages/crm-module/deals/dealsList";
 
 export const metadata = {
-  title: "Deals List | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Deals List",
 };
 
 export default function DealsList(){

@@ -1,7 +1,7 @@
-import SystemUpdateComponent from "@/components/Pages/settings/other-settings/systemUpdate";
+﻿import SystemUpdateComponent from "@/components/Pages/settings/other-settings/systemUpdate";
 
 export const metadata = {
-  title: "Settings - Systemupdate | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Systemupdate",
 };
 
 export default function Systemupdate(){

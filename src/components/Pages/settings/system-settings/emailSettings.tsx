@@ -23,9 +23,10 @@ const EmailSettingsComponent = () => {
     setTestStatus("sending");
     setTestDetail(null);
     try {
+      const { authJsonHeaders } = await import("@/lib/auth-headers");
       const res = await fetch("/api/email/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body: JSON.stringify({
           to: testTo,
           subject: "Test CRM Kalao",

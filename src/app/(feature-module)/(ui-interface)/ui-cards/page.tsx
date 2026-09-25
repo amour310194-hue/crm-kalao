@@ -1,7 +1,7 @@
-import UiCardsComponents from "@/components/Pages/ui-module/base-ui/uiCards";
+﻿import UiCardsComponents from "@/components/Pages/ui-module/base-ui/uiCards";
 
 export const metadata = {
-  title: "Cards | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Cards",
 }
 
 export default function Uicards(){

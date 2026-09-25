@@ -1,7 +1,7 @@
-import DelasDashboardComponent from "@/components/Pages/dashboard/deals-dashboard/delasDashboard";
+﻿import DelasDashboardComponent from "@/components/Pages/dashboard/deals-dashboard/delasDashboard";
 
 export const metadata = {
-  title: "Layout Hidden | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Layout Hidden",
 };
 
 export default function LayoutHidden(){

@@ -1,7 +1,7 @@
-import UiLightboxesComponent from "@/components/Pages/ui-module/ui-advance/uiLightbox";
+﻿import UiLightboxesComponent from "@/components/Pages/ui-module/ui-advance/uiLightbox";
 
 export const metadata = {
-  title: "Light box | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Light box",
 }
 
 export default function Uilightbox(){

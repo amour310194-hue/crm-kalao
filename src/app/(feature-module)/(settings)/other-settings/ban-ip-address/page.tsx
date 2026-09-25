@@ -1,7 +1,7 @@
-import BanIpAddressComponent from "@/components/Pages/settings/other-settings/banIpAddress";
+﻿import BanIpAddressComponent from "@/components/Pages/settings/other-settings/banIpAddress";
 
 export const metadata = {
-  title: "Settings - Ban Ip Address | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Ban Ip Address",
 };
 
 export default function Banipaddress(){

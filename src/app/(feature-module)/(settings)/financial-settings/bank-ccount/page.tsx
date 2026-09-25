@@ -1,7 +1,7 @@
-import BankAccountsComponent from "@/components/Pages/settings/financial-settings/bankAccounts";
+﻿import BankAccountsComponent from "@/components/Pages/settings/financial-settings/bankAccounts";
 
 export const metadata = {
-  title: "Settings - Bankaccounts | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Bankaccounts",
 };
 
 export default function Bankaccounts(){

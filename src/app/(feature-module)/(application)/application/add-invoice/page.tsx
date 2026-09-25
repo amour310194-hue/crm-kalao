@@ -1,7 +1,7 @@
-import AddInoivceComponent from "@/components/Pages/application-module/invoice/add-invoice/addInoivce";
+﻿import AddInoivceComponent from "@/components/Pages/application-module/invoice/add-invoice/addInoivce";
 
 export const metadata = {
-  title: "Add Invoice | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Add Invoice",
 };
 export default function AddInvoice(){
     return(

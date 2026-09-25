@@ -1,7 +1,7 @@
-import ContractReportComponent from "@/components/Pages/reports/contract-report/contractReport";
+﻿import ContractReportComponent from "@/components/Pages/reports/contract-report/contractReport";
 
 export const metadata = {
-  title: "Contract Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Contract Report",
 };
 
 export default function ContractReport(){

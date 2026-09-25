@@ -1,7 +1,7 @@
-import UserLoginReportComponent from "@/components/Pages/reports/user-login-report/userLoginReport";
+﻿import UserLoginReportComponent from "@/components/Pages/reports/user-login-report/userLoginReport";
 
 export const metadata = {
-  title: "User Login Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "User Login Report",
 };
 
 export default function UserLoginReport(){

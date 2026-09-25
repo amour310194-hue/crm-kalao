@@ -1,7 +1,7 @@
-import TicketDetailsComponent from "@/components/Pages/support/tickets/ticketDetails";
+﻿import TicketDetailsComponent from "@/components/Pages/support/tickets/ticketDetails";
 
 export const metadata = {
-  title: "Tickets Details | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Tickets Details",
 }
 
 export default function TicketsDetails(){

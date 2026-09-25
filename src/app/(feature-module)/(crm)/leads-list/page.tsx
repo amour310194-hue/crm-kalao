@@ -1,7 +1,7 @@
-import LeadsListComponent from "@/components/Pages/crm-module/leads/leadsList";
+﻿import LeadsListComponent from "@/components/Pages/crm-module/leads/leadsList";
 
 export const metadata = {
-  title: "Leads List | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Leads List",
 };
 
 export default function LeadsList(){

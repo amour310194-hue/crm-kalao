@@ -17,9 +17,8 @@ const LeadPieChart = ({ labels, values }: LeadPieChartProps) => {
       height: 440
     },
     colors: ['#2F80ED', '#27AE60', '#FFA201', '#E41F07'],
-    labels: labels?.length
-      ? labels
-      : ['Inpipeline', 'Follow Up', 'Schedule Service', 'Conversation'],
+    noData: { text: "Pas encore de données à afficher" },
+    labels: labels?.length ? labels : [],
     legend: {
       position: 'bottom'
     },
@@ -52,7 +51,7 @@ const LeadPieChart = ({ labels, values }: LeadPieChartProps) => {
     ]
   };
 
-  const series = values?.length ? values : [44, 55, 13, 43];
+  const series = values?.length ? values : [];
 
   return (
     

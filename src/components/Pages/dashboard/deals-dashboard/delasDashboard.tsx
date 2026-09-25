@@ -1,523 +1,155 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 
 import Footer from "../../../../core/common/footer/footer";
 import CollapseIcons from "../../../../core/common/collapse-icons/collapseIcons";
 import Link from "next/link";
-import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import DealsChart from "./chats/dealsChart";
 import LastChart from "./chats/lastChart";
 import WonChart from "./chats/wonChart";
 import DealsYearChart from "./chats/dealsYearChart";
 import { all_routes } from "@/router/all_routes";
 import { kpisChartMonths, useKalaoKpis } from "@/lib/kpi";
+import { fr } from "@/lib/i18n";
 
 const DelasDashboardComponent = () => {
   const { kpis, live } = useKalaoKpis();
-  const chartMonths = kpisChartMonths(live ? kpis : null);
+  const chartMonths = kpisChartMonths(kpis);
+  const recent = live && kpis ? kpis.recentDeals : [];
+  const pipeline = live && kpis ? kpis.pipeline : [];
+  const lost = pipeline.filter((s) => s.key === "lost");
+  const won = pipeline.filter((s) => s.key === "won");
+
   return (
-    <>
-      {/* ========================
-			Start Page Content
-		========================= */}
-      <div className="page-wrapper">
-        {/* Start Content */}
-        <div className="content pb-0">
-          {/* Page Header */}
-          <div className="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
-            <div>
-              <h4 className="mb-0">Deals Dashboard</h4>
-            </div>
-            <div className="gap-2 d-flex align-items-center flex-wrap">
-              <PredefinedDatePicker />
-              <CollapseIcons />
-            </div>
-          </div>
-          {/* End Page Header */}
-          {/* start row */}
-          <div className="row">
-            <div className="col-md-6 d-flex">
-              <div className="card flex-fill">
-                <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                  <h6 className="mb-0">Recently Created Deals</h6>
-                  <div className="dropdown">
-                    <Link
-                      className="dropdown-toggle btn btn-outline-light shadow"
-                      data-bs-toggle="dropdown"
-                      href="#"
-                    >
-                      Last 30 days
-                    </Link>
-                    <div className="dropdown-menu dropdown-menu-end">
-                      <Link href="#" className="dropdown-item">
-                        Last 15 days
-                      </Link>
-                      <Link href="#" className="dropdown-item">
-                        Last 30 days
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-body">
+    <div className="page-wrapper">
+      <div className="content pb-0">
+        <div className="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
+          <h4 className="mb-0">Affaires</h4>
+          <CollapseIcons />
+        </div>
+        <div className="row">
+          <div className="col-md-6 d-flex">
+            <div className="card flex-fill">
+              <div className="card-header">
+                <h6 className="mb-0">Affaires récentes</h6>
+              </div>
+              <div className="card-body">
+                {recent.length ? (
                   <div className="table-responsive custom-table">
-                    <table
-                      className="table dataTable table-nowrap no-footer"
-                      id="deals-project"
-                      style={{ width: 570 }}
-                    >
+                    <table className="table table-nowrap">
                       <thead className="table-light">
                         <tr>
-                          <th
-                            className="sorting_disabled"
-                            rowSpan={1}
-                            colSpan={1}
-                            style={{ width: 212 }}
-                          >
-                            Deal Name
-                          </th>
-                          <th
-                            className="sorting_disabled"
-                            rowSpan={1}
-                            colSpan={1}
-                            style={{ width: 110 }}
-                          >
-                            Stage
-                          </th>
-                          <th
-                            className="sorting_disabled"
-                            rowSpan={1}
-                            colSpan={1}
-                            style={{ width: 85 }}
-                          >
-                            Deal Value
-                          </th>
-                          <th
-                            className="sorting_disabled"
-                            rowSpan={1}
-                            colSpan={1}
-                            style={{ width: 54 }}
-                          >
-                            Status
-                          </th>
+                          <th>Affaire</th>
+                          <th>Étape</th>
+                          <th>Montant</th>
+                          <th>Statut</th>
                         </tr>
                       </thead>
-                      {live && kpis ? (
-                        <tbody>
-                          {kpis.recentDeals.map((deal, index) => (
-                            <tr className={index % 2 ? "even" : "odd"} key={deal.key}>
-                              <td>
-                                <Link
-                                  href={all_routes.dealsDetails}
-                                  className="fw-medium"
-                                >
-                                  {deal.title}
-                                </Link>
-                              </td>
-                              <td>{deal.stage}</td>
-                              <td>{deal.amount}</td>
-                              <td>
-                                <span
-                                  className={`badge badge-pill ${
-                                    deal.stage === "Gagné"
-                                      ? "bg-success"
-                                      : deal.stage === "Perdu"
-                                      ? "bg-danger"
-                                      : "bg-indigo"
-                                  }`}
-                                >
-                                  {deal.stage === "Gagné"
-                                    ? "Won"
+                      <tbody>
+                        {recent.map((deal) => (
+                          <tr key={deal.key}>
+                            <td>
+                              <Link
+                                href={`${all_routes.dealsDetails}?id=${deal.key}`}
+                                className="fw-medium"
+                              >
+                                {deal.title}
+                              </Link>
+                            </td>
+                            <td>{deal.stage}</td>
+                            <td>{deal.amount}</td>
+                            <td>
+                              <span
+                                className={`badge badge-pill ${
+                                  deal.stage === "Gagné"
+                                    ? "bg-success"
                                     : deal.stage === "Perdu"
-                                    ? "Lost"
-                                    : "Open"}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      ) : null}
-                      <tbody className={live ? "d-none" : ""}>
-                        <tr className="odd">
-                          <td>
-                            <Link
-                              href={all_routes.dealsDetails}
-                              className="fw-medium"
-                            >
-                              SkyHigh Annual Booking
-                            </Link>
-                          </td>
-                          <td>Appointment</td>
-                          <td>FCFA 04,51,000</td>
-                          <td>
-                            <span className="badge badge-pill  bg-success">
-                              Won
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="even">
-                          <td>
-                            <Link
-                              href={all_routes.dealsDetails}
-                              className="fw-medium"
-                            >
-                              CRM Onboarding Package
-                            </Link>
-                          </td>
-                          <td>Contact Made</td>
-                          <td>FCFA 72,14,078</td>
-                          <td>
-                            <span className="badge badge-pill  bg-danger">
-                              Lost
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="odd">
-                          <td>
-                            <Link
-                              href={all_routes.dealsDetails}
-                              className="fw-medium"
-                            >
-                              Enterprise Plan Upgrade
-                            </Link>
-                          </td>
-                          <td>Presentation</td>
-                          <td>FCFA 04,14,800</td>
-                          <td>
-                            <span className="badge badge-pill  bg-success">
-                              Won
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="even">
-                          <td>
-                            <Link
-                              href={all_routes.dealsDetails}
-                              className="fw-medium"
-                            >
-                              CRM Migration Project
-                            </Link>
-                          </td>
-                          <td>Proposal Made</td>
-                          <td>FCFA 16,11,400</td>
-                          <td>
-                            <span className="badge badge-pill  bg-success">
-                              Won
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="odd">
-                          <td>
-                            <Link
-                              href={all_routes.dealsDetails}
-                              className="fw-medium"
-                            >
-                              Sales Pipeline Optimization
-                            </Link>
-                          </td>
-                          <td>Qualify To Buy</td>
-                          <td>FCFA 09,05,947</td>
-                          <td>
-                            <span className="badge badge-pill  bg-success">
-                              Won
-                            </span>
-                          </td>
-                        </tr>
+                                    ? "bg-danger"
+                                    : "bg-indigo"
+                                }`}
+                              >
+                                {deal.stage === "Gagné"
+                                  ? "Gagnée"
+                                  : deal.stage === "Perdu"
+                                  ? "Perdue"
+                                  : "Ouverte"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                </div>{" "}
-                {/* end card body */}
-              </div>{" "}
-              {/* end card */}
-            </div>{" "}
-            {/* end col */}
-            <div className="col-md-6 d-flex">
-              <div className="card flex-fill">
-                <div className="card-header">
-                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h6 className="mb-0">Deals By Stage</h6>
-                    <div className="d-flex align-items-center flex-wrap row-gap-3">
-                      <div className="dropdown me-2">
-                        <Link
-                          className="dropdown-toggle btn btn-outline-light shadow"
-                          data-bs-toggle="dropdown"
-                          href="#"
-                        >
-                          Sales Pipeline
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-end">
-                          <Link href="#" className="dropdown-item">
-                            Marketing Pipeline
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Sales Pipeline
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Email
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Chats
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Operational
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="dropdown">
-                        <Link
-                          className="dropdown-toggle btn btn-outline-light shadow"
-                          data-bs-toggle="dropdown"
-                          href="#"
-                        >
-                          Last 30 Days
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-end">
-                          <Link href="#" className="dropdown-item">
-                            Last 30 Days
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Last 15 Days
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Last 7 Days
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
+                ) : (
+                  <div className="text-center py-5">
+                    <p className="text-muted mb-3">{fr.noDeals}</p>
+                    <Link href={all_routes.dealsGrid} className="btn btn-primary">
+                      {fr.createDeal}
+                    </Link>
                   </div>
-                </div>
-                <div className="card-body py-0">
-                  <div id="deals-chart">
-                    <DealsChart
-                      categories={
-                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
-                      }
-                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
-                    />
-                  </div>
-                </div>{" "}
-                {/* end card body */}
-              </div>{" "}
-              {/* end card */}
-            </div>{" "}
-            {/* end col */}
+                )}
+              </div>
+            </div>
           </div>
-          {/* end row */}
-          {/* start row */}
-          <div className="row">
-            <div className="col-md-6 d-flex">
-              <div className="card flex-fill">
-                <div className="card-header">
-                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h6 className="mb-0">Lost Deals Stage</h6>
-                    <div className="d-flex align-items-center flex-wrap row-gap-3">
-                      <div className="dropdown me-2">
-                        <Link
-                          className="dropdown-toggle btn btn-outline-light shadow"
-                          data-bs-toggle="dropdown"
-                          href="#"
-                        >
-                          Marketing Pipeline
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-end">
-                          <Link href="#" className="dropdown-item">
-                            Marketing Pipeline
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Sales Pipeline
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Email
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Chats
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Operational
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="dropdown">
-                        <Link
-                          className="dropdown-toggle btn btn-outline-light shadow"
-                          data-bs-toggle="dropdown"
-                          href="#"
-                        >
-                          Last 30 Days
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-end">
-                          <Link href="#" className="dropdown-item">
-                            Last 30 Days
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Last 6 months
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Last 12 months
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-body py-0">
-                  <div id="last-chart">
-                    <LastChart
-                      categories={
-                        live ? kpis?.leadsByStatus.map((row) => row.label) : undefined
-                      }
-                      data={live ? kpis?.leadsByStatus.map((row) => row.count) : undefined}
-                    />
-                  </div>
-                </div>{" "}
-                {/* end card body */}
-              </div>{" "}
-              {/* end card */}
-            </div>{" "}
-            {/* end col */}
-            <div className="col-md-6 d-flex">
-              <div className="card flex-fill">
-                <div className="card-header">
-                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h6 className="mb-0">Won Deals Stage</h6>
-                    <div className="d-flex align-items-center flex-wrap row-gap-3">
-                      <div className="dropdown me-2">
-                        <Link
-                          className="dropdown-toggle btn btn-outline-light shadow"
-                          data-bs-toggle="dropdown"
-                          href="#"
-                        >
-                          Marketing Pipeline
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-end">
-                          <Link href="#" className="dropdown-item">
-                            Marketing Pipeline
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Sales Pipeline
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Email
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Chats
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Operational
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="dropdown">
-                        <Link
-                          className="dropdown-toggle btn btn-outline-light shadow"
-                          data-bs-toggle="dropdown"
-                          href="#"
-                        >
-                          Last 30 Days
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-end">
-                          <Link href="#" className="dropdown-item">
-                            Last 30 Days
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Last 6 months
-                          </Link>
-                          <Link href="#" className="dropdown-item">
-                            Last 12 months
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-body py-0">
-                  <div id="won-chart">
-                    <WonChart
-                      categories={
-                        live ? kpis?.pipeline.map((stage) => stage.label) : undefined
-                      }
-                      data={live ? kpis?.pipeline.map((stage) => stage.count) : undefined}
-                    />
-                  </div>
-                </div>{" "}
-                {/* end card body */}
-              </div>{" "}
-              {/* end card */}
-            </div>{" "}
-            {/* end col */}
+          <div className="col-md-6 d-flex">
+            <div className="card flex-fill">
+              <div className="card-header">
+                <h6 className="mb-0">Affaires par étape</h6>
+              </div>
+              <div className="card-body py-0">
+                <DealsChart
+                  categories={pipeline.map((stage) => stage.label)}
+                  data={pipeline.map((stage) => stage.count)}
+                />
+              </div>
+            </div>
           </div>
-          {/* end row */}
-          {/* start row */}
-          <div className="row">
-            <div className="col-md-12 d-flex">
-              <div className="card w-100">
-                <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                  <h6 className="mb-0">Deals by Year</h6>
-                  <div className="d-flex align-items-center flex-wrap row-gap-3">
-                    <div className="dropdown me-2">
-                      <Link
-                        className="dropdown-toggle btn btn-outline-light shadow"
-                        data-bs-toggle="dropdown"
-                        href="#"
-                      >
-                        Sales Pipeline
-                      </Link>
-                      <div className="dropdown-menu dropdown-menu-end">
-                        <Link href="#" className="dropdown-item">
-                          Marketing Pipeline
-                        </Link>
-                        <Link href="#" className="dropdown-item">
-                          Sales Pipeline
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="dropdown">
-                      <Link
-                        className="dropdown-toggle btn btn-outline-light shadow"
-                        data-bs-toggle="dropdown"
-                        href="#"
-                      >
-                        Last 30 Days
-                      </Link>
-                      <div className="dropdown-menu dropdown-menu-end">
-                        <Link href="#" className="dropdown-item">
-                          Last 3 months
-                        </Link>
-                        <Link href="#" className="dropdown-item">
-                          Last 6 months
-                        </Link>
-                        <Link href="#" className="dropdown-item">
-                          Last 12 months
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-body py-0">
-                  <div id="deals-year">
-                    <DealsYearChart
-                      categories={chartMonths?.categories}
-                      data={chartMonths?.collectedK}
-                    />
-                  </div>
-                </div>{" "}
-                {/* end card body */}
-              </div>{" "}
-              {/* end card */}
-            </div>{" "}
-            {/* end col */}
-          </div>
-          {/* end row */}
         </div>
-        {/* End Content */}
-        {/* Start Footer */}
-        <Footer />
-        {/* End Footer */}
+        <div className="row">
+          <div className="col-md-6 d-flex">
+            <div className="card flex-fill">
+              <div className="card-header">
+                <h6 className="mb-0">Affaires perdues</h6>
+              </div>
+              <div className="card-body py-0">
+                <LastChart
+                  categories={lost.map((row) => row.label)}
+                  data={lost.map((row) => row.count)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 d-flex">
+            <div className="card flex-fill">
+              <div className="card-header">
+                <h6 className="mb-0">Affaires gagnées</h6>
+              </div>
+              <div className="card-body py-0">
+                <WonChart
+                  categories={won.map((row) => row.label)}
+                  data={won.map((row) => row.count)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-12 d-flex">
+            <div className="card w-100">
+              <div className="card-header">
+                <h6 className="mb-0">Encaissé (6 mois)</h6>
+              </div>
+              <div className="card-body py-0">
+                <DealsYearChart
+                  categories={chartMonths?.categories}
+                  data={chartMonths?.collectedK}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      {/* ========================
-			End Page Content
-		========================= */}
-    </>
+      <Footer />
+    </div>
   );
 };
 

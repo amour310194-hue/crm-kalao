@@ -1,7 +1,7 @@
-import TodoComponent from "@/components/Pages/application-module/todo/todo";
+﻿import TodoComponent from "@/components/Pages/application-module/todo/todo";
 
 export const metadata = {
-  title: "Todo | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Todo",
 };
 
 export default function Todo(){

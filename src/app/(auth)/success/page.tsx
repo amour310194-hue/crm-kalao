@@ -1,7 +1,7 @@
-import SuccessComponent from "@/components/Authentication/success/success";
+﻿import SuccessComponent from "@/components/Authentication/success/success";
 
 export const metadata = {
-  title: "Success | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Success",
 };
 
 export default function Success(){

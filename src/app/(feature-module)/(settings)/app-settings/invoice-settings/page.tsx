@@ -1,7 +1,7 @@
-import InvoiceSettingsComponent from "@/components/Pages/settings/app-settings/invoiceSettings";
+﻿import InvoiceSettingsComponent from "@/components/Pages/settings/app-settings/invoiceSettings";
 
 export const metadata = {
-  title: "Settings - Invoice Settings | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Invoice Settings",
 };
 
 export default function InvoiceSettings(){

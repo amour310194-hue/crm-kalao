@@ -1,7 +1,7 @@
-import DealRiskAnalysisComponent from "@/components/Pages/ai-crm/dealRiskAnalysis";
+﻿import DealRiskAnalysisComponent from "@/components/Pages/ai-crm/dealRiskAnalysis";
 
 export const metadata = {
-  title: "Deal Risk Analysis | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Deal Risk Analysis",
 };
 
 export default function DealRiskAnalysis(){

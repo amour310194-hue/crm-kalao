@@ -9,22 +9,16 @@ const TrafficSourcesChart: React.FC<{ labels?: string[]; values?: number[] }> = 
   labels,
   values,
 }) => {
-  const series = values?.length ? values : [6598, 2458, 1456, 845];
+  const series = values?.length ? values : [];
 
   const options: ApexOptions = {
     chart: {
       type: "donut",
       height: 250,
     },
+    noData: { text: "Pas encore de données à afficher" },
 
-    labels: labels?.length
-      ? labels
-      : [
-          "Organic Search",
-          "Direct Traffic",
-          "Referral Traffic",
-          "Social Media",
-        ],
+    labels: labels?.length ? labels : [],
 
     colors: ["#2EAD5F", "#3B82F6", "#F59E0B", "#8B0A8B"],
 

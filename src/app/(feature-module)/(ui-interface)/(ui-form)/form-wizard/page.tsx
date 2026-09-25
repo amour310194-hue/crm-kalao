@@ -1,7 +1,7 @@
-import FormWizardComponent from "@/components/Pages/ui-module/forms/form-wizard/formWizard";
+﻿import FormWizardComponent from "@/components/Pages/ui-module/forms/form-wizard/formWizard";
 
 export const metadata = {
-  title: "Form Wizard | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Form Wizard",
 }
 
 export default function FormWizard(){

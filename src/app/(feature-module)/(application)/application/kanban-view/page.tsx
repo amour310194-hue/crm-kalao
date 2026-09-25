@@ -1,7 +1,7 @@
-import KanbanViewComponent from "@/components/Pages/application-module/kanban-view/kanbanView";
+﻿import KanbanViewComponent from "@/components/Pages/application-module/kanban-view/kanbanView";
 
 export const metadata = {
-  title: "Kanban View | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Kanban View",
 };
 
 

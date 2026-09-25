@@ -1,7 +1,7 @@
-import IconBootstrapComponent from "@/components/Pages/ui-module/icons/iconBootstrap";
+﻿import IconBootstrapComponent from "@/components/Pages/ui-module/icons/iconBootstrap";
 
 export const metadata = {
-  title: "Boostrap | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Boostrap",
 }
 
 export default function IconBoostrap(){

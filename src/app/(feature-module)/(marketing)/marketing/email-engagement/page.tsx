@@ -1,7 +1,7 @@
-import EmailEngagementComponent from "@/components/Pages/marketing/email-engagement/emailEngagement";
+﻿import EmailEngagementComponent from "@/components/Pages/marketing/email-engagement/emailEngagement";
 
 export const metadata = {
-  title: "Email Engagement | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email Engagement",
 };
 
 export default function EmailEngagement(){

@@ -1,7 +1,7 @@
-import CompanyComponent from "@/components/Pages/super-admin/company";
+﻿import CompanyComponent from "@/components/Pages/super-admin/company";
 
 export const metadata = {
-  title: "Company | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Company",
 };
 
 export default function Company(){

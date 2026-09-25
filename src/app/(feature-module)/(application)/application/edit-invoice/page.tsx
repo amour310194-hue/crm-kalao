@@ -1,7 +1,7 @@
-import EditInoivceComponent from "@/components/Pages/application-module/invoice/edit-invoice/editInoivce";
+﻿import EditInoivceComponent from "@/components/Pages/application-module/invoice/edit-invoice/editInoivce";
 
 export const metadata = {
-  title: "Edit Invoice | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Edit Invoice",
 };
 
 export default function EditInvoice(){

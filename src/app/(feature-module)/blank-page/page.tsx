@@ -1,8 +1,8 @@
-import BlankPageComponents from "@/components/Authentication/blank-page/blankPage";
+﻿import BlankPageComponents from "@/components/Authentication/blank-page/blankPage";
 
 
 export const metadata = {
-  title: "Blank Page | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Blank Page",
 }
 
 export default function Blankpage(){

@@ -1,7 +1,7 @@
-import FormInputGroupsComponent from "@/components/Pages/ui-module/forms/form-elements/formInputGroups";
+﻿import FormInputGroupsComponent from "@/components/Pages/ui-module/forms/form-elements/formInputGroups";
 
 export const metadata = {
-  title: "Input Groups | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Input Groups",
 }
 
 export default function Forminputgroups(){

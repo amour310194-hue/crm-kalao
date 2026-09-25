@@ -1,7 +1,7 @@
-import UiCarouselComponents from "@/components/Pages/ui-module/base-ui/uiCarousel";
+﻿import UiCarouselComponents from "@/components/Pages/ui-module/base-ui/uiCarousel";
 
 export const metadata = {
-  title: "Carousel | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Carousel",
 }
 
 export default function Uicarousel(){

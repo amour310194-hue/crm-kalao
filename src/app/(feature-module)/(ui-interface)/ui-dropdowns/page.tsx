@@ -1,7 +1,7 @@
-import UiDropdownsComponents from "@/components/Pages/ui-module/base-ui/uiDropdowns";
+﻿import UiDropdownsComponents from "@/components/Pages/ui-module/base-ui/uiDropdowns";
 
 export const metadata = {
-  title: "Drop Downs | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Drop Downs",
 }
 
 export default function Uidropdowns(){

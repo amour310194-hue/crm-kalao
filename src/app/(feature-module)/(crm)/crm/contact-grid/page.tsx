@@ -1,7 +1,7 @@
-import ContactsComponent from "@/components/Pages/crm-module/contacts/contacts";
+﻿import ContactsComponent from "@/components/Pages/crm-module/contacts/contacts";
 
 export const metadata = {
-  title: "Contact Grid | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Contact Grid",
 };
 
 export default function ContactGrid(){

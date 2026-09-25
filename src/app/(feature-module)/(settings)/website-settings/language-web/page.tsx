@@ -1,7 +1,7 @@
-import LanguageSettingsComponent from "@/components/Pages/settings/website-settings/languageSettings";
+﻿import LanguageSettingsComponent from "@/components/Pages/settings/website-settings/languageSettings";
 
 export const metadata = {
-  title: "Settings - Language Web | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Language Web",
 };
 
 export default function Languageweb(){

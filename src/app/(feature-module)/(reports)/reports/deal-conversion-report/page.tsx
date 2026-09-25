@@ -1,7 +1,7 @@
-import DealConversionReportComponent from "@/components/Pages/reports/deal-conversion-report/dealConversionReport";
+﻿import DealConversionReportComponent from "@/components/Pages/reports/deal-conversion-report/dealConversionReport";
 
 export const metadata = {
-  title: "Deal Conversion Report | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Deal Conversion Report",
 };
 
 export default function DealConversionReport(){

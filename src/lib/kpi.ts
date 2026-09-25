@@ -7,7 +7,6 @@ import {
   fetchDossiers,
   fetchInvoices,
   fetchLeads,
-  fetchPayRuns,
   fetchPayments,
   fetchQuotes,
   formatDate,
@@ -141,7 +140,33 @@ const KIND_FR: Record<DossierKind, string> = {
   bien: "Baux",
 };
 
-const monthFmt = new Intl.DateTimeFormat("fr-FR", { month: "short" });
+const TZ = "Africa/Douala";
+const monthFmt = new Intl.DateTimeFormat("fr-FR", { month: "short", timeZone: TZ });
+
+function monthKey(value: Date | string): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(d);
+  const year = parts.find((p) => p.type === "year")?.value ?? "0000";
+  const month = parts.find((p) => p.type === "month")?.value ?? "01";
+  return `${year}-${month}`;
+}
+
+function todayIso(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value ?? "0000";
+  const month = parts.find((p) => p.type === "month")?.value ?? "01";
+  const day = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${year}-${month}-${day}`;
+}
 
 function quoteValue(quote: QuoteRow): number {
   return (quote.quote_lines ?? []).reduce(
@@ -172,8 +197,8 @@ function lastMonths(count: number): { key: string; label: string }[] {
   const out: { key: string; label: string }[] = [];
   const now = new Date();
   for (let i = count - 1; i >= 0; i -= 1) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    out.push({ key: d.toISOString().slice(0, 7), label: monthFmt.format(d) });
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 15);
+    out.push({ key: monthKey(d), label: monthFmt.format(d) });
   }
   return out;
 }
@@ -255,7 +280,7 @@ async function safeFetch<T>(label: string, fn: () => Promise<T | null>): Promise
 }
 
 export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
-  const [deals, invoices, payments, quotes, leads, contacts, companies, dossiers, payRuns, activities] =
+  const [deals, invoices, payments, quotes, leads, contacts, companies, dossiers, activities] =
     await Promise.all([
       safeFetch("deals", fetchDeals),
       safeFetch("invoices", fetchInvoices),
@@ -265,13 +290,12 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
       safeFetch("contacts", fetchContacts),
       safeFetch("companies", fetchCompanies),
       safeFetch("dossiers", fetchDossiers),
-      safeFetch("pay_runs", fetchPayRuns),
       safeFetch("activities", fetchActivities),
     ]);
 
   if (!deals || !invoices || !payments) return null;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const dealRows = deals as DealRow[];
   const closedWon = dealRows.filter((d) => d.stage === "won");
   const closedLost = dealRows.filter((d) => d.stage === "lost");
@@ -282,26 +306,25 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
   const invoiced = invoices.reduce((s, i) => s + Number(i.amount), 0);
   const unpaid = invoices.filter((i) => i.status !== "paid");
   const pendingQuotes = (quotes ?? []).filter((q) => q.status === "draft" || q.status === "sent");
-  const dueRuns = (payRuns ?? []).filter((r) => r.status !== "paid");
   const openActivities = (activities ?? []).filter((a) => !a.done);
 
   const months = lastMonths(6).map(({ key, label }) => ({
     label,
     invoiced: invoices
-      .filter((i) => (i.created_at ?? "").slice(0, 7) === key)
+      .filter((i) => i.created_at && monthKey(i.created_at) === key)
       .reduce((s, i) => s + Number(i.amount), 0),
     collected: payments
-      .filter((p) => (p.paid_at ?? "").slice(0, 7) === key)
+      .filter((p) => p.paid_at && monthKey(p.paid_at) === key)
       .reduce((s, p) => s + Number(p.amount), 0),
   }));
 
   return {
     collected,
     collectedMtd: payments
-      .filter((p) => (p.paid_at ?? "").slice(0, 7) === today.slice(0, 7))
+      .filter((p) => p.paid_at && monthKey(p.paid_at) === monthKey(new Date()))
       .reduce((s, p) => s + Number(p.amount), 0),
     collectedYtd: payments
-      .filter((p) => (p.paid_at ?? "").slice(0, 4) === today.slice(0, 4))
+      .filter((p) => p.paid_at && monthKey(p.paid_at).startsWith(monthKey(new Date()).slice(0, 4)))
       .reduce((s, p) => s + Number(p.amount), 0),
     invoiced,
     outstanding: unpaid.reduce((s, i) => s + invoiceDue(i), 0),
@@ -347,8 +370,8 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
       (k) => KIND_FR[k as DossierKind] ?? k,
       () => 0
     ),
-    payDue: dueRuns.reduce((s, r) => s + Number(r.amount) + Number(r.bonus ?? 0), 0),
-    payDueCount: dueRuns.length,
+    payDue: 0,
+    payDueCount: 0,
     months,
     topCompanies: groupBy(
       dealRows.filter((d) => d.companies?.name),
@@ -397,7 +420,7 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
   };
 }
 
-/** Même contrat que useLiveRows : live=false garde la maquette du template. */
+/** live=true dès qu’un fetch a abouti — y compris à zéro. Plus de maquette. */
 export function useKalaoKpis() {
   const [kpis, setKpis] = useState<KalaoKpis | null>(null);
   const [live, setLive] = useState(false);
@@ -405,13 +428,12 @@ export function useKalaoKpis() {
   const reload = useCallback(async () => {
     try {
       const data = await fetchKalaoKpis();
-      if (data) {
-        setKpis(data);
-        setLive(true);
-      }
+      setKpis(data);
+      setLive(true);
     } catch (err) {
       console.error("[crm] kpis", err);
-      setLive(false);
+      setKpis(null);
+      setLive(true);
     }
   }, []);
 
@@ -482,7 +504,7 @@ export function useKalaoCalendar() {
 
 export { KIND_FR, formatMoney };
 
-/** Séries Apex à partir des KPI ; null = garder la maquette du graphique. */
+/** Séries Apex à partir des KPI. Null = état vide, pas de maquette. */
 export function kpisChartMonths(kpis: KalaoKpis | null | undefined) {
   if (!kpis?.months.length) return null;
   return {

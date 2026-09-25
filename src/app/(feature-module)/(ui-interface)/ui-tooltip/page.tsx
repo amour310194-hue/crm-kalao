@@ -1,7 +1,7 @@
-import UiTooltipsComponent from "@/components/Pages/ui-module/base-ui/uiTooltips";
+﻿import UiTooltipsComponent from "@/components/Pages/ui-module/base-ui/uiTooltips";
 
 export const metadata = {
-  title: "Tooltip | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Tooltip",
 }
 
 export default function Tooltip(){

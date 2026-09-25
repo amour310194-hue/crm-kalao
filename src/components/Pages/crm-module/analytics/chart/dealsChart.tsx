@@ -37,18 +37,10 @@ const DealsChart = ({
       }
     },
     colors: ['#0E9384'],
+    noData: { text: "Pas encore de données à afficher" },
     xaxis: {
       type: 'category' as const,
-      categories: categories?.length
-        ? categories
-        : [
-            'Inpipeline',
-            'Follow Up',
-            'Schedule',
-            'Conversation',
-            'Won',
-            'Lost'
-          ],
+      categories: categories?.length ? categories : [],
       labels: {
         style: {
           fontSize: '14px',
@@ -66,7 +58,7 @@ const DealsChart = ({
   const series = [
     {
       name: 'Sales',
-      data: data?.length ? data : [400, 130, 248, 470, 470, 180]
+      data: data?.length ? data : []
     }
   ];
 

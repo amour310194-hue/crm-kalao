@@ -1,7 +1,7 @@
-import BlogDetailsComponent from "@/components/Pages/content/blogs/blogDetails";
+﻿import BlogDetailsComponent from "@/components/Pages/content/blogs/blogDetails";
 
 export const metadata = {
-    title: "Blog Details | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+    title: "Blog Details",
   };
 
 export default function BlogDetails(){

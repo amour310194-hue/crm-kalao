@@ -1,7 +1,7 @@
-import CompanySettingsComponent from "@/components/Pages/settings/website-settings/companySettings";
+﻿import CompanySettingsComponent from "@/components/Pages/settings/website-settings/companySettings";
 
 export const metadata = {
-  title: "Settings - Company Settings | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Company Settings",
 };
 
 export default function CompanySettings(){

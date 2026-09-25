@@ -1,8 +1,8 @@
-import UiRatioComponent from "@/components/Pages/ui-module/base-ui/uiRatio";
+﻿import UiRatioComponent from "@/components/Pages/ui-module/base-ui/uiRatio";
 
 
 export const metadata = {
-  title: "Ratio | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Ratio",
 }
 
 export default function Uiratio(){

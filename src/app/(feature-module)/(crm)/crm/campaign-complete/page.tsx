@@ -1,7 +1,7 @@
-import CampaignCompleteComponent from "@/components/Pages/crm-module/campaign/campaignComplete";
+﻿import CampaignCompleteComponent from "@/components/Pages/crm-module/campaign/campaignComplete";
 
 export const metadata = {
-  title: "Campagin | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Campagin",
 };
 
 export default function CampaignCompele(){

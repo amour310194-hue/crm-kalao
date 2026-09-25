@@ -1,7 +1,7 @@
-import EditPageComponent from "@/components/Pages/content/editPage";
+﻿import EditPageComponent from "@/components/Pages/content/editPage";
 
 export const metadata = {
-  title: "Edit Pages | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Edit Pages",
 };
 
 export default function EditPages(){

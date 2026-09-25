@@ -1,7 +1,7 @@
-import MembershipAddonsComponent from "@/components/Pages/membership/membership-addons/membershipAddons";
+﻿import MembershipAddonsComponent from "@/components/Pages/membership/membership-addons/membershipAddons";
 
 export const metadata = {
-  title: "Membership Addons | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Membership Addons",
 };
 
 export default function MembershipAddons(){

@@ -1,7 +1,7 @@
-import ContactMessagesComponent from "@/components/Pages/support/contact-messages/contactMessages";
+﻿import ContactMessagesComponent from "@/components/Pages/support/contact-messages/contactMessages";
 
 export const metadata = {
-  title: "Contact Message | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Contact Message",
 }
 
 export default function ContactMessage(){

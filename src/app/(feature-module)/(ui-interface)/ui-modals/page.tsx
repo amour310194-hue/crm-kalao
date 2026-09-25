@@ -1,7 +1,7 @@
-import UiModalsComponents from "@/components/Pages/ui-module/base-ui/uiModals";
+﻿import UiModalsComponents from "@/components/Pages/ui-module/base-ui/uiModals";
 
 export const metadata = {
-  title: "Modals | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Modals",
 }
 
 export default function Uimodals(){

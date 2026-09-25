@@ -1,7 +1,7 @@
-import EmailComponent from "@/components/Pages/application-module/email/email";
+﻿import EmailComponent from "@/components/Pages/application-module/email/email";
 
 export const metadata = {
-  title: "Email | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email",
 };
 
 export default function Email(){

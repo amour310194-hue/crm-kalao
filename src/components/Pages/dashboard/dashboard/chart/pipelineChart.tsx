@@ -12,7 +12,7 @@ const PipelineChart: React.FC<{ data?: number[]; categories?: string[] }> = ({
   const series = [
     {
       name: "Deals",
-      data: data?.length ? data : [100, 80, 70, 60],
+      data: data?.length ? data : [],
     },
   ];
 
@@ -42,7 +42,7 @@ const PipelineChart: React.FC<{ data?: number[]; categories?: string[] }> = ({
     colors: ["#E41F07", "#FFA201", "#800080", "#27AE60"],
 
     xaxis: {
-      categories: categories?.length ? categories : ["Leads", "Proposal", "Sales", "Won"],
+      categories: categories?.length ? categories : [],
       labels: {
         show: false,
       },

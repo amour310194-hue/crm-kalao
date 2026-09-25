@@ -1,7 +1,7 @@
-import LoginHistoryComponent from "@/components/Pages/user-management/login-history/loginHistory";
+﻿import LoginHistoryComponent from "@/components/Pages/user-management/login-history/loginHistory";
 
 export const metadata = {
-  title: "Login History | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Login History",
 };
 
 export default function LoginHistory(){

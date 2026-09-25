@@ -1,7 +1,7 @@
-import EmailVerificationComponent from "@/components/Authentication/email-verification/emailVerification";
+﻿import EmailVerificationComponent from "@/components/Authentication/email-verification/emailVerification";
 
 export const metadata = {
-  title: "Email Verification | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Email Verification",
 };
 
 export default function EmailVerification(){

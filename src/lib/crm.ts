@@ -823,9 +823,10 @@ async function notifyQuoteAccepted(quote: QuoteRow, amount: number) {
   const to = quote.companies?.email?.trim();
   if (!to) return;
   try {
+    const { authJsonHeaders } = await import("@/lib/auth-headers");
     await fetch("/api/email/send", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authJsonHeaders(),
       body: JSON.stringify({
         to,
         subject: `Devis ${quote.number ?? ""} accepté — Groupe Kalao`,
@@ -1565,16 +1566,16 @@ const KIND_PRIORITY: Record<string, string> = {
   chantier: "High",
   plantation: "Medium",
   voyage: "Low",
-  visa: "High",
+  visa: "",
   evenement: "Medium",
   bien: "Low",
 };
 
 const KIND_STAGE: Record<string, string> = {
-  plan: "Plan",
-  design: "Design",
-  develop: "Develop",
-  done: "Completed",
+  plan: "Consultation et éligibilité",
+  design: "Collecte des documents",
+  develop: "Constitution du dossier",
+  done: "Clôturé",
   cancelled: "Annulé",
 };
 

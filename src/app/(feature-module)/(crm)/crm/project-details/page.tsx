@@ -1,7 +1,7 @@
-import ProjectDetailsComponent from "@/components/Pages/crm-module/projects/projectDetails";
+﻿import ProjectDetailsComponent from "@/components/Pages/crm-module/projects/projectDetails";
 
 export const metadata = {
-    title: "Project Details | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+    title: "Project Details",
   };
 export default function ProjectDetails() {
 

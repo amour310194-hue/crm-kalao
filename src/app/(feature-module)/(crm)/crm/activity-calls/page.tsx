@@ -1,7 +1,7 @@
-import ActivityCallsComponent from "@/components/Pages/crm-module/activities/activity-calls";
+﻿import ActivityCallsComponent from "@/components/Pages/crm-module/activities/activity-calls";
 
 export const metadata = {
-  title: "Activities | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Activities",
 };
 
 export default function ActivityCalls(){

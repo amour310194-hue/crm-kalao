@@ -1,6 +1,6 @@
-import CustomFieldsSettingComponent from "@/components/Pages/settings/app-settings/customFieldsSetting";
+﻿import CustomFieldsSettingComponent from "@/components/Pages/settings/app-settings/customFieldsSetting";
 export const metadata = {
-  title: "Settings - Custom fields | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - Custom fields",
 };
 
 

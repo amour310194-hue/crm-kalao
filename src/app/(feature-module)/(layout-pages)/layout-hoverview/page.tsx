@@ -1,7 +1,7 @@
-import DelasDashboardComponent from "@/components/Pages/dashboard/deals-dashboard/delasDashboard";
+﻿import DelasDashboardComponent from "@/components/Pages/dashboard/deals-dashboard/delasDashboard";
 
 export const metadata = {
-  title: "Layout HoverView | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Layout HoverView",
 };
 
 export default function Layouthoverview(){

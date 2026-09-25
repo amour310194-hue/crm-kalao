@@ -1,7 +1,7 @@
-import SystemBackupComponent from "@/components/Pages/settings/other-settings/systemBackup";
+﻿import SystemBackupComponent from "@/components/Pages/settings/other-settings/systemBackup";
 
 export const metadata = {
-  title: "Settings - System Backup | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Settings - System Backup",
 };
 
 export default function Systembackup(){

@@ -1,6 +1,6 @@
-import ChatComponent from "@/components/Pages/application-module/chat/chat";
+﻿import ChatComponent from "@/components/Pages/application-module/chat/chat";
 export const metadata = {
-  title: "Chat | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Chat",
 };
 export default function Chat(){
     return(

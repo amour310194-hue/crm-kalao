@@ -1,7 +1,7 @@
-import DataTablesComponent from "@/components/Pages/ui-module/table/data-tables";
+﻿import DataTablesComponent from "@/components/Pages/ui-module/table/data-tables";
 
 export const metadata = {
-  title: "Datatabels | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Datatabels",
 }
 
 export default function Datatabels(){

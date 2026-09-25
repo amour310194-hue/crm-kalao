@@ -1,7 +1,7 @@
-import UiRatingComponent from "@/components/Pages/ui-module/ui-advance/uiRating";
+﻿import UiRatingComponent from "@/components/Pages/ui-module/ui-advance/uiRating";
 
 export const metadata = {
-  title: "Rating | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Rating",
 };
 
 export default function UiRating(){

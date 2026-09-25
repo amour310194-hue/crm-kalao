@@ -1,7 +1,7 @@
-import CampaignArchieveComponent from "@/components/Pages/crm-module/campaign/campaignArchieve";
+﻿import CampaignArchieveComponent from "@/components/Pages/crm-module/campaign/campaignArchieve";
 
 export const metadata = {
-  title: "Campagin | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Campagin",
 };
 
 export default function CampaginArchieve(){

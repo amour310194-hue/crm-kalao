@@ -1,7 +1,7 @@
-import DealsGridComponent from "@/components/Pages/crm-module/deals/dealsGrid";
+﻿import DealsGridComponent from "@/components/Pages/crm-module/deals/dealsGrid";
 
 export const metadata = {
-  title: "Deals Grid | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Deals Grid",
 };
 
 export default function DealsGrid(){

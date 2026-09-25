@@ -1,7 +1,7 @@
-import LoginComponent from "@/components/Authentication/login/login";
+﻿import LoginComponent from "@/components/Authentication/login/login";
 
 export const metadata = {
-  title: "Login | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Connexion",
 };
 
 export default function Login (){

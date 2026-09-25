@@ -1,7 +1,7 @@
-import UiNavTabsComponent from "@/components/Pages/ui-module/base-ui/uiNavTabs";
+﻿import UiNavTabsComponent from "@/components/Pages/ui-module/base-ui/uiNavTabs";
 
 export const metadata = {
-  title: "Navtabs | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Navtabs",
 }
 
 export default function UiNavtabs(){

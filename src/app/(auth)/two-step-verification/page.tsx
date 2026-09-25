@@ -1,7 +1,7 @@
-import TwoStepVerificationComponent from "@/components/Authentication/two-step-verification/twoStepVerification";
+﻿import TwoStepVerificationComponent from "@/components/Authentication/two-step-verification/twoStepVerification";
 
 export const metadata = {
-  title: "Two step Verification | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Two step Verification",
 };
 
 export default function Twostepfunction(){

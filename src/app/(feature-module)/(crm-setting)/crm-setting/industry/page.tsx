@@ -1,7 +1,7 @@
-import IndustryComponent from "@/components/Pages/crm-settings/industry/industry";
+﻿import IndustryComponent from "@/components/Pages/crm-settings/industry/industry";
 
 export const metadata = {
-  title: "Industry | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Industry",
 };
 
 export default function Industry(){

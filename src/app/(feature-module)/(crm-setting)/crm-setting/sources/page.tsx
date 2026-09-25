@@ -1,7 +1,7 @@
-import SourcesComponent from "@/components/Pages/crm-settings/sources/sources";
+﻿import SourcesComponent from "@/components/Pages/crm-settings/sources/sources";
 
 export const metadata = {
-  title: "Sources | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Sources",
 };
 
 export default function Sources(){

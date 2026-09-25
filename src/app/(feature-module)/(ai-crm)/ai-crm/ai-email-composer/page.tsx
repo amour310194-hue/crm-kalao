@@ -1,7 +1,7 @@
-import AiEmailComposerComponent from "@/components/Pages/ai-crm/aiEmailComposer";
+﻿import AiEmailComposerComponent from "@/components/Pages/ai-crm/aiEmailComposer";
 
 export const metadata = {
-  title: "AI Email Composer | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "AI Email Composer",
 };
 
 export default function AiEmailComposer(){

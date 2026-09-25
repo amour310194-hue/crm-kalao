@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -15,40 +15,37 @@ import { fetchActivities, toActivitiesListRow } from "@/lib/crm";
 import { isLiveId, liveHref } from "@/lib/docs";
 
 
-/* AI guidance tiles shown above the activities table (html/activities.html). */
-const AI_ACTIVITY_GUIDANCE = [
-  {
-    Label: "Next best action",
-    Value: "Call Meridian Health today",
-    Note: "Deal stalled 8 days · FCFA 74.5K at risk",
-    Icon: "ti-player-track-next",
-    Tone: "primary",
-  },
-  {
-    Label: "Follow-up recommendation",
-    Value: "Send Halcyon pricing within 24h",
-    Note: "CFO requested terms 6 hours ago",
-    Icon: "ti-mail-star",
-    Tone: "success",
-  },
-  {
-    Label: "Overdue follow-ups",
-    Value: "12 activities",
-    Note: "Past their due date across 9 deals",
-    Icon: "ti-clock-exclamation",
-    Tone: "warning",
-  },
-];
-
 const ActivitiesComponent = () => {
   const loadActivities = useCallback(async () => {
     const rows = await fetchActivities();
     return rows ? rows.map(toActivitiesListRow) : null;
   }, []);
-  const { rows: data, reload } = useLiveRows(ActivitiesListData, loadActivities);
+  const { rows: data, reload, live } = useLiveRows(ActivitiesListData, loadActivities);
+  const [raw, setRaw] = useState<{ due_at: string | null; done: boolean }[]>([]);
+  useEffect(() => {
+    void fetchActivities().then((rows) => setRaw(rows ?? []));
+  }, [data.length]);
+  const activityStats = useMemo(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    const week = new Date(start);
+    week.setDate(week.getDate() + 7);
+    const open = raw.filter((r) => !r.done);
+    return {
+      overdue: open.filter((r) => r.due_at && new Date(r.due_at) < start).length,
+      today: open.filter(
+        (r) => r.due_at && new Date(r.due_at) >= start && new Date(r.due_at) < end
+      ).length,
+      soon: open.filter(
+        (r) => r.due_at && new Date(r.due_at) >= end && new Date(r.due_at) < week
+      ).length,
+    };
+  }, [raw]);
   const columns = [
     {
-      title: "Title",
+      title: "Titre",
       dataIndex: "Title",
       render: (text: string, record: { companyId?: string; dealId?: string }) => (
         <Link
@@ -64,7 +61,7 @@ const ActivitiesComponent = () => {
       sorter: (a: any, b: any) => a.Title.length - b.Title.length,
     },
     {
-      title: "Activity Type",
+      title: "Type",
       dataIndex: "ActivityType",
       render: (text: any) => (
         <span className={`badge activity-badge ${text === "Meeting"? "badge-soft-info": text==="Calls"? "badge-soft-success": text==="Email"? "badge-soft-warning": "badge-soft-danger"} border-0`}>
@@ -75,12 +72,12 @@ const ActivitiesComponent = () => {
       sorter: (a: any, b: any) => a.Title.length - b.Title.length,
     },
     {
-      title: "Due Date",
+      title: "Échéance",
       dataIndex: "DueDate",
       sorter: (a: any, b: any) => a.DueDate.length - b.DueDate.length,
     },
     {
-      title: "Owner",
+      title: "Responsable",
       dataIndex: "Owner",
       render: (text:any,render:any)=>(
       <div className="d-flex align-items-center mb-0">
@@ -97,7 +94,7 @@ const ActivitiesComponent = () => {
       sorter: (a: any, b: any) => a.Owner.length - b.Owner.length,
     },
     {
-      title: "Created At",
+      title: "Créé le",
       dataIndex: "CreatedAt",
       sorter: (a: any, b: any) => a.CreatedAt.length - b.CreatedAt.length,
     },
@@ -148,61 +145,30 @@ const ActivitiesComponent = () => {
   {/* Start Content */}
   <div className="content pb-0">
     {/* Page Header */}
-    <PageHeader title="Activities" badgeCount={data.length} showModuleTile={false} showExport={true}/>
-    {/* End Page Header */}
-    {/* AI Panel */}
-    <div className="ai-embed mb-3" data-ai-embed="">
-      <div className="ai-embed-head">
-        <div className="d-flex align-items-center gap-2">
-          <span className="ai-chip">
-            <i className="ti ti-sparkles" />
-            AI
-          </span>
-          <div>
-            <h6 className="mb-0 fs-14">AI activity guidance</h6>
-            <span className="fs-12 text-muted">
-              Prioritised from 340 open activities
-            </span>
+    <PageHeader title="Activités" badgeCount={live ? data.length : 0} showModuleTile={false} showExport={true}/>
+    <div className="row g-3 mb-3">
+      <div className="col-md-4">
+        <div className="card mb-0">
+          <div className="card-body">
+            <span className="text-muted fs-12">En retard</span>
+            <h4 className="mb-0">{activityStats.overdue}</h4>
           </div>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <Link
-            href={all_routes.aiCommandCenter}
-            className="btn btn-sm btn-outline-light shadow"
-          >
-            See all recommendations
-          </Link>
-          <button
-            type="button"
-            className="btn btn-icon btn-sm btn-outline-light shadow"
-            data-ai-embed-toggle=""
-            aria-label="Hide AI panel"
-            aria-expanded="true"
-          >
-            <i className="ti ti-chevron-up" />
-          </button>
+      </div>
+      <div className="col-md-4">
+        <div className="card mb-0">
+          <div className="card-body">
+            <span className="text-muted fs-12">Aujourd’hui</span>
+            <h4 className="mb-0">{activityStats.today}</h4>
+          </div>
         </div>
       </div>
-      <div className="ai-embed-body" data-ai-embed-body="">
-        <div className="row g-3">
-          {AI_ACTIVITY_GUIDANCE.map((item) => (
-            <div className="col-lg-4 col-md-6" key={item.Label}>
-              <div className="d-flex align-items-start gap-2">
-                <span
-                  className={`ai-insight-icon bg-soft-${item.Tone} text-${item.Tone} flex-shrink-0`}
-                >
-                  <i className={`ti ${item.Icon}`} />
-                </span>
-                <div className="flex-grow-1 min-w-0">
-                  <span className="fs-12 text-muted d-block">{item.Label}</span>
-                  <span className="fs-15 fw-semibold text-dark d-block">
-                    {item.Value}
-                  </span>
-                  <span className="fs-12 text-muted">{item.Note}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+      <div className="col-md-4">
+        <div className="card mb-0">
+          <div className="card-body">
+            <span className="text-muted fs-12">Échéances 7 jours</span>
+            <h4 className="mb-0">{activityStats.soon}</h4>
+          </div>
         </div>
       </div>
     </div>

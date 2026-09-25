@@ -20,7 +20,7 @@ const SidebarDataAll = [
         materialicons: "start",
         dot: true,
         submenuItems: [
-          { label: "Dashboard", link: route.dashboard },
+          { label: "Tableau de bord", link: route.dashboard },
           { label: "Sales Overview", link: route.salesDashboard },
           { label: "Executive Dashboard", link: route.executiveDashboard },
           { label: "Deals Dashboard", link: route.dealsDashboard },
@@ -1693,6 +1693,7 @@ const HIDDEN_SECTIONS = new Set([
   "Support",
   "Settings",
   "Pages",
+  "Marketing",
 ]);
 const HIDDEN_MAIN_ITEMS = new Set([
   "Super Admin",
@@ -1709,6 +1710,9 @@ const HIDDEN_MAIN_ITEMS = new Set([
   "Sales Orders",
   "Email Marketing",
   "Email Engagement",
+  "Campaigns",
+  "Pipeline",
+  "Contracts",
   "Manage Users",
   "Roles & Permissions",
   "Delete Request",
@@ -1721,8 +1725,26 @@ const HIDDEN_MAIN_ITEMS = new Set([
 // Les libellés de sous-entrées se répètent d'une section à l'autre : on masque
 // par entrée parente pour ne pas retirer une entrée homonyme encore utile.
 const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
-  Dashboard: new Set(["Executive Dashboard", "Growth Dashboard"]),
-  Applications: new Set(["Calls", "Kanban", "Invoices"]),
+  Dashboard: new Set([
+    "Sales Overview",
+    "Executive Dashboard",
+    "Deals Dashboard",
+    "Leads Dashboard",
+    "Project Dashboard",
+    "Revenue Summary",
+    "Growth Dashboard",
+  ]),
+  Applications: new Set([
+    "Chat",
+    "Calls",
+    "To Do",
+    "Notes",
+    "Social Feed",
+    "Kanban",
+    "Invoices",
+  ]),
+  CRM: new Set(["Pipeline", "Contracts"]),
+  Projects: new Set(["Chantiers", "Plantations", "Voyages"]),
   Catalogue: new Set(["Fiche catalogue"]),
   Campaigns: new Set([
     "Email Campaigns",

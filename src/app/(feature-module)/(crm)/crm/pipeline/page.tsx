@@ -1,7 +1,7 @@
-import PipelineComponent from "@/components/Pages/crm-module/pipeline/pipeline";
+﻿import PipelineComponent from "@/components/Pages/crm-module/pipeline/pipeline";
 
 export const metadata = {
-  title: "Pipeline | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Pipeline",
 };
 
 export default function Pipeline(){

@@ -1,7 +1,7 @@
-import ProposalsComponent from "@/components/Pages/crm-module/proposals/proposals";
+﻿import ProposalsComponent from "@/components/Pages/crm-module/proposals/proposals";
 
 export const metadata = {
-  title: "Proposal | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Proposal",
 };
 
 export default function proposal(){

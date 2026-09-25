@@ -271,9 +271,10 @@ async function dispatchEmail(payload: {
 }): Promise<boolean> {
   if (!payload.to) return false;
   try {
+    const { authJsonHeaders } = await import("@/lib/auth-headers");
     const res = await fetch("/api/email/send", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authJsonHeaders(),
       body: JSON.stringify(payload),
     });
     if (!res.ok) return false;

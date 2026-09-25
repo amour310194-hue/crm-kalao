@@ -1,7 +1,7 @@
-import AttendanceComponent from "@/components/Pages/hrm/attendance/attendance";
+﻿import AttendanceComponent from "@/components/Pages/hrm/attendance/attendance";
 
 export const metadata = {
-  title: "Attendance | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Attendance",
 };
 
 export default function Attendance(){

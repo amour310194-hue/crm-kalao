@@ -1,7 +1,7 @@
-import ProjectReportsComponent from "@/components/Pages/reports/project-reports/projectReports";
+﻿import ProjectReportsComponent from "@/components/Pages/reports/project-reports/projectReports";
 
 export const metadata = {
-  title: "Project Reports | CRMS - Advanced Bootstrap 5 Admin Template for Customer Management",
+  title: "Project Reports",
 };
 
 export default function ProjectReports(){

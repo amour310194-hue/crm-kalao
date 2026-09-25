@@ -6,11 +6,8 @@ import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
 interface PerformanceStatsChartProps {
-  /** Libellés de mois ; absents, la maquette du template est conservée. */
   categories?: string[];
-  /** Montants facturés, en milliers de FCFA. */
   invoiced?: number[];
-  /** Montants encaissés, en milliers de FCFA. */
   collected?: number[];
 }
 
@@ -19,24 +16,12 @@ const PerformanceStatsChart: React.FC<PerformanceStatsChartProps> = ({
   invoiced,
   collected,
 }) => {
-  const isLive = Boolean(categories?.length && invoiced && collected);
-  const series = isLive
-    ? [
-        { name: "Facturé", type: "column" as const, data: invoiced as number[] },
-        { name: "Encaissé", type: "area" as const, data: collected as number[] },
-      ]
-    : [
-        {
-          name: "Revenue",
-          type: "column" as const,
-          data: [35, 20, 50, 50, 58, 40, 40, 10, 50, 30, 28, 20],
-        },
-        {
-          name: "Sales",
-          type: "area" as const,
-          data: [15, 20, 15, 20, 25, 40, 35, 30, 40, 32, 28, 30],
-        },
-      ];
+  const series = [
+    { name: "Facturé", type: "column" as const, data: invoiced?.length ? invoiced : [] },
+    { name: "Encaissé", type: "area" as const, data: collected?.length ? collected : [] },
+  ];
+
+  const hasSeries = Boolean(categories?.length);
 
   const options: ApexOptions = {
     chart: {
@@ -47,6 +32,7 @@ const PerformanceStatsChart: React.FC<PerformanceStatsChartProps> = ({
       },
       background: "transparent",
     },
+    noData: { text: "Pas encore de données à afficher" },
 
     plotOptions: {
       bar: {
@@ -96,22 +82,7 @@ const PerformanceStatsChart: React.FC<PerformanceStatsChartProps> = ({
     },
 
     xaxis: {
-      categories: isLive
-        ? (categories as string[])
-        : [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ],
+      categories: categories?.length ? categories : [],
       axisBorder: {
         show: false,
         color: "rgba(119, 119, 142, 0.05)",
@@ -125,7 +96,7 @@ const PerformanceStatsChart: React.FC<PerformanceStatsChartProps> = ({
         offsetY: 0,
       },
       labels: {
-        show: isLive,
+        show: hasSeries,
       },
     },
 
@@ -165,8 +136,8 @@ const PerformanceStatsChart: React.FC<PerformanceStatsChartProps> = ({
 
     yaxis: {
       min: 0,
-      max: isLive ? undefined : 60,
-      tickAmount: isLive ? undefined : 6,
+      max: hasSeries ? undefined : 1,
+      tickAmount: hasSeries ? undefined : 1,
       labels: {
         offsetX: -10,
         formatter: (value: number) => {

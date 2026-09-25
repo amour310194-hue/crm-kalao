@@ -15,7 +15,28 @@ function resolveFrom(mailbox: MailboxKey | undefined, requested?: string) {
   return process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
 }
 
+async function requireUser(request: NextRequest) {
+  const auth = request.headers.get("authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  if (!token) return null;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) return null;
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(url, anon);
+  const { data } = await supabase.auth.getUser(token);
+  return data.user ?? null;
+}
+
 export async function POST(request: NextRequest) {
+  const user = await requireUser(request);
+  if (!user) {
+    return Response.json(
+      { ok: false, dispatched: false, reason: "unauthorized" },
+      { status: 401 }
+    );
+  }
+
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     return Response.json({ ok: true, dispatched: false, reason: "resend_missing" });
