@@ -98,9 +98,12 @@ export default function KalaoDocumentPage() {
               <div className="kalao-box">
                 <strong>Émetteur</strong>
                 {view.entity.legalName}
+                {view.entity.sigle ? ` (${view.entity.sigle})` : ""}
                 <br />
                 {view.entity.representative}, {view.entity.representativeTitle}
                 <br />
+                {view.entity.rccm ? <>RCCM {view.entity.rccm}<br /></> : null}
+                {view.entity.niu ? <>NIU {view.entity.niu}<br /></> : null}
                 {view.entity.email}
               </div>
               <div className="kalao-box">

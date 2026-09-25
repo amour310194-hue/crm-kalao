@@ -21,6 +21,8 @@ import { fetchCatalogItems } from "@/lib/catalog";
 import {
   canadaSchedule,
   entityForDoc,
+  invoicePaymentMention,
+  invoiceTaxMention,
   isCanadaProcedure,
   type CanadaTranche,
   type KalaoEntity,
@@ -185,7 +187,7 @@ async function loadInvoice(id: string): Promise<DocView> {
     issuedAt: formatDate(invoice.created_at),
     entity: entityForDoc("invoice"),
     party: partyFrom(company, contact),
-    intro: invoice.project || "Prestation Groupe Kalao",
+    intro: invoice.project || "Prestation Kalao Consulting",
     lines: [
       {
         label: invoice.project || "Prestation",
@@ -194,14 +196,15 @@ async function loadInvoice(id: string): Promise<DocView> {
         total: formatMoney(invoice.amount),
       },
     ],
-    totalLabel: "Montant TTC",
+    totalLabel: "Montant dû",
     total: formatMoney(invoice.amount),
     notes: [
       `Déjà encaissé : ${formatMoney(invoice.paid_amount)}`,
       `Reste dû : ${formatMoney(remaining)}`,
       `Échéance : ${formatDate(invoice.due_date)}`,
-      `Statut : ${invoice.status}`,
-      "Paiement : virement, Mobile Money ou espèces.",
+      `Date d'émission : ${formatDate(invoice.created_at)}`,
+      invoiceTaxMention(entityForDoc("invoice")),
+      invoicePaymentMention(entityForDoc("invoice")),
     ],
     articles: [],
     signatures: signOff("invoice"),
@@ -237,7 +240,7 @@ async function loadQuote(id: string): Promise<DocView> {
     issuedAt: formatDate(quote.created_at),
     entity: entityForDoc("quote"),
     party: partyFrom(company, contact),
-    intro: quote.notes || "Proposition commerciale Groupe Kalao",
+    intro: quote.notes || "Proposition commerciale Kalao Consulting",
     lines: lines.length
       ? lines
       : [{ label: quote.notes || "Prestation", qty: "1", unit: formatMoney(total), total: formatMoney(total) }],
@@ -286,6 +289,7 @@ async function loadReceipt(id: string): Promise<DocView> {
     notes: [
       `Mode : ${payment.method === "cash" ? "Espèces" : payment.method}`,
       `Facture : ${invoice?.number ? `#${invoice.number}` : "—"}`,
+      invoiceTaxMention(entityForDoc("receipt")),
       "Ce reçu vaut quittance pour la somme indiquée.",
     ],
     articles: [],

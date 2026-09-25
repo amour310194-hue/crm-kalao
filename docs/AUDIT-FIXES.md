@@ -44,7 +44,7 @@ Guide métier : `docs/GUIDE-DOSSIERS-ECHEANCIER.md`
 | Date de paiement (paiements) | ✅ UI |
 | Statuts calculés, avoirs, échéancier | ⏸ schéma non appliqué |
 | Numérotation FAC-2026-0001 | ❓ Q4 |
-| Mentions PDF | ❓ Q5 |
+| Mentions PDF | ✅ Kalao Consulting SARL | RCCM CM-NSI-01-2025-B12-01116, NIU M062517806851C, IGS, IBAN Afriland. Pas de Mobile Money dans les pièces. |
 | INV-C14 / INV-C06 / dates SO | ❓ scripts après OK — voir le guide |
 
 ## Phase 3 — Clients

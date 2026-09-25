@@ -19,6 +19,16 @@ export default function KalaoLetterhead({ entity, title, refNo, issuedAt }: Prop
           <p className="kalao-meta">
             {entity.address}, {entity.city}
           </p>
+          {entity.rccm || entity.niu ? (
+            <p className="kalao-meta">
+              {[
+                entity.rccm ? `RCCM ${entity.rccm}` : null,
+                entity.niu ? `NIU ${entity.niu}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          ) : null}
           <p className="kalao-meta">
             {entity.phones.join(" · ")} · {entity.email}
           </p>

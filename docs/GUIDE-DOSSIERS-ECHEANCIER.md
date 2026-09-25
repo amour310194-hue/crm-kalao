@@ -13,6 +13,7 @@ Les autres métiers (chantiers, voyages…) sont masqués tant qu’ils n’ont 
 - Une facture est liée à un **dossier**, pas encore à un devis (0 devis en base).
 - La colonne des paiements s’appelle **Date de paiement**.
 - C07 n’existe pas : trou de numérotation INV-C01…C14 (sauf C07). Ne pas créer de client fantôme.
+- L’émetteur des factures, devis et reçus est **KALAO CONSULTING SARL** (RCCM `CM-NSI-01-2025-B12-01116`, NIU `M062517806851C`, régime IGS donc TVA non applicable, IBAN Afriland `CM21 10005 00046 10442121001-13`). Aucun numéro Mobile Money n’apparaît dans les pièces fournies.
 
 ## Corrections de caisse encore en attente d’OK
 Ces cas sont documentés dans le prompt de refonte, **pas encore exécutés** en base :

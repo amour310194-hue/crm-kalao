@@ -28,12 +28,27 @@ export const ROLE_LABEL: Record<string, string> = {
 
 export type KalaoEntityKey = "groupe" | "globe" | "consulting";
 
+export type KalaoBank = {
+  bankName: string;
+  accountName: string;
+  iban: string;
+  swift: string;
+  bankCode: string;
+  branchCode: string;
+  accountNumber: string;
+  key: string;
+  agency: string;
+};
+
 export type KalaoEntity = {
   key: KalaoEntityKey;
   legalName: string;
   tradeName: string;
+  sigle: string | null;
   rccm: string | null;
   niu: string | null;
+  taxRegime: string | null;
+  shareCapital: string | null;
   phones: string[];
   email: string;
   address: string;
@@ -41,14 +56,18 @@ export type KalaoEntity = {
   representative: string;
   representativeTitle: string;
   logoSrc: string;
+  bank: KalaoBank | null;
 };
 
 export const KALAO_GROUPE: KalaoEntity = {
   key: "groupe",
   legalName: "GROUPE KALAO",
   tradeName: "Groupe Kalao",
+  sigle: null,
   rccm: null,
   niu: null,
+  taxRegime: null,
+  shareCapital: null,
   phones: ["+237 694 635 250", "+237 673 794 702"],
   email: KALAO_CONTACT_EMAIL,
   address: "Bastos",
@@ -56,14 +75,18 @@ export const KALAO_GROUPE: KalaoEntity = {
   representative: "Amour OKALA",
   representativeTitle: "PDG",
   logoSrc: "/assets/img/kalao-logo.jpg",
+  bank: null,
 };
 
 export const KALAO_GLOBE_TREK: KalaoEntity = {
   key: "globe",
   legalName: "ETS KALAO GLOB TREK",
   tradeName: "Kalao Globe Trek",
+  sigle: null,
   rccm: "RC/YAO/2025/38",
   niu: "P019416937161C",
+  taxRegime: null,
+  shareCapital: null,
   phones: ["+237 694 635 250", "+237 673 794 702"],
   email: "contact@kalao-globe-trek.com",
   address: "Bastos",
@@ -71,25 +94,50 @@ export const KALAO_GLOBE_TREK: KalaoEntity = {
   representative: "NDZOMO ELOUNDOU Thaddée",
   representativeTitle: "Responsable",
   logoSrc: "/assets/img/kalao-logo.jpg",
+  bank: null,
+};
+
+/** Coordonnées issues du RCCM 13 juin 2025, de l’attestation CFCE et de l’IBAN Afriland. */
+export const KALAO_CONSULTING_BANK: KalaoBank = {
+  bankName: "Afriland First Bank",
+  accountName: "KALAO CONSULTING SARL",
+  iban: "CM21 10005 00046 10442121001-13",
+  swift: "CCEICMCX",
+  bankCode: "10005",
+  branchCode: "00046",
+  accountNumber: "10442121001",
+  key: "13",
+  agency: "Yaoundé — First Bank Marché Central",
 };
 
 export const KALAO_CONSULTING: KalaoEntity = {
   key: "consulting",
-  legalName: "KALAO CONSULTING",
+  legalName: "KALAO CONSULTING SARL",
   tradeName: "Kalao Consulting",
-  rccm: null,
-  niu: null,
-  phones: ["+237 694 155 966", "+237 673 794 702"],
+  sigle: "KC SARL",
+  rccm: "CM-NSI-01-2025-B12-01116",
+  niu: "M062517806851C",
+  taxRegime: "Impôt Général Synthétique",
+  shareCapital: "990 000 FCFA",
+  phones: ["+237 694 68 34 47", "+237 673 794 702"],
   email: "contact@kalao-consulting.com",
-  address: "Bastos",
+  address: "Carrefour Bastos",
   city: "Yaoundé, Cameroun",
-  representative: "NDZOMO ELOUNDOU Thaddée",
-  representativeTitle: "Directeur Général",
+  representative: "NDZOMO ELOUNDOU Thaddée Junior",
+  representativeTitle: "Gérant",
   logoSrc: "/assets/img/kalao-logo.jpg",
+  bank: KALAO_CONSULTING_BANK,
 };
 
 export function entityForDoc(kind: string): KalaoEntity {
-  if (kind === "employment" || kind === "certificate" || kind === "payslip") {
+  if (
+    kind === "employment" ||
+    kind === "certificate" ||
+    kind === "payslip" ||
+    kind === "invoice" ||
+    kind === "quote" ||
+    kind === "receipt"
+  ) {
     return KALAO_CONSULTING;
   }
   if (kind === "visa") return KALAO_GLOBE_TREK;
@@ -97,18 +145,42 @@ export function entityForDoc(kind: string): KalaoEntity {
 }
 
 export function entityFooter(entity: KalaoEntity): string {
-  const ids = [entity.rccm ? `RCCM ${entity.rccm}` : null, entity.niu ? `NIU ${entity.niu}` : null]
+  const ids = [
+    entity.rccm ? `RCCM ${entity.rccm}` : null,
+    entity.niu ? `NIU ${entity.niu}` : null,
+    entity.taxRegime,
+    entity.shareCapital ? `Capital ${entity.shareCapital}` : null,
+  ]
     .filter(Boolean)
     .join(" · ");
+  const bank = entity.bank
+    ? `${entity.bank.bankName} · IBAN ${entity.bank.iban} · SWIFT ${entity.bank.swift}`
+    : null;
   return [
-    entity.legalName,
+    entity.sigle ? `${entity.legalName} (${entity.sigle})` : entity.legalName,
     ids,
     `Tél. ${entity.phones.join(" / ")}`,
     entity.email,
     `Siège : ${entity.address}, ${entity.city}`,
+    bank,
   ]
     .filter(Boolean)
     .join(" — ");
+}
+
+export function invoiceTaxMention(entity: KalaoEntity): string {
+  if (entity.taxRegime === "Impôt Général Synthétique") {
+    return "Régime fiscal : Impôt Général Synthétique — TVA non applicable.";
+  }
+  if (entity.taxRegime) return `Régime fiscal : ${entity.taxRegime}.`;
+  return "Mentions de TVA à compléter.";
+}
+
+export function invoicePaymentMention(entity: KalaoEntity): string {
+  if (entity.bank) {
+    return `Règlement par virement (${entity.bank.bankName}, IBAN ${entity.bank.iban}) ou en espèces.`;
+  }
+  return "Règlement par virement ou en espèces.";
 }
 
 export const CANADA_OPENING = 1_100_000;
