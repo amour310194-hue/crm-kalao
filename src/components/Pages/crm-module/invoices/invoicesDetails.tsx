@@ -17,15 +17,17 @@ const InvoicesDetailsComponent2 = () => {
     {/* Start Content */}
     <div className="content pb-0">
       <KalaoInvoiceInject />
-      <div className="d-flex align-items-center justify-content-between mb-3">
+      <p className="text-muted mb-3">
+        Le modèle officiel Kalao (logo, mentions légales, IBAN) s’ouvre via Imprimer / PDF.
+      </p>
+      <div className="d-flex align-items-center justify-content-between mb-3 d-none">
         <h4 className="mb-0">Invoices Details</h4>
         <button className="btn btn-primary" type="button">
           <i className="ti ti-download me-1" />
           Download
         </button>
       </div>
-      {/* start row*/}
-      <div className="row">
+      <div className="row d-none">
         <div className="col-lg-10 mx-auto">
           {/* start page header */}
           <h6 className="mb-3 fw-normal fs-14">
@@ -42,7 +44,7 @@ const InvoicesDetailsComponent2 = () => {
               <div className="d-flex align-items-center justify-content-between border-1 border-bottom pb-3 mb-3">
                 <div>
                   <ImageWithBasePath
-                    src="assets/img/logo.svg"
+                    src="assets/img/kalao-logo.png"
                     className="invoice-light-logo"
                     width={140}
                     alt=""
@@ -54,7 +56,7 @@ const InvoicesDetailsComponent2 = () => {
                     alt=""
                   />
                   <p className="mb-0 mt-2">
-                    3099 Kennedy Court Framingham, MA 01702
+                    Carrefour Bastos, Yaoundé, Cameroun
                   </p>
                 </div>
                 <div>
@@ -247,7 +249,7 @@ const InvoicesDetailsComponent2 = () => {
               <div className="text-center border-bottom pb-3 mb-3">
                 <div className="text-center mb-3">
                   <ImageWithBasePath
-                    src="assets/img/logo.svg"
+                    src="assets/img/kalao-logo.png"
                     className="invoice-light-logo"
                     width={130}
                     alt=""

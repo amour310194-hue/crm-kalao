@@ -15,9 +15,9 @@ export const metadata = {
   description: "CRM Groupe Kalao — dossiers, facturation et suivi client.",
   authors: [{ name: "Groupe Kalao" }],
   icons: {
-    icon: "/assets/img/kalao-logo.jpg",
-    shortcut: "/assets/img/kalao-logo.jpg",
-    apple: "/assets/img/kalao-logo.jpg",
+    icon: "/assets/img/kalao-mark.jpg",
+    shortcut: "/assets/img/kalao-mark.jpg",
+    apple: "/assets/img/kalao-mark.jpg",
   },
 };
 

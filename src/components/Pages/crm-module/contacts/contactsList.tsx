@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
+import KalaoAvatar from "@/components/docs/KalaoAvatar";
 import { useCallback, useState } from "react";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
@@ -54,11 +55,7 @@ const ContactsListComponent = () => {
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
           <Link href={`${all_routes.contactDetails}?id=${render.key}`} className="avatar me-2">
-            <ImageWithBasePath
-              className="img-fluid rounded-circle"
-              src={`assets/img/profiles/${render.Image}`}
-              alt="User Image"
-            />
+            <KalaoAvatar name={text} image={render.Image} />
           </Link>
           <Link href={`${all_routes.contactDetails}?id=${render.key}`} className="d-flex flex-column">
             {text}{" "}

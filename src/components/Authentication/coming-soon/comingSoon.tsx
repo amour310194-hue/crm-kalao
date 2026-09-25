@@ -32,7 +32,7 @@ const ComingSoonComponent = () => {
       <div className="card border-0 text-center mb-0">
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <ImageWithBasePath src="assets/img/logo.svg" alt="Coming Icon" />
+            <ImageWithBasePath src="assets/img/kalao-logo.png" alt="Groupe Kalao" />
           </div>
           <h3 className="text-body mb-2">Our Website is</h3>
           <h1 className="display-2 fw-bold mb-2">

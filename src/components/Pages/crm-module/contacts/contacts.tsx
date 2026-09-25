@@ -5,6 +5,7 @@ import PageHeader from "@/core/common/page-header/pageHeader";
 import ModalContacts from "./modals/modalContacts";
 import Link from "next/link";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
+import KalaoAvatar from "@/components/docs/KalaoAvatar";
 import { all_routes } from "@/router/all_routes";
 import Footer from "@/core/common/footer/footer";
 import { useLiveRows } from "@/lib/useLiveRows";
@@ -721,11 +722,7 @@ const ContactsComponent = () => {
                             href={`${all_routes.contactDetails}?id=${contact.key}`}
                             className="avatar avatar-md flex-shrink-0 me-2"
                           >
-                            <ImageWithBasePath
-                              src={`assets/img/profiles/${contact.Image}`}
-                              alt="img"
-                              className="rounded-circle"
-                            />
+                            <KalaoAvatar name={contact.Name} image={contact.Image} />
                           </Link>
                           <div>
                             <h6 className="fs-14">

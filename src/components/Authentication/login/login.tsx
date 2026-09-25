@@ -83,7 +83,7 @@ const Login = () => {
               >
                 <div className="text-center mb-4 auth-logo">
                   <ImageWithBasePath
-                    src="assets/img/kalao-logo.jpg"
+                    src="assets/img/kalao-logo.png"
                     className="img-fluid"
                     alt="Groupe Kalao"
                   />

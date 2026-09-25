@@ -27,6 +27,7 @@ import {
   type RentReceiptRow,
 } from "@/lib/dossiers";
 import { liveHref } from "@/lib/docs";
+import { KALAO_CONSULTING, KALAO_LOGO_PATH } from "@/lib/org";
 
 const ContractsListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -1027,9 +1028,16 @@ const ContractsListComponent = () => {
           <>
             <div className="kalao-receipt__head">
               <div>
-                <h2>Groupe Kalao</h2>
-                <p>Yaoundé — Cameroun</p>
-                <p>contact@groupe-kalao.com</p>
+                <img src={KALAO_LOGO_PATH} alt="Kalao" className="kalao-receipt__logo" />
+                <h2>{KALAO_CONSULTING.legalName}</h2>
+                <p>
+                  {KALAO_CONSULTING.address}, {KALAO_CONSULTING.city}
+                </p>
+                <p>
+                  {KALAO_CONSULTING.rccm ? `RCCM ${KALAO_CONSULTING.rccm}` : null}
+                  {KALAO_CONSULTING.niu ? ` · NIU ${KALAO_CONSULTING.niu}` : null}
+                </p>
+                <p>{KALAO_CONSULTING.email}</p>
               </div>
               <div>
                 <h3>Quittance de loyer</h3>
@@ -1038,7 +1046,7 @@ const ContractsListComponent = () => {
               </div>
             </div>
             <p>
-              Le Groupe Kalao reconnaît avoir reçu de{" "}
+              {KALAO_CONSULTING.legalName} reconnaît avoir reçu de{" "}
               <strong>{receiptLease.companies?.name ?? "—"}</strong> la somme ci-dessous au titre du
               bail <strong>{receiptLease.title}</strong>, et lui en donne quittance.
             </p>
@@ -1071,6 +1079,11 @@ const ContractsListComponent = () => {
               délivrée sous réserve d&apos;encaissement effectif.
             </p>
             <p>Fait à Yaoundé, le {formatDate(new Date().toISOString().slice(0, 10))}</p>
+            <p className="kalao-receipt__foot">
+              {KALAO_CONSULTING.legalName}
+              {KALAO_CONSULTING.sigle ? ` (${KALAO_CONSULTING.sigle})` : ""} ·{" "}
+              {KALAO_CONSULTING.taxRegime} · Tél. {KALAO_CONSULTING.phones.join(" / ")}
+            </p>
           </>
         ) : null}
       </div>

@@ -235,7 +235,7 @@ function buildDeadlines(
   activities.forEach((a) => push(`act-${a.id}`, a.subject, a.due_at, "Activité"));
   dossiers.forEach((d) => push(`dos-${d.id}`, d.title, d.end_at, KIND_FR[d.kind] ?? "Dossier"));
   invoices
-    .filter((i) => i.status !== "paid")
+    .filter((i) => i.status !== "paid" && i.status !== "cancelled" && !i.is_conditional)
     .forEach((i) =>
       push(
         `inv-${i.id}`,
@@ -303,15 +303,19 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
   const decided = closedWon.length + closedLost.length;
 
   const collected = payments.reduce((s, p) => s + Number(p.amount), 0);
-  const invoiced = invoices.reduce((s, i) => s + Number(i.amount), 0);
-  const unpaid = invoices.filter((i) => i.status !== "paid");
+  const invoiced = invoices
+    .filter((i) => i.status !== "cancelled")
+    .reduce((s, i) => s + Number(i.amount), 0);
+  const unpaid = invoices.filter(
+    (i) => i.status !== "paid" && i.status !== "cancelled" && !i.is_conditional
+  );
   const pendingQuotes = (quotes ?? []).filter((q) => q.status === "draft" || q.status === "sent");
   const openActivities = (activities ?? []).filter((a) => !a.done);
 
   const months = lastMonths(6).map(({ key, label }) => ({
     label,
     invoiced: invoices
-      .filter((i) => i.created_at && monthKey(i.created_at) === key)
+      .filter((i) => i.status !== "cancelled" && i.created_at && monthKey(i.created_at) === key)
       .reduce((s, i) => s + Number(i.amount), 0),
     collected: payments
       .filter((p) => p.paid_at && monthKey(p.paid_at) === key)

@@ -1,3 +1,8 @@
+export const KALAO_TEAL = "#164B5A";
+export const KALAO_GOLD = "#E8A317";
+export const KALAO_LOGO_PATH = "/assets/img/kalao-logo.png";
+export const KALAO_MARK_PATH = "/assets/img/kalao-mark.jpg";
+export const KALAO_LOGO_URL = "https://crm.groupe-kalao.com/assets/img/kalao-logo.png";
 export const KALAO_CONTACT_EMAIL = "contact@groupe-kalao.com";
 export const KALAO_NOREPLY_EMAIL = "no-reply@groupe-kalao.com";
 export const KALAO_NOREPLY_FROM = `CRM Kalao <${KALAO_NOREPLY_EMAIL}>`;
@@ -74,7 +79,7 @@ export const KALAO_GROUPE: KalaoEntity = {
   city: "Yaoundé, Cameroun",
   representative: "Amour OKALA",
   representativeTitle: "PDG",
-  logoSrc: "/assets/img/kalao-logo.jpg",
+  logoSrc: KALAO_LOGO_PATH,
   bank: null,
 };
 
@@ -93,7 +98,7 @@ export const KALAO_GLOBE_TREK: KalaoEntity = {
   city: "Yaoundé, Cameroun",
   representative: "NDZOMO ELOUNDOU Thaddée",
   representativeTitle: "Responsable",
-  logoSrc: "/assets/img/kalao-logo.jpg",
+  logoSrc: KALAO_LOGO_PATH,
   bank: null,
 };
 
@@ -125,7 +130,7 @@ export const KALAO_CONSULTING: KalaoEntity = {
   city: "Yaoundé, Cameroun",
   representative: "NDZOMO ELOUNDOU Thaddée Junior",
   representativeTitle: "Gérant",
-  logoSrc: "/assets/img/kalao-logo.jpg",
+  logoSrc: KALAO_LOGO_PATH,
   bank: KALAO_CONSULTING_BANK,
 };
 

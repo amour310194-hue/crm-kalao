@@ -60,7 +60,7 @@ const TwoStepVerificationComponent = () => {
             className=" vh-100 d-flex justify-content-between flex-column p-4 pb-0"
           >
             <div className="text-center mb-4 auth-logo">
-              <ImageWithBasePath src="assets/img/logo.svg" className="img-fluid" alt="Logo" />
+              <ImageWithBasePath src="assets/img/kalao-logo.png" className="img-fluid" alt="Groupe Kalao" />
             </div>
             <div
               className="digit-group login-form-control"

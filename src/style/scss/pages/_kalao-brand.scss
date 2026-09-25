@@ -1,0 +1,67 @@
+// Identité visuelle Kalao — logo wordmark paysage, pas le K carré.
+$kalao-teal: #164b5a;
+$kalao-gold: #e8a317;
+
+.sidebar .sidebar-logo {
+  overflow: hidden;
+  height: var(--crms-topbar-height, 70px);
+  display: flex;
+  align-items: center;
+
+  img {
+    max-height: 40px;
+    width: auto !important;
+    max-width: 158px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+.navbar-header .logo img,
+.navbar-header .logo-lg img,
+.navbar-header .logo-sm img {
+  max-height: 36px;
+  width: auto !important;
+  max-width: 148px;
+  height: auto;
+  object-fit: contain;
+}
+
+.auth-logo img,
+.acc-vh .auth-logo img {
+  max-height: 52px;
+  width: auto !important;
+  max-width: 240px;
+  height: auto;
+  object-fit: contain;
+}
+
+.kalao-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $kalao-teal;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.avatar .kalao-initials,
+.avatar-md .kalao-initials {
+  width: 100%;
+  height: 100%;
+}
+
+.invoice-light-logo,
+.dark-logo {
+  max-height: 48px;
+  width: auto !important;
+  max-width: 220px;
+  object-fit: contain;
+}

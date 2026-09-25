@@ -192,6 +192,7 @@ export interface InvoiceRow {
   amount: number;
   paid_amount: number;
   status: string;
+  is_conditional?: boolean;
   created_at: string;
   companies?: { name: string | null; email?: string | null; phone?: string | null; address?: string | null; city?: string | null; country?: string | null } | null;
 }
@@ -410,24 +411,25 @@ export async function deleteContact(id: string) {
   throwIf(error);
 }
 
-export function toContactsListRow(row: ContactRow, index: number) {
-  const avatars = [
-    "avatar-19.jpg",
-    "avatar-20.jpg",
-    "avatar-21.jpg",
-    "avatar-23.jpg",
-    "avatar-16.jpg",
-  ];
+export function toContactsListRow(row: ContactRow, _index: number) {
+  const name = `${row.first_name} ${row.last_name}`.trim();
   return {
     key: row.id,
-    Name: `${row.first_name} ${row.last_name}`.trim(),
+    Name: name,
     Role: row.job_title ?? row.companies?.name ?? "Contact",
     role: row.job_title ?? row.companies?.name ?? "Contact",
     Phone: row.phone ?? "—",
     Tags: "Collab",
-    Location: row.companies?.city || row.companies?.country || "Douala",
-    Rating: "4.5",
-    Image: avatars[index % avatars.length],
+    Location: row.companies?.city || row.companies?.country || "Yaoundé",
+    Rating: "—",
+    Image: "",
+    Initials: name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((p, i, a) => (a.length === 1 ? p.slice(0, 2) : i === 0 || i === a.length - 1 ? p[0] : ""))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "K",
     Flags: "cm.svg",
     Status: "Active",
     Email: row.email ?? "—",
@@ -1021,10 +1023,11 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
 
 export function toInvoicesListRow(row: InvoiceRow) {
   const statusMap: Record<string, string> = {
-    paid: "Paid",
-    partially_paid: "Partially Paid",
-    unpaid: "Unpaid",
-    overdue: "Unpaid",
+    paid: "Payée",
+    partially_paid: "Partiel",
+    unpaid: "Impayée",
+    overdue: "En retard",
+    cancelled: "Annulée",
   };
   return {
     Key: row.id,
@@ -1039,7 +1042,7 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Due_Date: formatDate(row.due_date),
     Amount: formatMoney(row.amount),
     Paid_Amount: formatMoney(row.paid_amount),
-    Status: statusMap[row.status] ?? row.status,
+    Status: row.is_conditional ? "Conditionnelle" : statusMap[row.status] ?? row.status,
     amountValue: Number(row.amount),
     paidValue: Number(row.paid_amount),
     companyId: row.company_id,

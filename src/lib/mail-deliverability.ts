@@ -1,5 +1,5 @@
 import { resolve4, resolveMx, resolveTxt } from "node:dns/promises";
-import { KALAO_NOREPLY_EMAIL } from "@/lib/org";
+import { KALAO_CONTACT_EMAIL, KALAO_LOGO_URL, KALAO_NOREPLY_EMAIL } from "@/lib/org";
 
 export const N0C_MAIL_HOST = "node46-ca.n0c.com";
 export const N0C_MAIL_IP = "209.16.158.37";
@@ -122,17 +122,26 @@ export function fromAddress(from: string): string {
 export function crmMailHtml(body: string): string {
   const paragraphs = escapeHtml(body)
     .split(/\n{2,}/)
-    .map((block) => `<p style="margin:0 0 12px;line-height:1.5">${block.replace(/\n/g, "<br/>")}</p>`)
+    .map((block) => `<p style="margin:0 0 12px;line-height:1.55;font-size:15px">${block.replace(/\n/g, "<br/>")}</p>`)
     .join("");
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/></head><body style="margin:0;background:#f4f4f5;font-family:Arial,sans-serif;color:#18181b">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px">
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/></head>
+<body style="margin:0;background:#efece4;font-family:Arial,Helvetica,sans-serif;color:#1a2a32">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px;background:#efece4">
 <tr><td align="center">
-<table role="presentation" width="560" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px">
-<tr><td>
-<p style="margin:0 0 16px;font-size:13px;color:#71717a">Groupe Kalao · Bastos, Yaoundé, Cameroun</p>
+<table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background:#ffffff;border:1px solid #d9d2c3;max-width:600px">
+<tr><td style="background:#164B5A;padding:18px 24px">
+<img src="${KALAO_LOGO_URL}" alt="Kalao" width="180" height="36" style="display:block;height:36px;width:auto;border:0;outline:none"/>
+</td></tr>
+<tr><td style="height:4px;background:#E8A317;font-size:0;line-height:0">&nbsp;</td></tr>
+<tr><td style="padding:28px 28px 8px">
 ${paragraphs}
-<p style="margin:24px 0 0;font-size:12px;color:#a1a1aa">Message envoyé depuis le CRM Kalao. Répondez à cet e-mail pour joindre l’expéditeur.</p>
-</td></tr></table>
+<p style="margin:28px 0 0;font-size:12px;color:#5c6573">Message envoyé depuis le CRM Kalao. Répondez à cet e-mail pour joindre l’expéditeur.</p>
+</td></tr>
+<tr><td style="background:#164B5A;padding:14px 24px;font-size:11px;line-height:1.45;color:#d7e4e8">
+Groupe Kalao · Bastos, Yaoundé, Cameroun<br/>
+${KALAO_CONTACT_EMAIL} · +237 694 635 250
+</td></tr>
+</table>
 </td></tr></table>
 </body></html>`;
 }

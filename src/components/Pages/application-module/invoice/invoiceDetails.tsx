@@ -17,8 +17,11 @@ const InvoiceDetailsComponent = () => {
     {/* Start Content */}
     <div className="content pb-0">
       <KalaoInvoiceInject />
+      <p className="text-muted mb-3">
+        Le modèle officiel Kalao (logo, mentions légales, IBAN) s’ouvre via Imprimer / PDF.
+      </p>
       {/* start row*/}
-      <div className="row">
+      <div className="row d-none">
         <div className="col-lg-10 mx-auto">
           {/* start page header */}
           <h6 className="mb-3 fs-14">
@@ -34,7 +37,7 @@ const InvoiceDetailsComponent = () => {
               {/* Items */}
               <div className="d-flex align-items-center justify-content-between border-1 border-bottom pb-3 mb-3">
                 <ImageWithBasePath
-                  src="assets/img/logo.svg"
+                  src="assets/img/kalao-logo.png"
                   className="invoice-light-logo"
                   width={200}
                   alt=""

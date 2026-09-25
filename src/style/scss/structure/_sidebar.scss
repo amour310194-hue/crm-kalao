@@ -31,8 +31,16 @@
         width: $sidenav-width;
         padding: 0 16px;
         border-bottom: 1px solid $menu-item-border;
+        overflow: hidden;
+        height: $topbar-height;
         .logo {
             display: block;
+            img {
+                max-height: 40px;
+                width: auto;
+                max-width: 158px;
+                object-fit: contain;
+            }
         }
         .logo-small, .dark-logo {
             display: none;

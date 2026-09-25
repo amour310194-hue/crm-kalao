@@ -113,11 +113,11 @@ const Header = () => {
               {/* Logo Normal */}
               <span className="logo-light">
                 <span className="logo-lg">
-                  <ImageWithBasePath src="assets/img/kalao-logo.jpg" alt="Groupe Kalao" />
+                  <ImageWithBasePath src="assets/img/kalao-logo.png" alt="Groupe Kalao" />
                 </span>
                 <span className="logo-sm">
                   <ImageWithBasePath
-                    src="assets/img/kalao-logo.jpg"
+                    src="assets/img/kalao-mark.jpg"
                     alt="Groupe Kalao"
                   />
                 </span>
@@ -126,7 +126,7 @@ const Header = () => {
               <span className="logo-dark">
                 <span className="logo-lg">
                   <ImageWithBasePath
-                    src="assets/img/kalao-logo.jpg"
+                    src="assets/img/kalao-logo.png"
                     alt="Groupe Kalao"
                   />
                 </span>
