@@ -14,12 +14,12 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Kalao Globe Trek — Voyages depuis Yaoundé",
+  title: "Voyages — Groupe Kalao",
   description:
-    "Agence de voyages du Groupe Kalao à Bastos, Yaoundé : billets, séjours et formalités, sur devis.",
+    "Voyages du Groupe Kalao à Bastos, Yaoundé : billets, séjours et formalités, sur devis.",
   metadataBase: new URL("https://travel.groupe-kalao.com"),
   openGraph: {
-    title: "Kalao Globe Trek",
+    title: "Voyages — Groupe Kalao",
     description: "Billets, séjours et formalités depuis Yaoundé.",
     images: ["/voyage.jpg"],
   },

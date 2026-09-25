@@ -13,7 +13,7 @@ export default function KalaoLetterhead({ entity, title, refNo, issuedAt }: Prop
     <>
       <header className="kalao-letterhead">
         <div className="kalao-banner">
-          <img src={entity.logoSrc} alt={entity.tradeName} className="kalao-logo" />
+          <img src={entity.logoSrc} alt="Groupe Kalao" className="kalao-logo" />
           <div className="kalao-banner-meta">
             <p className="kalao-name">{entity.legalName}</p>
             <p className="kalao-trade">{entity.tradeName}</p>

@@ -31,7 +31,15 @@ export const ROLE_LABEL: Record<string, string> = {
   agent: "Agent",
 };
 
-export type KalaoEntityKey = "groupe" | "globe" | "consulting";
+export type KalaoEntityKey = "groupe" | "consulting";
+export type KalaoPoleKey = "travel" | "event" | "picture";
+
+/** Enseignes commerciales — pas des personnes morales. */
+export const KALAO_POLES: Record<KalaoPoleKey, { name: string; activity: string }> = {
+  travel: { name: "Kalao Globe Trek", activity: "Voyages" },
+  event: { name: "Kalao Event", activity: "Événementiel" },
+  picture: { name: "Kalao Picture", activity: "Photo" },
+};
 
 export type KalaoBank = {
   bankName: string;
@@ -83,25 +91,6 @@ export const KALAO_GROUPE: KalaoEntity = {
   bank: null,
 };
 
-export const KALAO_GLOBE_TREK: KalaoEntity = {
-  key: "globe",
-  legalName: "ETS KALAO GLOB TREK",
-  tradeName: "Kalao Globe Trek",
-  sigle: null,
-  rccm: "RC/YAO/2025/38",
-  niu: "P019416937161C",
-  taxRegime: null,
-  shareCapital: null,
-  phones: ["+237 694 635 250", "+237 673 794 702"],
-  email: "contact@kalao-globe-trek.com",
-  address: "Bastos",
-  city: "Yaoundé, Cameroun",
-  representative: "NDZOMO ELOUNDOU Thaddée",
-  representativeTitle: "Responsable",
-  logoSrc: KALAO_LOGO_PATH,
-  bank: null,
-};
-
 /** Coordonnées issues du RCCM 13 juin 2025, de l’attestation CFCE et de l’IBAN Afriland. */
 export const KALAO_CONSULTING_BANK: KalaoBank = {
   bankName: "Afriland First Bank",
@@ -118,7 +107,7 @@ export const KALAO_CONSULTING_BANK: KalaoBank = {
 export const KALAO_CONSULTING: KalaoEntity = {
   key: "consulting",
   legalName: "KALAO CONSULTING SARL",
-  tradeName: "Kalao Consulting",
+  tradeName: "Groupe Kalao",
   sigle: "KC SARL",
   rccm: "CM-NSI-01-2025-B12-01116",
   niu: "M062517806851C",
@@ -134,19 +123,9 @@ export const KALAO_CONSULTING: KalaoEntity = {
   bank: KALAO_CONSULTING_BANK,
 };
 
-export function entityForDoc(kind: string): KalaoEntity {
-  if (
-    kind === "employment" ||
-    kind === "certificate" ||
-    kind === "payslip" ||
-    kind === "invoice" ||
-    kind === "quote" ||
-    kind === "receipt"
-  ) {
-    return KALAO_CONSULTING;
-  }
-  if (kind === "visa") return KALAO_GLOBE_TREK;
-  return KALAO_GROUPE;
+/** Personne morale unique sur les pièces (factures, devis, contrats, bulletins). */
+export function entityForDoc(_kind?: string): KalaoEntity {
+  return KALAO_CONSULTING;
 }
 
 export function entityFooter(entity: KalaoEntity): string {

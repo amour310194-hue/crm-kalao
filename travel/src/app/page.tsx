@@ -1,14 +1,14 @@
 const WHATSAPP = "https://wa.me/237694635250";
 const PHONE = "tel:+237694635250";
-const MAIL = "mailto:contact@kalao-globe-trek.com";
+const MAIL = "mailto:contact@groupe-kalao.com";
 
 export default function HomePage() {
   return (
     <>
       <header className="top">
         <a className="brand" href="#accueil">
-          <img src="/kalao-logo.png" alt="Kalao" />
-          <span>Globe Trek</span>
+          <img src="/kalao-logo.png" alt="Groupe Kalao" />
+          <span>Voyages</span>
         </a>
         <nav className="nav">
           <a className="hide-sm" href="#offres">
@@ -27,10 +27,10 @@ export default function HomePage() {
         <section className="hero">
           <img src="/voyage.jpg" alt="Côte camerounaise" />
           <div className="hero-copy">
-            <p className="kicker">Yaoundé · Bastos</p>
+            <p className="kicker">Groupe Kalao · Yaoundé</p>
             <h1>Partir depuis ici.</h1>
             <p className="lede">
-              Billets, séjours et formalités, suivis par une agence du Groupe Kalao — pas
+              Billets, séjours et formalités, suivis par le Groupe Kalao à Bastos — pas
               par une plateforme anonyme.
             </p>
             <div className="hero-actions">
@@ -89,7 +89,7 @@ export default function HomePage() {
           <p className="kicker">Le bureau</p>
           <h2>Bastos, pas un call center.</h2>
           <p className="narrow">
-            ETS Kalao Glob Trek vous reçoit à Yaoundé. Un devis se discute autour d’un
+            Le Groupe Kalao vous reçoit à Yaoundé. Un devis se discute autour d’un
             trajet réel, pas d’un formulaire de 40 champs.
           </p>
           <div className="coords">
@@ -112,7 +112,7 @@ export default function HomePage() {
             <div>
               <p className="kicker">Écrire</p>
               <p>
-                <a href={MAIL}>contact@kalao-globe-trek.com</a>
+                <a href={MAIL}>contact@groupe-kalao.com</a>
                 <br />
                 <a href={WHATSAPP}>WhatsApp</a>
               </p>
@@ -122,8 +122,8 @@ export default function HomePage() {
       </main>
 
       <footer className="foot">
-        <span>ETS Kalao Glob Trek · RCCM RC/YAO/2025/38 · NIU P019416937161C</span>
         <span>Groupe Kalao · Yaoundé</span>
+        <span>Voyages · Événementiel · Photo</span>
       </footer>
     </>
   );

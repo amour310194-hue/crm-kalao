@@ -71,7 +71,7 @@ Nous faisons le point sur votre dossier visa. Merci de nous indiquer où vous en
 Nous restons à votre écoute.
 
 Cordialement,
-Kalao Globe Trek`,
+Groupe Kalao`,
   },
   {
     id: "pieces",

@@ -187,7 +187,7 @@ async function loadInvoice(id: string): Promise<DocView> {
     issuedAt: formatDate(invoice.created_at),
     entity: entityForDoc("invoice"),
     party: partyFrom(company, contact),
-    intro: invoice.project || "Prestation Kalao Consulting",
+    intro: invoice.project || "Prestation Groupe Kalao",
     lines: [
       {
         label: invoice.project || "Prestation",
@@ -240,7 +240,7 @@ async function loadQuote(id: string): Promise<DocView> {
     issuedAt: formatDate(quote.created_at),
     entity: entityForDoc("quote"),
     party: partyFrom(company, contact),
-    intro: quote.notes || "Proposition commerciale Kalao Consulting",
+    intro: quote.notes || "Proposition commerciale Groupe Kalao",
     lines: lines.length
       ? lines
       : [{ label: quote.notes || "Prestation", qty: "1", unit: formatMoney(total), total: formatMoney(total) }],
@@ -340,7 +340,7 @@ async function loadVisa(id: string): Promise<DocView> {
   return {
     kind: "visa",
     title: "CONTRAT DE PRESTATION — IMMIGRATION",
-    ref: `CPS/KGT/${dossier.id.slice(0, 8).toUpperCase()}`,
+    ref: `CPS/KC/${dossier.id.slice(0, 8).toUpperCase()}`,
     issuedAt: formatDate(dossier.start_at || dossier.updated_at),
     entity: entityForDoc("visa"),
     party,
@@ -532,6 +532,7 @@ function visaArticles(input: {
   bassinDrawn: boolean;
 }): { heading: string; body: string }[] {
   const { party, dossier, total, canada, schedule, bassinDrawn } = input;
+  const entity = entityForDoc();
   const pay = canada
     ? schedule
         .map((row) => `• ${row.label} : ${formatMoney(row.amount)} (${row.when})`)
@@ -540,7 +541,7 @@ function visaArticles(input: {
   return [
     {
       heading: "1. Parties",
-      body: `Entre Kalao Globe Trek, Bastos Yaoundé, représentée par ${entityForDoc("visa").representative}, et ${party.name}, demeurant à ${party.address}, ${party.city}, tél. ${party.phone}, e-mail ${party.email}, nationalité ${party.nationality}, né(e) le ${party.birthDate} à ${party.birthPlace}, profession ${party.profession}, passeport ${party.passport}.`,
+      body: `Entre ${entity.legalName}, agissant sous l'enseigne Groupe Kalao, sise à ${entity.address}, ${entity.city}, représentée par ${entity.representative}, ${entity.representativeTitle}, et ${party.name}, demeurant à ${party.address}, ${party.city}, tél. ${party.phone}, e-mail ${party.email}, nationalité ${party.nationality}, né(e) le ${party.birthDate} à ${party.birthPlace}, profession ${party.profession}, passeport ${party.passport}.`,
     },
     {
       heading: "2. Objet",
@@ -574,7 +575,7 @@ function visaArticles(input: {
     },
     {
       heading: "9. Résiliation et litiges",
-      body: "Résiliation du client par e-mail à contact@kalao-globe-trek.com. Manquement grave : mise en demeure de 8 jours puis résiliation. Droit camerounais. Tribunaux de Yaoundé. Version française prévaut.",
+      body: `Résiliation du client par e-mail à ${entity.email}. Manquement grave : mise en demeure de 8 jours puis résiliation. Droit camerounais. Tribunaux de Yaoundé. Version française prévaut.`,
     },
     {
       heading: "10. Signature",
