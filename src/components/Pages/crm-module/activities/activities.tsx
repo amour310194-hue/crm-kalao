@@ -23,7 +23,14 @@ const ActivitiesComponent = () => {
   const { rows: data, reload, live } = useLiveRows(ActivitiesListData, loadActivities);
   const [raw, setRaw] = useState<{ due_at: string | null; done: boolean }[]>([]);
   useEffect(() => {
-    void fetchActivities().then((rows) => setRaw(rows ?? []));
+    void fetchActivities().then((rows) =>
+      setRaw(
+        (rows ?? []).map((row) => ({
+          due_at: row.due_at,
+          done: Boolean(row.done),
+        }))
+      )
+    );
   }, [data.length]);
   const activityStats = useMemo(() => {
     const start = new Date();
