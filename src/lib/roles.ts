@@ -46,6 +46,7 @@ export async function assertCanSeePayroll() {
 }
 
 export async function assertCanDelete() {
+  // Affichage seulement. La suppression factures/paiements est interdite par la RLS v24.
   if (!(await canMassDelete())) {
     throw new Error("Suppression réservée à la direction.");
   }

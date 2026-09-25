@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { listReceivedEmailIds } from "@/lib/inbound-mail";
 import { ingestReceivedEmail } from "@/lib/store-inbound";
-import { getUserFromBearer } from "@/lib/supabase/admin";
+import { requireUser } from "@/lib/require-user";
 
 async function inboundSyncAllowed(request: NextRequest) {
   if (request.headers.get("x-vercel-cron") === "1") return true;
@@ -10,7 +10,7 @@ async function inboundSyncAllowed(request: NextRequest) {
   const token = new URL(request.url).searchParams.get("secret");
   if (secret && (auth === `Bearer ${secret}` || token === secret)) return true;
   try {
-    return Boolean(await getUserFromBearer(request));
+    return Boolean(await requireUser(request));
   } catch {
     return false;
   }

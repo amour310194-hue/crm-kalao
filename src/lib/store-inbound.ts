@@ -8,23 +8,11 @@ import {
 } from "@/lib/inbound-mail";
 import { repairMailText } from "@/lib/mail-text";
 
-const INGEST_SECRET =
-  process.env.INBOUND_INGEST_SECRET || "kloa_inb_v17_9f3c2a7e1b84d0c6e5a2f8b1d4c7e0a3";
-
 function service() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient(url, key);
-}
-
-function anonClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 }
 
 function isPlaceholderBody(body: string) {
@@ -131,20 +119,7 @@ export async function storeInboundEmail(input: {
     return { stored: true, reason: "stored", mailbox: resolved.mailbox };
   }
 
-  const anon = anonClient();
-  if (!anon) return { stored: false, reason: "inbound_store_missing" };
-  const { data, error } = await anon.rpc("ingest_inbound_email", {
-    p_secret: INGEST_SECRET,
-    p_from: from,
-    p_to: input.to ?? [],
-    p_received_for: input.receivedFor ?? [],
-    p_subject: subject,
-    p_body: body,
-    p_resend_id: input.resendId ?? null,
-  });
-  if (error) return { stored: false, reason: error.message };
-  const reason = String(data ?? "stored");
-  return { stored: reason === "stored" || reason === "duplicate", reason };
+  return { stored: false, reason: "inbound_store_missing" };
 }
 
 export async function ingestReceivedEmail(

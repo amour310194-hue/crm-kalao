@@ -1,39 +1,30 @@
 import { NextRequest } from "next/server";
 import { crmMailHeaders, crmMailHtml, fromAddress } from "@/lib/mail-deliverability";
-import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
+import { getServiceSupabase, getUserSupabase } from "@/lib/supabase/admin";
+import { requireUser } from "@/lib/require-user";
+import { authorizeSender, isSharedMailbox, type SharedMailbox } from "@/lib/mail-send-auth";
+import {
+  enforceRateLimits,
+  supabaseRateLimitStore,
+} from "@/lib/rate-limit";
 
-type MailboxKey = "noreply" | "contact" | "personal";
-
-function resolveFrom(mailbox: MailboxKey | undefined, requested?: string) {
-  if (mailbox === "contact") return `Contact Kalao <${KALAO_CONTACT_EMAIL}>`;
-  if (mailbox === "personal") {
-    const raw = String(requested ?? "").trim();
-    if (/@groupe-kalao\.com>/i.test(raw) || /@groupe-kalao\.com$/i.test(raw)) {
-      return raw;
-    }
-  }
-  return process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
-}
-
-async function requireUser(request: NextRequest) {
-  const auth = request.headers.get("authorization") ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  if (!token) return null;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return null;
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabase = createClient(url, anon);
-  const { data } = await supabase.auth.getUser(token);
-  return data.user ?? null;
-}
+const SEND_MAX = 100;
+const SEND_WINDOW = 60 * 60;
 
 export async function POST(request: NextRequest) {
-  const user = await requireUser(request);
-  if (!user) {
+  const authed = await requireUser(request);
+  if (!authed) {
+    return Response.json({ ok: false, dispatched: false, reason: "unauthorized" }, { status: 401 });
+  }
+  const { user, token } = authed;
+
+  const limited = await enforceRateLimits(supabaseRateLimitStore(), [
+    { key: `mail-send:user:${user.id}`, windowSeconds: SEND_WINDOW, max: SEND_MAX },
+  ]);
+  if (limited.limited) {
     return Response.json(
-      { ok: false, dispatched: false, reason: "unauthorized" },
-      { status: 401 }
+      { ok: false, dispatched: false, reason: "too_many_requests" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfter) } }
     );
   }
 
@@ -46,17 +37,14 @@ export async function POST(request: NextRequest) {
     to?: string;
     subject?: string;
     body?: string;
-    mailbox?: MailboxKey;
+    mailbox?: string;
     from?: string;
     attachments?: { filename?: string; content?: string; contentType?: string }[];
   } = {};
   try {
     payload = (await request.json()) as typeof payload;
   } catch {
-    return Response.json(
-      { ok: false, dispatched: false, reason: "bad_payload" },
-      { status: 400 }
-    );
+    return Response.json({ ok: false, dispatched: false, reason: "bad_payload" }, { status: 400 });
   }
 
   const to = String(payload.to ?? "").trim();
@@ -66,8 +54,32 @@ export async function POST(request: NextRequest) {
     return Response.json({ ok: true, dispatched: false, reason: "missing_to" });
   }
 
-  const from = resolveFrom(payload.mailbox, payload.from);
-  const automatic = payload.mailbox !== "contact" && payload.mailbox !== "personal";
+  const admin = getServiceSupabase();
+  const [{ data: profile }, { data: employee }] = await Promise.all([
+    admin.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle(),
+    admin.from("employees").select("email, full_name").eq("profile_id", user.id).maybeSingle(),
+  ]);
+  const asUser = getUserSupabase(token);
+  let allowedShared: SharedMailbox[] = [];
+  if (asUser) {
+    const { data } = await asUser.rpc("shared_mailboxes_for_me");
+    allowedShared = (Array.isArray(data) ? data : []).filter(isSharedMailbox);
+  }
+
+  const workEmail = String(employee?.email || user.email || "").toLowerCase();
+  const authz = authorizeSender({
+    mailbox: payload.mailbox,
+    requestedFrom: payload.from,
+    workEmail,
+    fullName: String(employee?.full_name || profile?.full_name || workEmail),
+    allowedShared,
+  });
+  if (!authz.ok) {
+    return Response.json({ ok: false, dispatched: false, reason: authz.reason }, { status: 403 });
+  }
+
+  const from = authz.from;
+  const automatic = authz.mailbox === "noreply";
   const replyTo = fromAddress(from);
   const attachments = (payload.attachments ?? [])
     .filter((file) => file.filename && file.content)
@@ -113,6 +125,17 @@ export async function POST(request: NextRequest) {
   } catch {
     if (!res.ok) detail = raw.slice(0, 280);
   }
+
+  const { error: logErr } = await admin.from("mail_send_log").insert({
+    actor_id: user.id,
+    mailbox: authz.mailbox,
+    from_email: replyTo,
+    to_email: to,
+    subject,
+    resend_id: id ?? null,
+    ok: res.ok,
+  });
+  void logErr;
 
   return Response.json({
     ok: res.ok,

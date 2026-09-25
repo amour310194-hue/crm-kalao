@@ -2,11 +2,20 @@ import { NextRequest } from "next/server";
 import { extractAddresses, inboundEmailId } from "@/lib/inbound-mail";
 import { inboundEndpoint } from "@/lib/org";
 import { ingestReceivedEmail, storeInboundEmail } from "@/lib/store-inbound";
+import {
+  WebhookAuthError,
+  verifySharedInboundSecret,
+  verifySvixSignature,
+} from "@/lib/svix-verify";
 
 function inboundStatus(reason: string, stored: boolean) {
   if (reason === "inbound_store_missing") return 503;
   if (stored || reason === "duplicate") return 200;
   return 500;
+}
+
+function header(request: NextRequest, name: string) {
+  return request.headers.get(name) ?? request.headers.get(name.toLowerCase()) ?? "";
 }
 
 export async function GET() {
@@ -18,6 +27,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const rawBody = await request.text();
   let payload: {
     type?: string;
     email_id?: string;
@@ -34,9 +44,34 @@ export async function POST(request: NextRequest) {
     };
   };
   try {
-    payload = (await request.json()) as typeof payload;
+    payload = JSON.parse(rawBody || "{}") as typeof payload;
   } catch {
     return Response.json({ ok: false, reason: "bad_payload" }, { status: 400 });
+  }
+
+  try {
+    const svixId = header(request, "svix-id");
+    const svixTimestamp = header(request, "svix-timestamp");
+    const svixSignature = header(request, "svix-signature");
+    if (svixId || svixTimestamp || svixSignature || payload.type === "email.received") {
+      verifySvixSignature({
+        rawBody,
+        svixId,
+        svixTimestamp,
+        svixSignature,
+        secret: process.env.RESEND_WEBHOOK_SECRET || "",
+      });
+    } else if (payload.type === "n0c_forward") {
+      verifySharedInboundSecret(
+        header(request, "x-kalao-inbound-secret"),
+        process.env.INBOUND_FORWARD_SECRET || process.env.INBOUND_INGEST_SECRET
+      );
+    } else {
+      throw new WebhookAuthError("unauthorized");
+    }
+  } catch (err) {
+    const reason = err instanceof WebhookAuthError ? err.message : "unauthorized";
+    return Response.json({ ok: false, reason }, { status: 401 });
   }
 
   const data = payload.data ?? {};

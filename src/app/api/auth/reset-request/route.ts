@@ -1,8 +1,24 @@
 import { NextRequest } from "next/server";
-import { getServiceSupabase } from "@/lib/supabase/admin";
-import { issuePasswordReset } from "@/lib/password-reset";
+import { lookupUserIdByEmail, issuePasswordReset } from "@/lib/password-reset";
+import {
+  RESET_REQUEST_EMAIL_MAX,
+  RESET_REQUEST_EMAIL_WINDOW,
+  RESET_REQUEST_IP_MAX,
+  RESET_REQUEST_IP_WINDOW,
+  clientIp,
+  enforceRateLimits,
+  supabaseRateLimitStore,
+  type RateLimitStore,
+} from "@/lib/rate-limit";
 
-export async function POST(request: NextRequest) {
+function sameOk() {
+  return Response.json({ ok: true });
+}
+
+export async function POST(
+  request: NextRequest,
+  deps?: { rateLimit?: RateLimitStore }
+) {
   let email = "";
   try {
     const body = (await request.json()) as { email?: string };
@@ -12,18 +28,24 @@ export async function POST(request: NextRequest) {
   }
   if (!email) return Response.json({ ok: false, reason: "missing_email" }, { status: 400 });
 
-  try {
-    const admin = getServiceSupabase();
-    const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    const user = data.users.find((u) => u.email?.toLowerCase() === email);
-    if (user) {
-      await issuePasswordReset(email, user.id);
-    }
-    return Response.json({ ok: true });
-  } catch (err) {
+  const store = deps?.rateLimit ?? supabaseRateLimitStore();
+  const ip = clientIp(request);
+  const limited = await enforceRateLimits(store, [
+    { key: `reset-request:ip:${ip}`, windowSeconds: RESET_REQUEST_IP_WINDOW, max: RESET_REQUEST_IP_MAX },
+    { key: `reset-request:email:${email}`, windowSeconds: RESET_REQUEST_EMAIL_WINDOW, max: RESET_REQUEST_EMAIL_MAX },
+  ]);
+  if (limited.limited) {
     return Response.json(
-      { ok: false, reason: err instanceof Error ? err.message : "reset_error" },
-      { status: 500 }
+      { ok: false, reason: "too_many_requests" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfter) } }
     );
+  }
+
+  try {
+    const userId = await lookupUserIdByEmail(email);
+    if (userId) await issuePasswordReset(email, userId);
+    return sameOk();
+  } catch {
+    return sameOk();
   }
 }

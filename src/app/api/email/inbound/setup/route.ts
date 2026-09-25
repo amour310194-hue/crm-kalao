@@ -8,21 +8,16 @@ import {
   inboundResendAlias,
 } from "@/lib/org";
 import { ensureInboundWebhook, isInboundWebhook, listResendWebhooks } from "@/lib/resend-inbound";
-import { getUserFromBearer, getUserSupabase } from "@/lib/supabase/admin";
-
-function bearerToken(request: NextRequest) {
-  const header = request.headers.get("authorization") ?? "";
-  return header.startsWith("Bearer ") ? header.slice(7) : "";
-}
+import { getUserSupabase } from "@/lib/supabase/admin";
+import { requireUser } from "@/lib/require-user";
 
 async function actorCanManage(request: NextRequest) {
-  const user = await getUserFromBearer(request);
-  if (!user) return null;
-  const db = getUserSupabase(bearerToken(request));
+  const authed = await requireUser(request);
+  if (!authed) return null;
+  const db = getUserSupabase(authed.token);
   if (!db) return null;
-  const { data } = await db.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!canCreateStaffAccount(data?.role)) return null;
-  return { user, db };
+  if (!canCreateStaffAccount(authed.role)) return null;
+  return { user: authed.user, db };
 }
 
 export async function GET(request: NextRequest) {

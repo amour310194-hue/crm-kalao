@@ -1,7 +1,7 @@
 ﻿import ResetPasswordComponent from "@/components/Authentication/reset-password/resetPassword";
 
 export const metadata = {
-  title: "Reset Password",
+  title: "Nouveau mot de passe",
 };
 
 export default function ResetPassword(){

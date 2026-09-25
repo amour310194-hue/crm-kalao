@@ -17,7 +17,13 @@ export default function KalaoForgotPassword() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const json = (await res.json()) as { ok?: boolean; reason?: string };
+      let json: { ok?: boolean; reason?: string } = {};
+      try {
+        json = (await res.json()) as { ok?: boolean; reason?: string };
+      } catch {
+        throw new Error("Envoi impossible. Réessayez.");
+      }
+      if (res.status === 429) throw new Error("Trop de demandes. Réessayez plus tard.");
       if (!res.ok || !json.ok) throw new Error(json.reason || "Envoi impossible");
       setMsg("Si ce compte existe, un e-mail no-reply a été envoyé avec un code et un lien.");
     } catch (err) {

@@ -924,12 +924,8 @@ export async function createInvoice(input: {
   return data as InvoiceRow;
 }
 
-export async function deleteInvoice(id: string) {
-  await assertCanDelete();
-  const supabase = db();
-  if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase.from("invoices").delete().eq("id", id);
-  throwIf(error);
+export async function deleteInvoice(_id: string) {
+  throw new Error("Une facture émise s’annule, elle ne se supprime pas.");
 }
 
 export async function recordPayment(input: {
@@ -955,11 +951,21 @@ export async function markInvoicePaid(invoice: InvoiceRow, partial = false) {
   await recordPayment({ invoice_id: invoice.id, amount });
 }
 
-export async function markInvoiceUnpaid(invoiceId: string) {
+export async function markInvoiceUnpaid(invoiceId: string, reason = "Remise en impayé") {
   if (!invoiceId) throw new Error("Facture manquante");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase.from("payments").delete().eq("invoice_id", invoiceId);
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from("payments")
+    .update({
+      status: "annule",
+      cancelled_at: new Date().toISOString(),
+      cancelled_by: auth.user?.id ?? null,
+      cancel_reason: reason,
+    })
+    .eq("invoice_id", invoiceId)
+    .eq("status", "valide");
   throwIf(error);
 }
 

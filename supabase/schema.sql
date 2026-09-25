@@ -1,3 +1,8 @@
+-- ATTENTION : dump historique (bootstrap initial). Ne plus l'executer :
+-- il recreerait des politiques authenticated_all. Le schema reel vit dans
+-- supabase/migrations/ (v0 ... v24). Pour reconstruire : appliquer les migrations
+-- dans l'ordre, ou `supabase db pull` depuis le projet twoorysobvfcwctwhokj.
+
 -- CRM ventes produits + services
 -- À coller dans Supabase → SQL Editor → Run
 -- Puis Authentication → Providers : Email activé
