@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { all_routes } from "@/router/all_routes";
+import { mfaEnforced } from "@/lib/authz";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,13 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       if (!data.session) {
         router.replace(all_routes.login);
         return;
+      }
+      if (mfaEnforced()) {
+        const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal.data?.currentLevel === "aal1" && aal.data?.nextLevel === "aal2") {
+          router.replace("/mfa-setup");
+          return;
+        }
       }
       setReady(true);
     };

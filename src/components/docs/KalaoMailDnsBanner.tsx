@@ -1,45 +1,67 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { all_routes } from "@/router/all_routes";
 import type { MailDnsReport } from "@/lib/mail-deliverability";
+import { authJsonHeaders } from "@/lib/auth-headers";
 
-export default function KalaoMailDnsBanner() {
+/** Diagnostic DNS des mails (MX, SPF, DKIM, DMARC) avec la correction à faire chez N0C. */
+export default function KalaoMailDnsBanner({ detailed = false }: { detailed?: boolean }) {
   const [dns, setDns] = useState<MailDnsReport | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    void fetch("/api/email/dns")
+    void authJsonHeaders()
+      .then((headers) => fetch("/api/email/dns", { headers }))
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         if (json) setDns(json as MailDnsReport);
+        else setFailed(true);
       })
-      .catch(() => undefined);
+      .catch(() => setFailed(true));
   }, []);
 
-  if (!dns || (dns.mxOk && dns.spfOk)) return null;
+  if (failed && detailed) return <p className="text-muted small mb-0">Diagnostic DNS indisponible.</p>;
+  if (!dns) return detailed ? <p className="text-muted small mb-0">Vérification des DNS…</p> : null;
+  const allOk = dns.mxOk && dns.spfOk && dns.dkimOk && dns.dmarcOk;
+  if (!detailed && allOk) return null;
+
+  if (!detailed) {
+    return (
+      <div className="km-banner error">
+        <i className="ti ti-alert-triangle" />
+        {!dns.mxOk
+          ? "Les adresses @groupe-kalao.com ne reçoivent pas correctement : le MX est à corriger."
+          : "Configuration DNS incomplète : vos mails risquent d'arriver en spam."}{" "}
+        Détail dans Réglages → Diagnostic.
+      </div>
+    );
+  }
 
   return (
-    <div className="alert alert-danger mb-0 rounded-0 border-0 border-bottom">
-      {!dns.mxOk ? (
-        <p className="mb-1 fw-semibold">
-          Les adresses @groupe-kalao.com ne reçoivent rien : le DNS pointe mail.groupe-kalao.com
-          vers Vercel au lieu du serveur N0C.
-        </p>
+    <div>
+      <table className="table table-sm align-middle">
+        <tbody>
+          {dns.checks.map((c) => (
+            <tr key={c.label}>
+              <td style={{ width: 28 }}>
+                <i className={c.ok ? "ti ti-circle-check text-success" : "ti ti-circle-x text-danger"} />
+              </td>
+              <td className="fw-semibold">{c.label}</td>
+              <td className="small">
+                <div>{c.current}</div>
+                {!c.ok ? <div className="text-muted">Attendu : {c.expected}</div> : null}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {dns.fix.length ? (
+        <ol className="small mb-0">
+          {dns.fix.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ol>
       ) : null}
-      {!dns.spfOk ? (
-        <p className="mb-1">
-          Les envois tombent en spam : le SPF racine n’autorise pas encore Resend
-          (include:amazonses.com).
-        </p>
-      ) : null}
-      <p className="mb-0 fs-13">
-        Correction dans N0C → DNS. Détail et checklist :{" "}
-        <Link href={all_routes.emailSettings} className="alert-link">
-          Réglages e-mail
-        </Link>
-        .
-      </p>
     </div>
   );
 }

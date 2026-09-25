@@ -4,27 +4,15 @@ import {
   KALAO_INBOUND_RESEND,
   KALAO_NOREPLY_EMAIL,
 } from "@/lib/org";
-import { repairMailText } from "@/lib/mail-text";
+import { resendListReceived } from "@/lib/mail/server/resend";
 
-export type InboundMailbox = "noreply" | "contact" | "personal";
+export type InboundMailbox = "noreply" | "contact" | "personal" | "triage";
 
 export type InboundResolved = {
   mailbox: InboundMailbox;
   toEmail: string;
   ownerId: string | null;
 };
-
-export type ReceivedEmail = {
-  from: string;
-  to: string[];
-  receivedFor: string[];
-  subject: string;
-  text: string;
-};
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export function extractAddresses(value: unknown): string[] {
   const list = Array.isArray(value) ? value : value ? [String(value)] : [];
@@ -73,58 +61,10 @@ export function stripHtml(html: string): string {
     .trim();
 }
 
-async function resendJson(path: string): Promise<unknown | null> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const res = await fetch(`https://api.resend.com${path}`, {
-      headers: { Authorization: `Bearer ${key}` },
-    });
-    if (res.ok) return res.json();
-    const detail = await res.text().catch(() => "");
-    console.error("[crm] resend receiving", path, res.status, detail.slice(0, 300));
-    if (res.status === 404 && attempt < 2) {
-      await sleep(700 * (attempt + 1));
-      continue;
-    }
-    return null;
-  }
-  return null;
-}
-
-export async function fetchReceivedEmail(emailId: string): Promise<ReceivedEmail | null> {
-  const json = (await resendJson(`/emails/receiving/${emailId}`)) as {
-    from?: string;
-    to?: string[];
-    received_for?: string[];
-    subject?: string;
-    text?: string | null;
-    html?: string | null;
-    headers?: Record<string, string>;
-  } | null;
-  if (!json) return null;
-  const headerTargets = extractAddresses([
-    json.headers?.["x-original-to"],
-    json.headers?.["x-forwarded-to"],
-    json.headers?.["delivered-to"],
-    json.headers?.to,
-    json.headers?.from,
-  ]);
-  const text = String(json.text || "").trim() || stripHtml(String(json.html || ""));
-  return {
-    from: extractAddresses(json.from)[0] || String(json.from ?? "").trim(),
-    to: extractAddresses(json.to),
-    receivedFor: [...extractAddresses(json.received_for), ...headerTargets],
-    subject: repairMailText(String(json.subject ?? "Sans objet").trim()),
-    text: repairMailText(text) || "(sans contenu)",
-  };
-}
-
 export async function listReceivedEmailIds(limit = 50): Promise<string[]> {
-  const json = (await resendJson(`/emails/receiving?limit=${limit}`)) as {
-    data?: { id?: string; email_id?: string }[];
-  } | null;
-  return (json?.data ?? [])
+  const res = await resendListReceived(limit);
+  if (!res.ok) return [];
+  return (res.data.data ?? [])
     .map((row) => row.id || row.email_id)
     .filter((id): id is string => Boolean(id));
 }

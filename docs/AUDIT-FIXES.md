@@ -2,12 +2,30 @@
 
 Statuts : ✅ fait · ⏳ en cours · ❓ en attente de réponse · ⏸ pas commencé
 
-Aucune donnée de production n’a été modifiée (factures, paiements, clients). Le SQL v19 est prêt, **non appliqué**.
+Aucune donnée métier n’a été supprimée. v19 n’a pas été appliquée sous ce nom : le contenu utile est dans v20. v21–v25 appliquées.
 
 Canvas diagnostic : `phase-0-diagnostic-crm-kalao.canvas.tsx`
 Guide métier : `docs/GUIDE-DOSSIERS-ECHEANCIER.md`
 
 SQL v20 (`v20_caisse_et_socle`) appliqué en production le 25 sept. 2026 : backup `_backup_20260925_*`, C14 réaffecté, C06 annulé + avoir, C14-BA conditionnel, échéances SO, seed V7 TEST retiré.
+
+## Prompt sécurité 25 sept. 2026
+
+| Point | Statut | Preuve |
+|-------|--------|--------|
+| 1.1 Reset MDP | ✅ | Vitest : email obligatoire, 5 essais, 15 min, hash timing-safe. 429 testé. `listUsers` retiré. |
+| 1.2 Inbound signé | ✅ | POST non signé → 401. Svix + `INBOUND_FORWARD_SECRET`. RPC anon révoqué (v22). |
+| 1.3 Envoi mail ACL | ✅ | `authorizeSender` : staff sans ACL / usurpation → 403. Quota 100/h. `mail_send_log`. |
+| 1.4 Auth serveur | ✅ | `curl /dashboard` → 307 `/login`. `@supabase/ssr` cookies. `requireUser` unique. |
+| 1.5 2FA / sessions | ⏸ ❓ Q2 | Page `/mfa-setup`, idle 12 h + max 7 j. `MFA_ENFORCE` éteint : Amour/Edith non verrouillés. |
+| 1.6 CSP | ✅ | `unsafe-eval` retiré en production. Conservé en dev (React Fast Refresh). `unsafe-inline` reste (Bootstrap du template). |
+| 2.1 Baseline schéma | ⏸ | `schema.sql` n’est plus un dump exécutable. `db pull` non fait (CLI). Source de vérité = migrations v0–v25. |
+| 2.2 Matrice RLS | ✅ | v24 appliquée : 0 `authenticated_all`, anon révoqué, pas de DELETE invoices/payments, `profiles.role` protégé. |
+| 2.3 Contrôles client | ✅ | `assertCanDelete` = affichage. Barrière = RLS. |
+| 3.1 Paiements | ✅ | v25 : `status` valide/annule. `markInvoiceUnpaid` n’efface plus. Totaux inchangés : 20 850 000 FCFA. |
+| 3.2–3.4, 4–7 | ⏸ | Formulaire d’encaissement, FAC ❓ Q4, KPI RPC, ménage template, CI, immigration. |
+
+Q1 n0c_forward : conservé derrière secret (pas d’OK pour le supprimer).
 
 ---
 
@@ -55,6 +73,25 @@ SQL v20 (`v20_caisse_et_socle`) appliqué en production le 25 sept. 2026 : backu
 |-------|--------|
 | Particulier vs entreprise | ⏸ |
 | Contact C07 | ❓ Q8 — trou de numérotation, pas créé |
+
+## Messagerie (26 sept. 2026) — voir `docs/MESSAGERIE.md`
+
+| Point de l'audit mail | Statut |
+|---|---|
+| Ouvrir la boîte envoyait un vrai mail client (`remindDueVisaActivities`) | ✅ supprimé ; remplacé par des relances serveur J-3 / J+7, une fois par facture, en simulation par défaut |
+| Historique écrit par le navigateur, falsifiable | ✅ INSERT/UPDATE/DELETE révoqués pour `authenticated` ; écriture uniquement par l'API (v26) |
+| Mail parti sans trace si l'onglet se ferme | ✅ ligne créée côté serveur avant l'appel Resend |
+| `x-vercel-cron` accepté seul sur la synchronisation | ✅ `CRON_SECRET` ou session, 1 synchronisation par minute |
+| Adresse inconnue rangée dans Contact | ✅ file « À trier » réservée aux admins |
+| Chargement de toute la boîte, 1000 lignes max, recherche locale | ✅ `mail_threads` / `mail_counts` : pagination et recherche plein texte côté base |
+| Pièces jointes reçues ignorées, envoyées limitées à ~3 Mo | ✅ stockage privé, 25 Mo, URL signées |
+| Pas de fils, un seul destinataire, texte brut | ✅ In-Reply-To/References, À/Cc/Cci, éditeur riche, HTML nettoyé |
+| Lu / supprimé partagé pour tous, pas d'attribution | ✅ état lu/suivi/important/en attente par personne ; attribution |
+| « Envoyé » ≠ « reçu » | ✅ événements Resend de livraison, adresses rejetées bloquées |
+| Pied de mail « Répondez » sur no-reply, List-Unsubscribe-Post invalide | ✅ gabarit selon le type d'envoi, en-tête retiré |
+| DMARC absent du diagnostic | ✅ DMARC + SPF du sous-domaine `send` |
+| Contenu de démo, dossiers en anglais, page `email-reply` | ✅ ancien écran supprimé (-3 000 lignes), tout en français, redirection |
+| Build Vercel cassé par les routes reset (PR #2) | ✅ logique déplacée dans `src/lib/reset-*-handler.ts` |
 
 ## Phases 4–7
 

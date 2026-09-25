@@ -76,11 +76,7 @@ const SidebarDataAll = [
             ],
           },
           { label: "Calendar", link: route.calendar },
-          {
-            label: "Email",
-            link: route.email,
-            relatedRoutes: [route.emailReply],
-          },
+          { label: "Messagerie", link: route.email },
           { label: "To Do", link: route.todo, relatedRoutes: [route.todoList] },
           { label: "Notes", link: route.notes },
           { label: "File Manager", link: route.fileManager },

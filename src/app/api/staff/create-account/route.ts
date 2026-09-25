@@ -1,12 +1,14 @@
 import { NextRequest } from "next/server";
-import { getServiceSupabase, getUserFromBearer } from "@/lib/supabase/admin";
+import { getServiceSupabase } from "@/lib/supabase/admin";
+import { requireUser } from "@/lib/require-user";
 import { canAssignRole, canCreateStaffAccount } from "@/lib/authz";
 import { issuePasswordReset } from "@/lib/password-reset";
 import { welcomeMailBody, sendNoreplyMail } from "@/lib/transactional-mail";
 
 export async function POST(request: NextRequest) {
-  const user = await getUserFromBearer(request);
-  if (!user) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
+  const authed = await requireUser(request);
+  if (!authed) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
+  const user = authed.user;
 
   const admin = getServiceSupabase();
   const { data: actor } = await admin

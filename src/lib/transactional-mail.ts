@@ -1,4 +1,4 @@
-import { crmMailHeaders, crmMailHtml } from "@/lib/mail-deliverability";
+import { textToHtml, wrapOutgoingHtml } from "@/lib/mail/html";
 import { KALAO_NOREPLY_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://crm.groupe-kalao.com";
@@ -25,12 +25,11 @@ export async function sendNoreplyMail(input: {
       to: [input.to],
       subject: input.subject,
       text: input.body,
-      html: crmMailHtml(input.body),
+      html: wrapOutgoingHtml(textToHtml(input.body), "noreply"),
       reply_to: KALAO_NOREPLY_EMAIL,
       headers: {
         "Auto-Submitted": "auto-generated",
         "X-Auto-Response-Suppress": "All",
-        ...crmMailHeaders(KALAO_NOREPLY_EMAIL),
       },
     }),
   });
@@ -47,10 +46,7 @@ export function resetMailBody(_email: string, code: string, token: string): stri
     `Code : ${code}`,
     `Lien : ${siteUrl(`/reset-password?token=${encodeURIComponent(token)}`)}`,
     "",
-    "Ce code expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
-    "",
-    "Ce message est automatique. Merci de ne pas y répondre.",
-    `Envoyé par ${KALAO_NOREPLY_EMAIL}`,
+    "Ce code expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
     "",
     "Groupe Kalao",
   ].join("\n");
@@ -64,9 +60,6 @@ export function welcomeMailBody(name: string, email: string, token: string, code
     `Identifiant : ${email}`,
     code ? `Code : ${code}` : "",
     `Choisissez votre mot de passe : ${siteUrl(`/reset-password?token=${encodeURIComponent(token)}`)}`,
-    "",
-    "Ce message est automatique. Merci de ne pas y répondre.",
-    `Envoyé par ${KALAO_NOREPLY_EMAIL}`,
     "",
     "Groupe Kalao",
   ]

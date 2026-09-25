@@ -2,6 +2,13 @@ import { NextRequest } from "next/server";
 import { extractAddresses, inboundEmailId } from "@/lib/inbound-mail";
 import { inboundEndpoint } from "@/lib/org";
 import { ingestReceivedEmail, storeInboundEmail } from "@/lib/store-inbound";
+import { applyDeliveryEvent, DELIVERY_EVENTS } from "@/lib/mail/server/delivery";
+import { getServiceSupabase } from "@/lib/supabase/admin";
+import {
+  WebhookAuthError,
+  verifySharedInboundSecret,
+  verifySvixSignature,
+} from "@/lib/svix-verify";
 
 function inboundStatus(reason: string, stored: boolean) {
   if (reason === "inbound_store_missing") return 503;
@@ -9,15 +16,22 @@ function inboundStatus(reason: string, stored: boolean) {
   return 500;
 }
 
+function header(request: NextRequest, name: string) {
+  return request.headers.get(name) ?? request.headers.get(name.toLowerCase()) ?? "";
+}
+
 export async function GET() {
   return Response.json({
     ok: true,
     endpoint: inboundEndpoint(),
-    accepts: ["email.received", "n0c_forward"],
+    accepts: ["email.received", "n0c_forward", ...Object.keys(DELIVERY_EVENTS)],
   });
 }
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
+  const rawBody = await request.text();
   let payload: {
     type?: string;
     email_id?: string;
@@ -34,9 +48,40 @@ export async function POST(request: NextRequest) {
     };
   };
   try {
-    payload = (await request.json()) as typeof payload;
+    payload = JSON.parse(rawBody || "{}") as typeof payload;
   } catch {
     return Response.json({ ok: false, reason: "bad_payload" }, { status: 400 });
+  }
+
+  try {
+    const svixId = header(request, "svix-id");
+    const svixTimestamp = header(request, "svix-timestamp");
+    const svixSignature = header(request, "svix-signature");
+    if (svixId || svixTimestamp || svixSignature || payload.type === "email.received") {
+      verifySvixSignature({
+        rawBody,
+        svixId,
+        svixTimestamp,
+        svixSignature,
+        secret: process.env.RESEND_WEBHOOK_SECRET || "",
+      });
+    } else if (payload.type === "n0c_forward") {
+      verifySharedInboundSecret(
+        header(request, "x-kalao-inbound-secret"),
+        process.env.INBOUND_FORWARD_SECRET || process.env.INBOUND_INGEST_SECRET
+      );
+    } else {
+      throw new WebhookAuthError("unauthorized");
+    }
+  } catch (err) {
+    const reason = err instanceof WebhookAuthError ? err.message : "unauthorized";
+    return Response.json({ ok: false, reason }, { status: 401 });
+  }
+
+  // Suivi de livraison (délivré, rejeté, signalé…) : même webhook signé.
+  if (payload.type && DELIVERY_EVENTS[payload.type]) {
+    const result = await applyDeliveryEvent(getServiceSupabase(), payload);
+    return Response.json({ ok: true, ...result });
   }
 
   const data = payload.data ?? {};

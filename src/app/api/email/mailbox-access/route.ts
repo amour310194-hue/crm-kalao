@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { canCreateStaffAccount } from "@/lib/authz";
-import { getServiceSupabase, getUserFromBearer } from "@/lib/supabase/admin";
+import { getServiceSupabase } from "@/lib/supabase/admin";
+import { requireUser } from "@/lib/require-user";
 
 type SharedBox = "contact" | "noreply";
 
@@ -9,12 +10,10 @@ function isSharedBox(value: string): value is SharedBox {
 }
 
 async function actorCanManage(request: NextRequest) {
-  const user = await getUserFromBearer(request);
-  if (!user) return null;
-  const admin = getServiceSupabase();
-  const { data } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!canCreateStaffAccount(data?.role)) return null;
-  return user;
+  const authed = await requireUser(request);
+  if (!authed) return null;
+  if (!canCreateStaffAccount(authed.role)) return null;
+  return authed.user;
 }
 
 export async function GET(request: NextRequest) {

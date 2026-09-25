@@ -75,7 +75,7 @@ export default function KalaoResetPassword() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
-        minLength={8}
+        minLength={12}
         autoComplete="new-password"
       />
       <label className="form-label">Confirmer</label>
@@ -85,7 +85,7 @@ export default function KalaoResetPassword() {
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
         required
-        minLength={8}
+        minLength={12}
         autoComplete="new-password"
       />
       <button type="submit" className="btn btn-dark w-100" disabled={busy}>

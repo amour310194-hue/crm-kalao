@@ -1,124 +1,131 @@
 import { NextRequest } from "next/server";
-import { crmMailHeaders, crmMailHtml, fromAddress } from "@/lib/mail-deliverability";
-import { KALAO_CONTACT_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
+import { enforceRateLimits, supabaseRateLimitStore } from "@/lib/rate-limit";
+import { getMailContext, jsonError, readJson } from "@/lib/mail/server/context";
+import { persistOutgoing, prepareOutgoing, type RawCompose } from "@/lib/mail/server/outgoing";
+import { buildResendBody, checkScheduledAt, deliver, signedAttachmentUrls } from "@/lib/mail/server/send";
+import { resendConfigured } from "@/lib/mail/server/resend";
 
-type MailboxKey = "noreply" | "contact" | "personal";
+export const maxDuration = 60;
 
-function resolveFrom(mailbox: MailboxKey | undefined, requested?: string) {
-  if (mailbox === "contact") return `Contact Kalao <${KALAO_CONTACT_EMAIL}>`;
-  if (mailbox === "personal") {
-    const raw = String(requested ?? "").trim();
-    if (/@groupe-kalao\.com>/i.test(raw) || /@groupe-kalao\.com$/i.test(raw)) {
-      return raw;
-    }
-  }
-  return process.env.RESEND_FROM || KALAO_NOREPLY_FROM;
-}
+const SEND_MAX = 100;
+const SEND_WINDOW = 60 * 60;
 
-async function requireUser(request: NextRequest) {
-  const auth = request.headers.get("authorization") ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  if (!token) return null;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return null;
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabase = createClient(url, anon);
-  const { data } = await supabase.auth.getUser(token);
-  return data.user ?? null;
-}
-
+/**
+ * Envoi d'un mail. L'historique est écrit ici, côté serveur, avant l'appel à Resend :
+ * un mail parti a toujours sa trace, et le navigateur ne peut plus inventer d'historique.
+ */
 export async function POST(request: NextRequest) {
-  const user = await requireUser(request);
-  if (!user) {
-    return Response.json(
-      { ok: false, dispatched: false, reason: "unauthorized" },
-      { status: 401 }
-    );
-  }
-
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    return Response.json({ ok: true, dispatched: false, reason: "resend_missing" });
-  }
-
-  let payload: {
-    to?: string;
-    subject?: string;
-    body?: string;
-    mailbox?: MailboxKey;
-    from?: string;
-    attachments?: { filename?: string; content?: string; contentType?: string }[];
-  } = {};
   try {
-    payload = (await request.json()) as typeof payload;
-  } catch {
-    return Response.json(
-      { ok: false, dispatched: false, reason: "bad_payload" },
-      { status: 400 }
-    );
-  }
-
-  const to = String(payload.to ?? "").trim();
-  const subject = String(payload.subject ?? "CRM Kalao").trim();
-  const text = String(payload.body ?? "").trim();
-  if (!to || !text) {
-    return Response.json({ ok: true, dispatched: false, reason: "missing_to" });
-  }
-
-  const from = resolveFrom(payload.mailbox, payload.from);
-  const automatic = payload.mailbox !== "contact" && payload.mailbox !== "personal";
-  const replyTo = fromAddress(from);
-  const attachments = (payload.attachments ?? [])
-    .filter((file) => file.filename && file.content)
-    .slice(0, 8)
-    .map((file) => ({
-      filename: String(file.filename),
-      content: String(file.content),
-      content_type: file.contentType || undefined,
-    }));
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json; charset=utf-8",
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      text,
-      html: crmMailHtml(text),
-      reply_to: replyTo,
-      attachments: attachments.length ? attachments : undefined,
-      headers: automatic
-        ? {
-            "Auto-Submitted": "auto-generated",
-            "X-Auto-Response-Suppress": "All",
-            ...crmMailHeaders(from),
-          }
-        : crmMailHeaders(from),
-    }),
-  });
-
-  let detail: string | undefined;
-  let id: string | undefined;
-  const raw = await res.text();
-  try {
-    const parsed = JSON.parse(raw) as { message?: string; name?: string; id?: string };
-    id = parsed.id;
-    if (!res.ok) {
-      detail = [parsed.name, parsed.message].filter(Boolean).join(": ") || raw.slice(0, 280);
+    const ctx = await getMailContext(request);
+    const limited = await enforceRateLimits(supabaseRateLimitStore(), [
+      { key: `mail-send:user:${ctx.userId}`, windowSeconds: SEND_WINDOW, max: SEND_MAX },
+    ]);
+    if (limited.limited) {
+      return Response.json(
+        { ok: false, dispatched: false, reason: "too_many_requests", detail: "Limite de 100 envois par heure atteinte." },
+        { status: 429, headers: { "Retry-After": String(limited.retryAfter) } }
+      );
     }
-  } catch {
-    if (!res.ok) detail = raw.slice(0, 280);
-  }
 
-  return Response.json({
-    ok: res.ok,
-    dispatched: res.ok,
-    reason: res.ok ? "sent" : "resend_error",
-    detail,
-    id,
-  });
+    const raw = await readJson<RawCompose & { force?: boolean }>(request);
+    const scheduledAt = checkScheduledAt(raw.scheduledAt);
+    const prepared = await prepareOutgoing(ctx, raw, "send");
+
+    const all = [...prepared.recipients.to, ...prepared.recipients.cc, ...prepared.recipients.bcc];
+    if (!raw.force && all.length) {
+      const { data: blocked } = await ctx.admin
+        .from("crm_mail_suppressions")
+        .select("email, reason")
+        .in("email", all);
+      if (blocked?.length) {
+        return Response.json(
+          { ok: false, dispatched: false, reason: "suppressed", suppressed: blocked },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (!resendConfigured()) {
+      await persistOutgoing(ctx, prepared, {
+        folder: "drafts",
+        status: "failed",
+        delivery_status: "failed",
+        delivery_detail: "Resend n'est pas configuré (RESEND_API_KEY).",
+        delivery_updated_at: new Date().toISOString(),
+      });
+      return Response.json({ ok: false, dispatched: false, reason: "resend_missing", id: prepared.id, threadId: prepared.threadId });
+    }
+
+    await persistOutgoing(ctx, prepared, {
+      folder: scheduledAt ? "scheduled" : "sent",
+      status: "queued",
+      delivery_status: "queued",
+      scheduled_at: scheduledAt,
+    });
+
+    const body = buildResendBody({
+      kind: prepared.kind,
+      from: prepared.from,
+      replyTo: prepared.fromAddress,
+      recipients: prepared.recipients,
+      subject: prepared.subject,
+      bodyHtml: prepared.html,
+      messageId: prepared.messageId,
+      inReplyTo: prepared.inReplyTo,
+      references: prepared.references,
+      attachments: await signedAttachmentUrls(ctx.admin, prepared.attachments, scheduledAt),
+      scheduledAt,
+      emailId: prepared.id,
+    });
+    const res = await deliver(body, prepared.id);
+    const now = new Date().toISOString();
+
+    if (res.ok) {
+      await ctx.admin
+        .from("crm_emails")
+        .update({
+          status: scheduledAt ? "scheduled" : "sent",
+          delivery_status: scheduledAt ? "scheduled" : "sent",
+          delivery_updated_at: now,
+          resend_id: res.data?.id ?? null,
+          sent_at: scheduledAt ? null : now,
+        })
+        .eq("id", prepared.id);
+    } else {
+      await ctx.admin
+        .from("crm_emails")
+        .update({
+          folder: "drafts",
+          status: "failed",
+          delivery_status: "failed",
+          delivery_detail: res.detail,
+          delivery_updated_at: now,
+          scheduled_at: null,
+        })
+        .eq("id", prepared.id);
+    }
+
+    await ctx.admin.from("mail_send_log").insert({
+      actor_id: ctx.userId,
+      mailbox: prepared.mailbox,
+      from_email: prepared.fromAddress,
+      to_email: all.join(", ").slice(0, 1000),
+      subject: prepared.subject,
+      resend_id: res.ok ? res.data?.id ?? null : null,
+      ok: res.ok,
+    });
+
+    return Response.json({
+      ok: res.ok,
+      dispatched: res.ok,
+      scheduled: Boolean(scheduledAt && res.ok),
+      reason: res.ok ? (scheduledAt ? "scheduled" : "sent") : "resend_error",
+      detail: res.ok ? undefined : res.detail,
+      id: prepared.id,
+      threadId: prepared.threadId,
+      to: prepared.recipients.to[0] ?? "",
+    });
+  } catch (err) {
+    return jsonError(err);
+  }
 }
