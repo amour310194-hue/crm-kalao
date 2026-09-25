@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { extractAddresses, inboundEmailId } from "@/lib/inbound-mail";
 import { inboundEndpoint } from "@/lib/org";
 import { ingestReceivedEmail, storeInboundEmail } from "@/lib/store-inbound";
+import { applyDeliveryEvent, DELIVERY_EVENTS } from "@/lib/mail/server/delivery";
+import { getServiceSupabase } from "@/lib/supabase/admin";
 import {
   WebhookAuthError,
   verifySharedInboundSecret,
@@ -22,9 +24,11 @@ export async function GET() {
   return Response.json({
     ok: true,
     endpoint: inboundEndpoint(),
-    accepts: ["email.received", "n0c_forward"],
+    accepts: ["email.received", "n0c_forward", ...Object.keys(DELIVERY_EVENTS)],
   });
 }
+
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
@@ -72,6 +76,12 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const reason = err instanceof WebhookAuthError ? err.message : "unauthorized";
     return Response.json({ ok: false, reason }, { status: 401 });
+  }
+
+  // Suivi de livraison (délivré, rejeté, signalé…) : même webhook signé.
+  if (payload.type && DELIVERY_EVENTS[payload.type]) {
+    const result = await applyDeliveryEvent(getServiceSupabase(), payload);
+    return Response.json({ ok: true, ...result });
   }
 
   const data = payload.data ?? {};

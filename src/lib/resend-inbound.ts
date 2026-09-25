@@ -1,4 +1,8 @@
 import { inboundEndpoint } from "@/lib/org";
+import { DELIVERY_EVENTS } from "@/lib/mail/server/delivery";
+
+/** Réception + suivi de livraison sur le même point d'entrée signé. */
+export const WEBHOOK_EVENTS = ["email.received", ...Object.keys(DELIVERY_EVENTS)];
 
 export type ResendWebhookRow = {
   id?: string;
@@ -40,13 +44,22 @@ export async function ensureInboundWebhook(): Promise<{
 
   const existing = (await listResendWebhooks()).find((row) => isInboundWebhook(row, endpoint));
   if (existing?.id) {
-    return { ok: true, reason: "exists", id: existing.id, endpoint };
+    const missing = WEBHOOK_EVENTS.filter((e) => !(existing.events ?? []).includes(e));
+    if (!missing.length) return { ok: true, reason: "exists", id: existing.id, endpoint };
+    const res = await fetch(`https://api.resend.com/webhooks/${existing.id}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ events: WEBHOOK_EVENTS }),
+    });
+    return res.ok
+      ? { ok: true, reason: "events_updated", id: existing.id, endpoint }
+      : { ok: false, reason: `update_failed (${res.status})`, id: existing.id, endpoint };
   }
 
   const res = await fetch("https://api.resend.com/webhooks", {
     method: "POST",
     headers,
-    body: JSON.stringify({ endpoint, events: ["email.received"] }),
+    body: JSON.stringify({ endpoint, events: WEBHOOK_EVENTS }),
   });
   const json = (await res.json()) as { id?: string; message?: string };
   if (!res.ok || !json.id) {

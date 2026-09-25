@@ -7,6 +7,9 @@ const LAST_SEEN = "kalao_last_seen";
 
 const HOME_ALIASES = ["/deals-dashboard"];
 
+/** Ancienne page de lecture du template : la messagerie ouvre les mails elle-même. */
+const MAIL_ALIASES = ["/application/email-reply"];
+
 const BLOCKED = [
   "/ai-crm",
   "/automation",
@@ -47,6 +50,11 @@ export async function proxy(request: NextRequest) {
   if (HOME_ALIASES.some((prefix) => matches(path, prefix))) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+  if (MAIL_ALIASES.some((prefix) => matches(path, prefix))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/application/email";
     return NextResponse.redirect(url);
   }
   if (BLOCKED.some((prefix) => matches(path, prefix))) {

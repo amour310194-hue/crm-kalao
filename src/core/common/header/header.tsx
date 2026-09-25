@@ -16,6 +16,7 @@ import {
 } from "@/lib/supabase/client";
 import { fetchMyProfile } from "@/lib/crm";
 import { ROLE_LABEL } from "@/lib/org";
+import MailUnreadBadge from "@/components/mail/MailUnreadBadge";
 
 /**
  * Aucune source de notifications n'existe encore côté base : les quatre entrées
@@ -310,8 +311,9 @@ const Header = () => {
             {/* message */}
             <div className="header-item">
               <div className="dropdown me-2">
-                <Link href={route.email} className="btn topbar-link">
-                  <i className="ti ti-message-circle-exclamation" />
+                <Link href={route.email} className="btn topbar-link position-relative" title="Messagerie">
+                  <i className="ti ti-mail" />
+                  <MailUnreadBadge />
                 </Link>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
-import { POST as confirmReset } from "@/app/api/auth/reset-confirm/route";
+import { handleResetConfirm as confirmReset } from "@/lib/reset-confirm-handler";
 import {
   RESET_CONFIRM_MAX,
   RESET_CONFIRM_WINDOW,

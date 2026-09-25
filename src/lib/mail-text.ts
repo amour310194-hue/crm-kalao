@@ -76,32 +76,3 @@ export function repairMailText(value: string | null | undefined): string {
   }
   return text;
 }
-
-export function applyMailVars(
-  template: string,
-  vars: Record<string, string | null | undefined>
-): string {
-  return template.replace(/\{\{\s*([a-z0-9_]+)\s*\}\}/gi, (_, key: string) => {
-    const value = vars[key] ?? vars[key.toLowerCase()];
-    return value?.trim() || "";
-  });
-}
-
-export async function filesToMailPayload(files: File[]): Promise<
-  { filename: string; content: string; contentType?: string }[]
-> {
-  const out = [];
-  for (const file of files) {
-    if (file.size > 8 * 1024 * 1024) continue;
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
-    out.push({
-      filename: file.name,
-      content: btoa(binary),
-      contentType: file.type || undefined,
-    });
-  }
-  return out;
-}

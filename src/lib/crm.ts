@@ -991,8 +991,15 @@ export function explainRemind(result: RemindResult): string {
 }
 
 export async function remindInvoiceById(invoiceId: string): Promise<RemindResult> {
-  const rows = await fetchInvoices();
-  const invoice = rows?.find((row) => row.id === invoiceId);
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("*, companies(name, email, phone, address, city, country)")
+    .eq("id", invoiceId)
+    .maybeSingle();
+  throwIf(error);
+  const invoice = data as InvoiceRow | null;
   if (!invoice) throw new Error("Facture introuvable");
   const to = invoice.companies?.email?.trim() || "";
   if (!to) return { dispatched: false, to: null, reason: "missing_to" };
@@ -1017,6 +1024,7 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
       .filter(Boolean)
       .join("\n"),
     companyId: invoice.company_id,
+    contactId: invoice.contact_id,
     invoiceId: invoice.id,
   });
   return {

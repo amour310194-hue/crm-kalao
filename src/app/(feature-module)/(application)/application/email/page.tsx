@@ -1,11 +1,15 @@
-﻿import EmailComponent from "@/components/Pages/application-module/email/email";
+import MailApp from "@/components/mail/MailApp";
 
 export const metadata = {
-  title: "Email",
+  title: "Messagerie — Kalao CRM",
 };
 
-export default function Email(){
-    return(
-        <><EmailComponent/></>
-    )
+export default function Email() {
+  return (
+    <div className="page-wrapper">
+      <div className="content p-0">
+        <MailApp />
+      </div>
+    </div>
+  );
 }

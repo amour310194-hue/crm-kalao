@@ -74,6 +74,25 @@ Q1 n0c_forward : conservé derrière secret (pas d’OK pour le supprimer).
 | Particulier vs entreprise | ⏸ |
 | Contact C07 | ❓ Q8 — trou de numérotation, pas créé |
 
+## Messagerie (26 sept. 2026) — voir `docs/MESSAGERIE.md`
+
+| Point de l'audit mail | Statut |
+|---|---|
+| Ouvrir la boîte envoyait un vrai mail client (`remindDueVisaActivities`) | ✅ supprimé ; remplacé par des relances serveur J-3 / J+7, une fois par facture, en simulation par défaut |
+| Historique écrit par le navigateur, falsifiable | ✅ INSERT/UPDATE/DELETE révoqués pour `authenticated` ; écriture uniquement par l'API (v26) |
+| Mail parti sans trace si l'onglet se ferme | ✅ ligne créée côté serveur avant l'appel Resend |
+| `x-vercel-cron` accepté seul sur la synchronisation | ✅ `CRON_SECRET` ou session, 1 synchronisation par minute |
+| Adresse inconnue rangée dans Contact | ✅ file « À trier » réservée aux admins |
+| Chargement de toute la boîte, 1000 lignes max, recherche locale | ✅ `mail_threads` / `mail_counts` : pagination et recherche plein texte côté base |
+| Pièces jointes reçues ignorées, envoyées limitées à ~3 Mo | ✅ stockage privé, 25 Mo, URL signées |
+| Pas de fils, un seul destinataire, texte brut | ✅ In-Reply-To/References, À/Cc/Cci, éditeur riche, HTML nettoyé |
+| Lu / supprimé partagé pour tous, pas d'attribution | ✅ état lu/suivi/important/en attente par personne ; attribution |
+| « Envoyé » ≠ « reçu » | ✅ événements Resend de livraison, adresses rejetées bloquées |
+| Pied de mail « Répondez » sur no-reply, List-Unsubscribe-Post invalide | ✅ gabarit selon le type d'envoi, en-tête retiré |
+| DMARC absent du diagnostic | ✅ DMARC + SPF du sous-domaine `send` |
+| Contenu de démo, dossiers en anglais, page `email-reply` | ✅ ancien écran supprimé (-3 000 lignes), tout en français, redirection |
+| Build Vercel cassé par les routes reset (PR #2) | ✅ logique déplacée dans `src/lib/reset-*-handler.ts` |
+
 ## Phases 4–7
 
 ⏸ pipeline visa 10 étapes en base, tunnel lead→devis, 2FA, SMS/WhatsApp ❓ Q9, e2e.
