@@ -8,9 +8,10 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import {
   closeBootstrapChrome,
+  clientDisplayName,
   createInvoice,
   emptyUuid,
-  fetchCompanies,
+  fetchContacts,
   parseAmount,
   readForm,
 } from "@/lib/crm"
@@ -20,13 +21,15 @@ type ModalInvoiceProps = { onSaved?: () => void }
 
 const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
   const [companyOptions, setCompanyOptions] = useState<Option[]>(Client)
+  const [clients, setClients] = useState<{ id: string; company_id: string | null }[]>([])
 
   useEffect(() => {
-    void fetchCompanies().then((rows) => {
+    void fetchContacts().then((rows) => {
       if (!rows) return
+      setClients(rows.map((c) => ({ id: c.id, company_id: c.company_id })))
       setCompanyOptions([
-        { value: "", label: "Select" },
-        ...rows.map((c) => ({ value: c.id, label: c.name })),
+        { value: "", label: "Choisir" },
+        ...rows.map((c) => ({ value: c.id, label: clientDisplayName(c) })),
       ])
     })
   }, [])
@@ -35,8 +38,11 @@ const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
     e.preventDefault()
     try {
       const vals = readForm(e.currentTarget)
+      const contactId = emptyUuid(vals.contact_id)
+      const linked = clients.find((c) => c.id === contactId)
       await createInvoice({
-        company_id: emptyUuid(vals.company_id),
+        contact_id: contactId,
+        company_id: linked?.company_id || null,
         project: vals.project || "Facture",
         amount: parseAmount(vals.amount),
       })
@@ -82,7 +88,7 @@ const ModalInvoice = ({ onSaved }: ModalInvoiceProps) => {
                 </Link>
               </div>
               <CommonSelect
-                            name="company_id"
+                            name="contact_id"
                             options={companyOptions}
                             className="select"
                             defaultValue={companyOptions[0]}

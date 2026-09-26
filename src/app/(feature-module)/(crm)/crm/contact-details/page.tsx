@@ -1,7 +1,7 @@
 ﻿import ContactsDetailsComponent from "@/components/Pages/crm-module/contacts/contactsDetails";
 
 export const metadata = {
-  title: "Contact Details",
+  title: "Fiche client",
 };
 
 export default function ContactDetails(){

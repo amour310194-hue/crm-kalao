@@ -112,7 +112,7 @@ const CompaniesDetailsComponent = () => {
         <div className="content pb-0">
           {/* Page Header */}
           <PageHeader
-            title="Companies"
+            title="Fournisseurs"
             badgeCount={live ? null : 125}
             showModuleTile={false}
             showExport={false}
@@ -123,7 +123,7 @@ const CompaniesDetailsComponent = () => {
               <div className="mb-3">
                 <Link href={all_routes.companiesGrid}>
                   <i className="ti ti-arrow-narrow-left me-1" />
-                  Back to Companies
+                  Back to Fournisseurs
                 </Link>
               </div>
               <div className="card">
@@ -328,7 +328,7 @@ const CompaniesDetailsComponent = () => {
                     </Link>
                   </div>
                   <div className={live ? "d-none" : "d-flex align-items-center justify-content-between flex-wrap"}>
-                    <h6 className="mb-3 fw-semibold">Company</h6>
+                    <h6 className="mb-3 fw-semibold">Fournisseur</h6>
                     <Link
                       href="#"
                       className="link-primary mb-3"

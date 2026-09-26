@@ -14,7 +14,7 @@ import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
-import { deleteCompany, fetchCompanies, toCompaniesListRow } from "@/lib/crm";
+import { deleteCompany, fetchSuppliers, toCompaniesListRow } from "@/lib/crm";
 
 const CompaniesListComponent = () => {
   const [filledStars, setFilledStars] = useState<{ [key: string]: boolean }>(
@@ -27,7 +27,7 @@ const CompaniesListComponent = () => {
     }));
   };
   const loadCompanies = useCallback(async () => {
-    const rows = await fetchCompanies();
+    const rows = await fetchSuppliers();
     return rows ? rows.map(toCompaniesListRow) : null;
   }, []);
   const { rows: data, live, reload } = useLiveRows(CompaniesListData, loadCompanies);
@@ -49,7 +49,7 @@ const CompaniesListComponent = () => {
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
     },
     {
-      title: "Name",
+      title: "Fournisseur",
       dataIndex: "Name",
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
@@ -211,15 +211,15 @@ const CompaniesListComponent = () => {
         <div className="content pb-0">
           {/* Page Header */}
           <PageHeader
-            title="Companies"
+            title="Fournisseurs"
             badgeCount={data.length}
             showModuleTile={false}
             showExport={false}
             headerExtra={
               live ? (
                 <KalaoExportBar
-                  filename="clients-kalao"
-                  headers={["Client", "Email", "Telephone", "Ville"]}
+                  filename="fournisseurs-kalao"
+                  headers={["Fournisseur", "Email", "Telephone", "Ville"]}
                   rows={data
                     .filter((row) => Boolean(rowLiveId(row)))
                     .map((row) => {
@@ -248,7 +248,7 @@ const CompaniesListComponent = () => {
                 data-bs-target="#offcanvas_add"
               >
                 <i className="ti ti-square-rounded-plus-filled me-1" />
-                Add Company
+                Ajouter un fournisseur
               </Link>
             </div>
             <div className="card-body">

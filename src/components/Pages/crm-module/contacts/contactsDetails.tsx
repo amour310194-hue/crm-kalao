@@ -112,7 +112,7 @@ const ContactsDetailsComponent = () => {
           <div className="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
             <div>
               <h4 className="mb-1">
-                Contacts
+                Clients
                 {live ? null : (
                   <span className="badge badge-soft-primary ms-2">125</span>
                 )}
@@ -123,7 +123,7 @@ const ContactsDetailsComponent = () => {
                     <Link href={all_routes.dealsDashboard}>Home</Link>
                   </li>
                   <li className="breadcrumb-item active" aria-current="page">
-                    Contacts
+                    Clients
                   </li>
                 </ol>
               </nav>
@@ -184,7 +184,7 @@ const ContactsDetailsComponent = () => {
               <div className="mb-3">
                 <Link href={all_routes.contactGrid}>
                   <i className="ti ti-arrow-narrow-left me-1" />
-                  Back to Contacts
+                  Back to Clients
                 </Link>
               </div>
               <div className="card">
@@ -437,7 +437,7 @@ const ContactsDetailsComponent = () => {
                     )}
                   </div>
                   <div className={live ? "d-none" : "d-flex align-items-center justify-content-between flex-wrap"}>
-                    <h6 className="mb-3 fw-semibold">Company</h6>
+                    <h6 className="mb-3 fw-semibold">Fiche client</h6>
                     <Link
                       href="#"
                       className="link-primary mb-3"
