@@ -82,6 +82,7 @@ export async function updateDossier(
     title?: string;
     kind?: string | null;
     company_id?: string | null;
+    contact_id?: string | null;
     status?: string | null;
     start_at?: string | null;
     end_at?: string | null;
@@ -95,6 +96,7 @@ export async function updateDossier(
   if (input.title !== undefined) patch.title = input.title;
   if (input.kind !== undefined && input.kind) patch.kind = input.kind;
   if (input.company_id !== undefined) patch.company_id = emptyUuid(input.company_id);
+  if (input.contact_id !== undefined) patch.contact_id = emptyUuid(input.contact_id);
   if (input.status !== undefined && input.status) patch.status = input.status;
   if (input.start_at !== undefined) patch.start_at = input.start_at || null;
   if (input.end_at !== undefined) patch.end_at = input.end_at || null;

@@ -1,13 +1,12 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import CommonSelect from "@/core/common/common-select/commonSelect";
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
 import CommonPhoneInput from "@/core/common/common-phoneInput/commonPhoneInput";
 import {
   City,
-  Company_Name,
   Country,
   Currency,
   Deals,
@@ -26,12 +25,10 @@ import MultipleSelect from "@/core/common/multiple-Select/multipleSelect";
 import TextEditor from "@/core/common/texteditor/texteditor";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
-import type { Option } from "@/core/common/common-select/commonSelect";
 import {
   closeBootstrapChrome,
   createContact,
   emptyUuid,
-  fetchCompanies,
   readForm,
   showBootstrap,
   updateContact,
@@ -44,22 +41,16 @@ type ModalContactsProps = {
 };
 
 const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) => {
-  const [companyOptions, setCompanyOptions] = useState<Option[]>(Company_Name);
+  const [addKind, setAddKind] = useState<"person" | "company">("person");
+  const [editKind, setEditKind] = useState<"person" | "company">("person");
 
-  useEffect(() => {
-    void fetchCompanies().then((rows) => {
-      if (!rows) return;
-      setCompanyOptions([
-        { value: "", label: "Select" },
-        ...rows.map((c) => ({ value: c.id, label: c.name })),
-      ]);
-    });
-  }, []);
-
-  const saveContact = async (form: HTMLFormElement, id?: string | null) => {
+  const saveContact = async (form: HTMLFormElement, id?: string | null, kind: "person" | "company" = "person") => {
     const vals = readForm(form);
-    const first_name = (vals.first_name || "").trim() || "Contact";
-    const last_name = (vals.last_name || "").trim() || "Kalao";
+    const isCompany = kind === "company" || vals.account_type === "company";
+    const first_name = isCompany
+      ? (vals.first_name || "").trim() || "Entreprise"
+      : (vals.first_name || "").trim() || "Client";
+    const last_name = isCompany ? "—" : (vals.last_name || "").trim() || "Kalao";
     const payload = {
       first_name,
       last_name,
@@ -67,6 +58,7 @@ const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) =>
       email: vals.email || null,
       phone: phone || vals.phone || null,
       company_id: emptyUuid(vals.company_id),
+      account_type: (isCompany ? "company" : "person") as "person" | "company",
     };
     if (id) {
       await updateContact(id, payload);
@@ -345,7 +337,7 @@ const options2 = [
         id="offcanvas_add"
       >
         <div className="offcanvas-header border-bottom">
-          <h5 className="mb-0">Add New Contact</h5>
+          <h5 className="mb-0">Ajouter un client</h5>
           <button
             type="button"
             className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
@@ -358,7 +350,7 @@ const options2 = [
             onSubmit={async (e) => {
               e.preventDefault();
               try {
-                await saveContact(e.currentTarget);
+                await saveContact(e.currentTarget, null, addKind);
               } catch (err) {
                 alert(err instanceof Error ? err.message : "Erreur");
               }
@@ -408,49 +400,59 @@ const options2 = [
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-md-12">
+                        <div className="mb-3">
+                          <label className="form-label">Type de client</label>
+                          <div className="d-flex gap-3">
+                            <label className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="radio"
+                                name="account_type"
+                                value="person"
+                                checked={addKind === "person"}
+                                onChange={() => setAddKind("person")}
+                              />
+                              <span className="form-check-label">Personne</span>
+                            </label>
+                            <label className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="radio"
+                                name="account_type"
+                                value="company"
+                                checked={addKind === "company"}
+                                onChange={() => setAddKind("company")}
+                              />
+                              <span className="form-check-label">Entreprise</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={addKind === "company" ? "col-md-12" : "col-md-6"}>
                         <div className="mb-3">
                           <label className="form-label">
-                            First Name <span className="text-danger">*</span>
+                            {addKind === "company" ? "Nom de l'entreprise" : "Prénom"}{" "}
+                            <span className="text-danger">*</span>
                           </label>
                           <input type="text" className="form-control" name="first_name" />
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Last Name <span className="text-danger">*</span>
-                          </label>
-                          <input type="text" className="form-control" name="last_name" />
+                      {addKind === "person" ? (
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Nom <span className="text-danger">*</span>
+                            </label>
+                            <input type="text" className="form-control" name="last_name" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Job Title <span className="text-danger">*</span>
-                          </label>
-                          <input type="text" className="form-control" name="job_title" />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Company Name
-                            <span className="text-danger ms-1">*</span>
-                          </label>
-                          <CommonSelect
-                            name="company_id"
-                            options={companyOptions}
-                            className="select"
-                            defaultValue={companyOptions[0]}
-                          />
-                        </div>
-                      </div>
+                      ) : null}
                       <div className="col-md-12">
                         <div className="mb-3">
                           <div className="d-flex justify-content-between align-items-center">
                             <label className="form-label">
-                              Email <span className="text-danger">*</span>
+                              Email
                             </label>
                             <div className="form-check form-switch mb-1">
                               <label className="form-check-label d-flex align-items-center gap-2">
@@ -856,7 +858,7 @@ const options2 = [
         id="offcanvas_edit"
       >
         <div className="offcanvas-header border-bottom">
-          <h5 className="mb-0">Edit Contact</h5>
+          <h5 className="mb-0">Modifier le client</h5>
           <button
             type="button"
             className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
@@ -869,7 +871,7 @@ const options2 = [
             onSubmit={async (e) => {
               e.preventDefault();
               try {
-                await saveContact(e.currentTarget, selectedId);
+                await saveContact(e.currentTarget, selectedId, editKind);
               } catch (err) {
                 alert(err instanceof Error ? err.message : "Erreur");
               }
@@ -928,63 +930,59 @@ const options2 = [
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-md-12">
                         <div className="mb-3">
-                          <label className="form-label">
-                            First Name <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            name="first_name"
-                            defaultValue="William"
-                          />
+                          <label className="form-label">Type de client</label>
+                          <div className="d-flex gap-3">
+                            <label className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="radio"
+                                name="account_type"
+                                value="person"
+                                checked={editKind === "person"}
+                                onChange={() => setEditKind("person")}
+                              />
+                              <span className="form-check-label">Personne</span>
+                            </label>
+                            <label className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="radio"
+                                name="account_type"
+                                value="company"
+                                checked={editKind === "company"}
+                                onChange={() => setEditKind("company")}
+                              />
+                              <span className="form-check-label">Entreprise</span>
+                            </label>
+                          </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className={editKind === "company" ? "col-md-12" : "col-md-6"}>
                         <div className="mb-3">
                           <label className="form-label">
-                            Last Name <span className="text-danger">*</span>
+                            {editKind === "company" ? "Nom de l'entreprise" : "Prénom"}{" "}
+                            <span className="text-danger">*</span>
                           </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            name="last_name"
-                            defaultValue="Anderson"
-                          />
+                          <input type="text" className="form-control" name="first_name" />
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Job Title <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            name="job_title"
-                            defaultValue="Data Analytics"
-                          />
+                      {editKind === "person" ? (
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Nom <span className="text-danger">*</span>
+                            </label>
+                            <input type="text" className="form-control" name="last_name" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Company Name
-                            <span className="text-danger ms-1">*</span>
-                          </label>
-                          <CommonSelect
-                            options={Company_Name}
-                            className="select"
-                            defaultValue={Company_Name[1]}
-                          />
-                        </div>
-                      </div>
+                      ) : null}
                       <div className="col-md-12">
                         <div className="mb-3">
                           <div className="d-flex justify-content-between align-items-center">
                             <label className="form-label">
-                              Email <span className="text-danger">*</span>
+                              Email
                             </label>
                             <div className="form-check form-switch mb-1">
                               <label className="form-check-label d-flex align-items-center gap-2">

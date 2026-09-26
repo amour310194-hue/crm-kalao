@@ -100,6 +100,9 @@ function parseAmount(raw: string | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+export type PartyRole = "supplier" | "client";
+export type ClientKind = "person" | "company";
+
 export interface CompanyRow {
   id: string;
   name: string;
@@ -111,6 +114,7 @@ export interface CompanyRow {
   city: string | null;
   country: string | null;
   notes: string | null;
+  party_role?: PartyRole | null;
 }
 
 export interface ContactRow {
@@ -122,11 +126,26 @@ export interface ContactRow {
   phone: string | null;
   job_title: string | null;
   notes: string | null;
+  account_type?: ClientKind | string | null;
   nationality?: string | null;
   birth_date?: string | null;
   birth_place?: string | null;
   passport_no?: string | null;
+  created_at?: string;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
+}
+
+export function isCompanyClient(row: Pick<ContactRow, "account_type">): boolean {
+  return row.account_type === "company";
+}
+
+export function clientDisplayName(row: Pick<ContactRow, "first_name" | "last_name" | "account_type">): string {
+  if (isCompanyClient(row)) return (row.first_name || "").trim() || "Entreprise";
+  return `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || "Client";
+}
+
+export function clientKindLabel(kind?: string | null): string {
+  return kind === "company" ? "Entreprise" : "Personne";
 }
 
 export interface LeadRow {
@@ -195,6 +214,7 @@ export interface InvoiceRow {
   is_conditional?: boolean;
   created_at: string;
   companies?: { name: string | null; email?: string | null; phone?: string | null; address?: string | null; city?: string | null; country?: string | null } | null;
+  contacts?: { first_name: string; last_name: string; account_type?: string | null; email?: string | null; phone?: string | null } | null;
 }
 
 export interface PaymentRow {
@@ -331,10 +351,22 @@ export async function fetchCompanies(): Promise<CompanyRow[] | null> {
   return (data ?? []) as CompanyRow[];
 }
 
+export async function fetchSuppliers(): Promise<CompanyRow[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("companies")
+    .select("*")
+    .eq("party_role", "supplier")
+    .order("name");
+  throwIf(error);
+  return (data ?? []) as CompanyRow[];
+}
+
 export async function createCompany(input: Partial<CompanyRow> & { name: string }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { data, error } = await supabase.from("companies").insert(input).select("*").single();
+  const { data, error } = await supabase.from("companies").insert({ ...input, party_role: "supplier" }).select("*").single();
   throwIf(error);
   return data as CompanyRow;
 }
@@ -361,7 +393,7 @@ export function toCompaniesListRow(row: CompanyRow, index: number) {
     Image: companyImageName(row, index),
     Name: row.name,
     Email: row.email ?? "—",
-    Tags: row.industry || "Collab",
+    Tags: row.industry || "Fournisseur",
     Owner: row.city || "Kalao",
     Owner_Img: "avatar-01.jpg",
     Status: "Active",
@@ -389,10 +421,27 @@ export async function createContact(input: {
   job_title?: string | null;
   company_id?: string | null;
   notes?: string | null;
+  account_type?: ClientKind | null;
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { data, error } = await supabase.from("contacts").insert(input).select("*").single();
+  const account_type: ClientKind = input.account_type === "company" ? "company" : "person";
+  const first_name = input.first_name.trim() || (account_type === "company" ? "Entreprise" : "Client");
+  const last_name = account_type === "company" ? (input.last_name.trim() || "—") : (input.last_name.trim() || "Kalao");
+  const { data, error } = await supabase
+    .from("contacts")
+    .insert({
+      first_name,
+      last_name,
+      email: input.email || null,
+      phone: input.phone || null,
+      job_title: input.job_title || null,
+      company_id: input.company_id || null,
+      notes: input.notes || null,
+      account_type,
+    })
+    .select("*")
+    .single();
   throwIf(error);
   return data as ContactRow;
 }
@@ -412,14 +461,15 @@ export async function deleteContact(id: string) {
 }
 
 export function toContactsListRow(row: ContactRow, _index: number) {
-  const name = `${row.first_name} ${row.last_name}`.trim();
+  const name = clientDisplayName(row);
+  const kind = clientKindLabel(row.account_type);
   return {
     key: row.id,
     Name: name,
-    Role: row.job_title ?? row.companies?.name ?? "Contact",
-    role: row.job_title ?? row.companies?.name ?? "Contact",
+    Role: kind,
+    role: kind,
     Phone: row.phone ?? "—",
-    Tags: "Collab",
+    Tags: kind,
     Location: row.companies?.city || row.companies?.country || "Yaoundé",
     Rating: "—",
     Image: "",
@@ -429,11 +479,15 @@ export function toContactsListRow(row: ContactRow, _index: number) {
       .map((p, i, a) => (a.length === 1 ? p.slice(0, 2) : i === 0 || i === a.length - 1 ? p[0] : ""))
       .join("")
       .slice(0, 2)
-      .toUpperCase() || "K",
-    Flags: "cm.svg",
+      .toUpperCase(),
+    Owner: "Kalao",
+    Owner_Img: "avatar-01.jpg",
     Status: "Active",
+    Contact: row.email ?? "—",
+    Created: formatDate(row.created_at),
     Email: row.email ?? "—",
     companyId: row.company_id,
+    Flags: "cm.svg",
   };
 }
 
@@ -724,6 +778,7 @@ export async function fetchQuotes(): Promise<QuoteRow[] | null> {
 
 export async function createQuote(input: {
   company_id?: string | null;
+  contact_id?: string | null;
   notes?: string | null;
   valid_until?: string | null;
   lines: {
@@ -742,6 +797,7 @@ export async function createQuote(input: {
     .insert({
       number: docNumber("QUO"),
       company_id: input.company_id || null,
+      contact_id: input.contact_id || null,
       notes: input.notes || null,
       valid_until: input.valid_until || null,
       status: "draft",
@@ -889,7 +945,7 @@ export async function fetchInvoices(): Promise<InvoiceRow[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("invoices")
-    .select("*, companies(name, email, phone, address, city, country)")
+    .select("*, companies(name, email, phone, address, city, country), contacts(first_name, last_name, account_type, email, phone)")
     .order("created_at", { ascending: false });
   throwIf(error);
   return (data ?? []) as InvoiceRow[];
@@ -1047,7 +1103,7 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Key: row.id,
     key: row.id,
     Invoice_ID: row.number ? `#${row.number}` : `#${row.id.slice(0, 8)}`,
-    Client: row.companies?.name ?? "—",
+    Client: row.contacts ? clientDisplayName(row.contacts) : row.companies?.name ?? "—",
     Client_Image: "company-01.svg",
     Project: row.project ?? "—",
     project: row.project ?? "—",
@@ -1562,6 +1618,7 @@ export interface DossierRow {
   bassin_drawn?: boolean;
   updated_at?: string | null;
   companies?: { name: string | null } | null;
+  contacts?: { first_name: string; last_name: string; account_type?: string | null } | null;
   dossier_members?: { employee_id: string; employees?: { full_name: string } | null }[];
 }
 
@@ -1722,7 +1779,7 @@ export async function fetchDossiers(kind?: DossierKind | DossierKind[]): Promise
   if (!supabase) return null;
   let q = supabase
     .from("dossiers")
-    .select("*, companies(name), dossier_members(employee_id, employees(full_name))")
+    .select("*, companies(name), contacts(first_name, last_name, account_type), dossier_members(employee_id, employees(full_name))")
     .order("created_at", { ascending: false });
   if (kind) {
     const kinds = Array.isArray(kind) ? kind : [kind];
@@ -1730,7 +1787,7 @@ export async function fetchDossiers(kind?: DossierKind | DossierKind[]): Promise
   }
   const { data, error } = await q;
   if (error) {
-    const retry = await supabase.from("dossiers").select("*, companies(name)").order("created_at", { ascending: false });
+    const retry = await supabase.from("dossiers").select("*, companies(name), contacts(first_name, last_name, account_type)").order("created_at", { ascending: false });
     throwIf(retry.error);
     let rows = (retry.data ?? []) as DossierRow[];
     if (kind) {
@@ -1746,6 +1803,7 @@ export async function createDossier(input: {
   title: string;
   kind?: string | null;
   company_id?: string | null;
+  contact_id?: string | null;
   notes?: string | null;
   employee_id?: string | null;
   catalog_item_id?: string | null;
@@ -1758,7 +1816,24 @@ export async function createDossier(input: {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const kind = parseKind(input.kind);
-  const companyId = emptyUuid(input.company_id);
+  let companyId = emptyUuid(input.company_id);
+  let contactId = emptyUuid(input.contact_id);
+  if (!contactId && companyId) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("id")
+      .eq("company_id", companyId)
+      .limit(1);
+    contactId = contactRows?.[0]?.id ?? null;
+  }
+  if (contactId && !companyId) {
+    const { data: client } = await supabase
+      .from("contacts")
+      .select("company_id")
+      .eq("id", contactId)
+      .maybeSingle();
+    companyId = emptyUuid(client?.company_id);
+  }
   let quoteId = emptyUuid(input.quote_id);
   const catalogId = emptyUuid(input.catalog_item_id);
   const catalogItem = catalogId
@@ -1769,6 +1844,7 @@ export async function createDossier(input: {
     if (item) {
       const quote = await createQuote({
         company_id: companyId,
+        contact_id: contactId,
         notes: `Dossier ${input.title}`,
         lines: [
           {
@@ -1796,16 +1872,6 @@ export async function createDossier(input: {
   if (!endAt) {
     const months = destinationDeadlineMonths(input.title, catalogItem?.name);
     if (months) endAt = addCalendarMonths(startAt, months);
-  }
-  /** Le client est une personne : on rattache son contact pour que son nom suive le dossier. */
-  let contactId: string | null = null;
-  if (companyId) {
-    const { data: contactRows } = await supabase
-      .from("contacts")
-      .select("id")
-      .eq("company_id", companyId)
-      .limit(1);
-    contactId = contactRows?.[0]?.id ?? null;
   }
   const { data, error } = await supabase
     .from("dossiers")
@@ -1917,7 +1983,7 @@ export function toProjectsListRow(row: DossierRow, index: number) {
     Image: dossierImage(row.kind),
     Flag: destination?.src ?? null,
     Destination: destination?.label ?? null,
-    Client: row.companies?.name ?? "Kalao",
+    Client: row.contacts ? clientDisplayName(row.contacts) : row.companies?.name ?? "Kalao",
     ClientImage: "kalao-entreprise.jpg",
     Priority: KIND_PRIORITY[row.kind] ?? "Medium",
     StartDate: formatDate(row.start_at),

@@ -1,7 +1,7 @@
 ﻿import CompaniesDetailsComponent from "@/components/Pages/crm-module/companies/companiesDetails";
 
 export const metadata = {
-    title: "Company Details",
+    title: "Fiche fournisseur",
   };
 export default function CompanyDetails() {
   return <div><CompaniesDetailsComponent/></div>;

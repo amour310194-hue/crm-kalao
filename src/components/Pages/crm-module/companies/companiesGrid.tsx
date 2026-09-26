@@ -7,13 +7,13 @@ import ModalCompanies from "./modal/modalCompanies"
 import Link from "next/link"
 import { all_routes } from "@/router/all_routes"
 import { useLiveRows } from "@/lib/useLiveRows"
-import { fetchCompanies, toCompaniesListRow } from "@/lib/crm"
+import { fetchSuppliers, toCompaniesListRow } from "@/lib/crm"
 import { CompaniesListData } from "../../../../core/json/companiesListData"
 
 
 const CompaniesGridComponent = () => {
   const loadCompanies = useCallback(async () => {
-    const rows = await fetchCompanies();
+    const rows = await fetchSuppliers();
     return rows ? rows.map(toCompaniesListRow) : null;
   }, []);
   const { rows, live, reload } = useLiveRows(CompaniesListData, loadCompanies);
@@ -26,7 +26,7 @@ const CompaniesGridComponent = () => {
     {/* Start Content */}
     <div className="content">
       {/* Page Header */}
-     <PageHeader title="Companies" badgeCount={rows.length} showModuleTile={false} showExport={true} />
+     <PageHeader title="Fournisseurs" badgeCount={rows.length} showModuleTile={false} showExport={true} />
 
       {/* End Page Header */}
       {/* table header */}
@@ -605,7 +605,7 @@ const CompaniesGridComponent = () => {
             data-bs-target="#offcanvas_add"
           >
             <i className="ti ti-square-rounded-plus-filled me-1" />
-            Add Company
+            Ajouter un fournisseur
           </Link>
         </div>
       </div>

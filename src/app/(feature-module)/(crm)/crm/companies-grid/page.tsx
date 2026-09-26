@@ -1,7 +1,7 @@
 ﻿import CompaniesGridComponent from "@/components/Pages/crm-module/companies/companiesGrid";
 
 export const metadata = {
-  title: "Companies Grid",
+  title: "Fournisseurs",
 };
 
 export default function CompaniesGrid(){

@@ -28,7 +28,7 @@ const ContactsComponent = () => {
         <div className="content">
           {/* Page Header */}
           <PageHeader
-            title="Contacts"
+            title="Clients"
             badgeCount={rows.length}
             showModuleTile={false}
             showExport={false}
@@ -704,7 +704,7 @@ const ContactsComponent = () => {
                 data-bs-target="#offcanvas_add"
               >
                 <i className="ti ti-square-rounded-plus-filled me-1" />
-                Add Contacts
+                Ajouter un client
               </Link>
             </div>
           </div>

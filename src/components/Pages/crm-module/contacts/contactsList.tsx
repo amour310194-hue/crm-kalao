@@ -50,7 +50,7 @@ const ContactsListComponent = () => {
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
     },
     {
-      title: "Name",
+      title: "Client",
       dataIndex: "Name",
       render: (text: string, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
@@ -68,21 +68,21 @@ const ContactsListComponent = () => {
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
     },
     {
-      title: "Phone",
+      title: "Téléphone",
       dataIndex: "Phone",
       sorter: (a: any, b: any) => a.Phone.length - b.Phone.length,
     },
     {
-      title: "Tags",
+      title: "Type",
       dataIndex: "Tags",
       render: (text: any) => (
         <span
           className={`badge badge-tag ${
-            text === "Collab"
+            text === "Personne" || text === "Collab"
               ? "badge-soft-success"
-              : text === "VIP"
+              : text === "Entreprise" || text === "VIP"
               ? "badge-soft-warning"
-              : "badge-soft-danger"
+              : "badge-soft-info"
           } `}
         >{text}</span>
       ),
@@ -219,7 +219,7 @@ const ContactsListComponent = () => {
         {/* Start Content */}
         <div className="content pb-0">
           {/* Page Header */}
-         <PageHeader title="Contacts" badgeCount={data.length} showModuleTile={false} showExport={true}/>
+         <PageHeader title="Clients" badgeCount={data.length} showModuleTile={false} showExport={true}/>
           {/* End Page Header */}
           {/* card start */}
           <div className="card border-0 rounded-0">
@@ -237,7 +237,7 @@ const ContactsListComponent = () => {
                 data-bs-target="#offcanvas_add"
               >
                 <i className="ti ti-square-rounded-plus-filled me-1" />
-                Add Contacts
+                Ajouter un client
               </Link>
             </div>
             <div className="card-body">

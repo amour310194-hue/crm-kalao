@@ -146,7 +146,7 @@ const SidebarDataAll = [
     separateRoute: false,
     submenuItems: [
       {
-        label: "Contacts",
+        label: "Clients",
         link: route.contactGrid,
         relatedRoutes: [
           route.contactGrid,
@@ -162,7 +162,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Companies",
+        label: "Fournisseurs",
         link: route.companiesGrid,
         relatedRoutes: [
           route.companiesGrid,

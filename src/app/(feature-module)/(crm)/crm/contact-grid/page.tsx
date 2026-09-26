@@ -1,7 +1,7 @@
 ﻿import ContactsComponent from "@/components/Pages/crm-module/contacts/contacts";
 
 export const metadata = {
-  title: "Contact Grid",
+  title: "Clients",
 };
 
 export default function ContactGrid(){

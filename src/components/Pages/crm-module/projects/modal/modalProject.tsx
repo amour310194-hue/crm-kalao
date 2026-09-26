@@ -18,9 +18,10 @@ import { all_routes } from "@/router/all_routes";
 import { fetchCatalogItems } from "@/lib/catalog";
 import {
   closeBootstrapChrome,
+  clientDisplayName,
   createDossier,
   emptyUuid,
-  fetchCompanies,
+  fetchContacts,
   fetchEmployees,
   parseAmount,
   readForm,
@@ -48,11 +49,11 @@ const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
   };
 
   useEffect(() => {
-    void fetchCompanies().then((rows) => {
+    void fetchContacts().then((rows) => {
       if (!rows) return;
       setCompanyOptions([
-        { value: "", label: "Select" },
-        ...rows.map((c) => ({ value: c.id, label: c.name })),
+        { value: "", label: "Choisir" },
+        ...rows.map((c) => ({ value: c.id, label: clientDisplayName(c) })),
       ]);
     });
     void fetchEmployees().then((rows) => {
@@ -82,7 +83,7 @@ const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
       await createDossier({
         title: vals.title.trim(),
         kind: vals.kind || defaultKind || "chantier",
-        company_id: emptyUuid(vals.company_id),
+        contact_id: emptyUuid(vals.company_id),
         employee_id: emptyUuid(vals.employee_id),
         catalog_item_id: emptyUuid(vals.catalog_item_id),
         advance: parseAmount(vals.advance),
@@ -109,7 +110,7 @@ const ModalProject = ({ onSaved, defaultKind, editing }: ModalProjectProps) => {
       await updateDossier(editing.id, {
         title: vals.title.trim(),
         kind: vals.kind || undefined,
-        company_id: vals.company_id,
+        contact_id: vals.company_id,
         start_at: vals.start_at || null,
         end_at: vals.end_at || null,
         notes: vals.notes || null,
