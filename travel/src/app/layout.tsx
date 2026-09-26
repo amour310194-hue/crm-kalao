@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   description:
     "Voyages du Groupe Kalao à Bastos, Yaoundé : billets, séjours et formalités, sur devis.",
   metadataBase: new URL("https://travel.groupe-kalao.com"),
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }, { url: "/favicon.png", sizes: "48x48", type: "image/png" }],
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "Voyages — Groupe Kalao",
     description: "Billets, séjours et formalités depuis Yaoundé.",
