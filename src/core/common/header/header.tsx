@@ -258,6 +258,18 @@ const Header = () => {
                     </div>
                   </Link>
                   {/* Item*/}
+                  <Link href={route.companiesGrid} className="dropdown-item">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div>
+                        <span className="d-flex mb-1 fw-semibold text-dark">
+                          Fournisseurs
+                        </span>
+                        <span className="fs-13">Hôtels, partenaires, prestataires</span>
+                      </div>
+                      <i className="ti ti-chevron-right-pipe text-dark" />
+                    </div>
+                  </Link>
+                  {/* Item*/}
                   <Link href={route.InvoiceList} className="dropdown-item">
                     <div className="d-flex align-items-center justify-content-between">
                       <div>
