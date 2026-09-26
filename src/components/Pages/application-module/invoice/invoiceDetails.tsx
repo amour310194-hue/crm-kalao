@@ -43,10 +43,10 @@ const InvoiceDetailsComponent = () => {
                   alt=""
                 />
                 <ImageWithBasePath
-                  src="assets/img/logo-white.svg"
+                  src="assets/img/kalao-logo.png"
                   className="dark-logo"
                   width={200}
-                  alt=""
+                  alt="Groupe Kalao"
                 />
                 <span className="badge bg-info-subtle text-info-emphasis">
                   {" "}

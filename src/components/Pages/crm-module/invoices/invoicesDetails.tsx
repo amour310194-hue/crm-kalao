@@ -50,10 +50,10 @@ const InvoicesDetailsComponent2 = () => {
                     alt=""
                   />
                   <ImageWithBasePath
-                    src="assets/img/logo-white.svg"
+                    src="assets/img/kalao-logo.png"
                     className="dark-logo"
                     width={140}
-                    alt=""
+                    alt="Groupe Kalao"
                   />
                   <p className="mb-0 mt-2">
                     Carrefour Bastos, Yaoundé, Cameroun
@@ -255,10 +255,10 @@ const InvoicesDetailsComponent2 = () => {
                     alt=""
                   />
                   <ImageWithBasePath
-                    src="assets/img/logo-white.svg"
+                    src="assets/img/kalao-logo.png"
                     className="dark-logo"
                     width={130}
-                    alt=""
+                    alt="Groupe Kalao"
                   />
                 </div>
                 <p className="fs-13 mb-1">
