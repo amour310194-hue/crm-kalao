@@ -403,6 +403,9 @@ export const all_routes = {
   importWizard: "/crm-setting/import-wizard",
   captureForms: "/crm-setting/capture-forms",
 
+  expenses: "/finance/depenses",
+  stock: "/finance/stock",
+
   //Layouts Pages
   layoutMini: "/layout-mini",
   hoverView: "/layout-hoverview",
