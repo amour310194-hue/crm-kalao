@@ -401,6 +401,7 @@ export const all_routes = {
 
   // additional crm-setting routes
   importWizard: "/crm-setting/import-wizard",
+  captureForms: "/crm-setting/capture-forms",
 
   //Layouts Pages
   layoutMini: "/layout-mini",

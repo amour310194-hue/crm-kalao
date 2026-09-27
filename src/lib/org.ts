@@ -19,6 +19,18 @@ export function inboundEndpoint(): string {
   return `${site}/api/email/inbound`;
 }
 
+function siteOrigin(): string {
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://crm.groupe-kalao.com").replace(/\/$/, "");
+}
+
+export function captureFormUrl(slug: string): string {
+  return `${siteOrigin()}/l/${slug}`;
+}
+
+export function captureFormEmbedCode(slug: string): string {
+  return `<script async src="${siteOrigin()}/api/embed/${slug}.js" data-kalao-form="${slug}"></script>`;
+}
+
 export const ROLE_LABEL: Record<string, string> = {
   super_admin: "Super-admin",
   admin: "Admin",

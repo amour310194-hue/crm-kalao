@@ -41,6 +41,9 @@ const BLOCKED = [
   "/crm/campaign",
 ];
 
+/** Écrans sous un préfixe bloqué mais déjà finalisés — vérifiés avant BLOCKED. */
+const BLOCKED_EXCEPTIONS = ["/crm-setting/capture-forms"];
+
 function matches(path: string, prefix: string) {
   return path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(prefix);
 }
@@ -57,7 +60,8 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/application/email";
     return NextResponse.redirect(url);
   }
-  if (BLOCKED.some((prefix) => matches(path, prefix))) {
+  const isExplicitlyAllowed = BLOCKED_EXCEPTIONS.some((prefix) => matches(path, prefix));
+  if (!isExplicitlyAllowed && BLOCKED.some((prefix) => matches(path, prefix))) {
     const url = request.nextUrl.clone();
     url.pathname = "/error-404";
     return NextResponse.redirect(url);
