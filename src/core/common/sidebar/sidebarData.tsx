@@ -1765,11 +1765,15 @@ function itemDenied(
   });
 }
 
-function filterMenuItems<
-  T extends { link?: string; relatedRoutes?: string[]; submenu?: boolean; submenuItems?: T[] },
->(items: T[] | undefined, denied: Set<string>): T[] {
+function filterMenuItems(items: unknown[] | undefined, denied: Set<string>): unknown[] {
   if (!items?.length) return items ?? [];
-  return items.flatMap((item) => {
+  return items.flatMap((raw) => {
+    const item = raw as {
+      link?: string;
+      relatedRoutes?: string[];
+      submenu?: boolean;
+      submenuItems?: unknown[];
+    };
     if (itemDenied(item, denied)) return [];
     const children = filterMenuItems(item.submenuItems, denied);
     if (item.submenu && (item.submenuItems?.length ?? 0) > 0 && children.length === 0) {
@@ -1784,7 +1788,7 @@ export function sidebarForRole(_role?: string | null, deniedModules: Iterable<st
   if (denied.size === 0) return SidebarData;
   return SidebarData.map((section) => ({
     ...section,
-    submenuItems: filterMenuItems(section.submenuItems, denied),
+    submenuItems: filterMenuItems(section.submenuItems as unknown[], denied) as typeof section.submenuItems,
   })).filter((section) => (section.submenuItems ?? []).length > 0);
 }
 
