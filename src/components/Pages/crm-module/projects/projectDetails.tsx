@@ -1139,7 +1139,6 @@ const ProjectDetailsComponent = () => {
                 </div>
                 {/* /Dossier */}
               </div>
-</div>
           {/* /Tab Content */}
             </div>
             {/* /Contact Details */}

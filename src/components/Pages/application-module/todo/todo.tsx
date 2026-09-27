@@ -16,15 +16,16 @@ import {
 } from "@/lib/crm";
 
 const TodoComponent = () => {
-  const [tasks, setTasks] = useState<ActivityRow[] | null>(null);
-  const live = tasks !== null;
+  const [tasks, setTasks] = useState<ActivityRow[]>([]);
+  const live = true;
 
   const reload = useCallback(async () => {
     try {
       const rows = await fetchActivities();
-      if (rows) setTasks(rows.filter((row) => row.type === "task"));
+      setTasks((rows ?? []).filter((row) => row.type === "task"));
     } catch (err) {
       console.error("[crm] todo", err);
+      setTasks([]);
     }
   }, []);
 

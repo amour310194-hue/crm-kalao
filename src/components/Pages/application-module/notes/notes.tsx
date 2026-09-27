@@ -28,15 +28,16 @@ const NotesComponent = () => {
     setTags(newTags);
   };
 
-  const [notes, setNotes] = useState<ActivityRow[] | null>(null);
-  const live = notes !== null;
+  const [notes, setNotes] = useState<ActivityRow[]>([]);
+  const live = true;
 
   const reload = useCallback(async () => {
     try {
       const rows = await fetchActivities();
-      if (rows) setNotes(rows.filter((row) => row.type === "note"));
+      setNotes((rows ?? []).filter((row) => row.type === "note"));
     } catch (err) {
       console.error("[crm] notes", err);
+      setNotes([]);
     }
   }, []);
 
