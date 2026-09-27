@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { submitCapture } from "@/lib/capture-submit";
+import { DEFAULT_CAPTURE_FIELDS, captureFormFields, submitCapture } from "@/lib/capture-submit";
 import { memoryRateLimitStore, CAPTURE_IP_MAX, CAPTURE_IP_WINDOW } from "@/lib/rate-limit";
 
 const FORM = {
@@ -7,7 +7,7 @@ const FORM = {
   slug: "devis-visa",
   title: "Devis Visa Canada",
   status: "published",
-  fields: [{ key: "name", label: "Nom", type: "text", required: true }],
+  fields: DEFAULT_CAPTURE_FIELDS,
   success_message: "Merci !",
   default_source: "Devis Visa Canada",
 };
@@ -66,7 +66,13 @@ describe("submitCapture", () => {
     const { client, getInserted } = fakeSupabase();
     const result = await submitCapture(
       "devis-visa",
-      { name: "Bot", company_website: "https://spam.example" },
+      {
+        prenom: "Bot",
+        nom: "Spam",
+        telephone: "690000000",
+        email: "bot@spam.example",
+        company_website: "https://spam.example",
+      },
       request({}),
       { supabase: client as never, rateLimit: memoryRateLimitStore() }
     );
@@ -85,5 +91,18 @@ describe("submitCapture", () => {
       rateLimit: store,
     });
     expect(result.status).toBe(429);
+  });
+});
+
+describe("captureFormFields", () => {
+  it("impose prénom, nom, téléphone, e-mail et message", () => {
+    expect(DEFAULT_CAPTURE_FIELDS.map((field) => field.key)).toEqual([
+      "prenom",
+      "nom",
+      "telephone",
+      "email",
+      "message",
+    ]);
+    expect(captureFormFields([])).toEqual(DEFAULT_CAPTURE_FIELDS);
   });
 });

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAnonSupabase } from "@/lib/supabase/admin";
 import CaptureFormClient from "@/components/capture/CaptureFormClient";
-import type { CaptureField } from "@/lib/capture-submit";
+import { captureFormFields } from "@/lib/capture-submit";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export default async function CaptureFormPage({ params }: { params: Promise<{ sl
           slug={form.slug}
           title={form.title}
           description={form.description}
-          fields={(form.fields ?? []) as CaptureField[]}
+          fields={captureFormFields(form.fields)}
           successMessage={form.success_message}
         />
       </Suspense>

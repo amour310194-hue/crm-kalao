@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { CaptureField } from "@/lib/capture-submit";
+import { DEFAULT_CAPTURE_FIELDS, type CaptureField } from "@/lib/capture-submit";
 
 export interface CaptureFormRow {
   id: string;
@@ -59,7 +59,7 @@ export async function createCaptureForm(input: {
       slug: input.slug,
       title: input.title,
       description: input.description || null,
-      fields: input.fields,
+      fields: DEFAULT_CAPTURE_FIELDS,
       success_message: input.success_message || null,
       default_source: input.default_source || null,
       status: input.status ?? "draft",
@@ -73,7 +73,10 @@ export async function createCaptureForm(input: {
 export async function updateCaptureForm(id: string, patch: Partial<CaptureFormRow>) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase.from("capture_forms").update(patch).eq("id", id);
+  const { error } = await supabase
+    .from("capture_forms")
+    .update({ ...patch, fields: DEFAULT_CAPTURE_FIELDS })
+    .eq("id", id);
   throwIf(error);
 }
 
