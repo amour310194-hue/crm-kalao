@@ -18,6 +18,20 @@ export type CaptureField = {
   required?: boolean;
 };
 
+export const DEFAULT_CAPTURE_FIELDS: CaptureField[] = [
+  { key: "prenom", label: "Prénom", type: "text", required: true },
+  { key: "nom", label: "Nom", type: "text", required: true },
+  { key: "telephone", label: "Téléphone", type: "phone", required: true },
+  { key: "email", label: "E-mail", type: "email", required: true },
+  { key: "message", label: "Message", type: "textarea", required: false },
+];
+
+export function captureFormFields(fields: unknown): CaptureField[] {
+  const stored = Array.isArray(fields) ? (fields as CaptureField[]) : [];
+  const hasAll = DEFAULT_CAPTURE_FIELDS.every((field) => stored.some((item) => item.key === field.key));
+  return hasAll ? stored : DEFAULT_CAPTURE_FIELDS;
+}
+
 type CaptureFormRow = {
   id: string;
   slug: string;
@@ -68,31 +82,19 @@ export async function submitCapture(
     return { status: 200, body: { ok: true } };
   }
 
-  const fields = Array.isArray(captureForm.fields) ? captureForm.fields : [];
+  const fields = captureFormFields(captureForm.fields);
   for (const field of fields) {
     if (field.required && !str(payload[field.key])) {
       return { status: 400, body: { ok: false, reason: "validation" } };
     }
   }
 
-  // Les libellés sont saisis librement (en français) par le staff dans l'écran
-  // d'administration : on ne peut pas deviner le rôle d'un champ à partir de sa
-  // clé (slug du libellé). On se base donc sur le `type` du champ, qui lui est
-  // un ensemble fermé et fiable.
-  const emailField = fields.find((f) => f.type === "email");
-  const phoneField = fields.find((f) => f.type === "phone");
-  const nameField = fields.find((f) => f.type === "text");
-  const messageField = fields.find((f) => f.type === "textarea");
-
-  const name = str(payload[nameField?.key ?? ""]) || captureForm.title;
-  const email = emailField ? str(payload[emailField.key]) || null : null;
-  const phone = phoneField ? str(payload[phoneField.key]) || null : null;
-  const message = messageField ? str(payload[messageField.key]) : "";
-  const handled = new Set([emailField?.key, phoneField?.key, nameField?.key, messageField?.key]);
-  const extras = fields
-    .filter((f) => !handled.has(f.key))
-    .map((f) => `${f.label}: ${str(payload[f.key])}`)
-    .filter((line) => !line.endsWith(": "));
+  const firstName = str(payload.prenom);
+  const lastName = str(payload.nom);
+  const email = str(payload.email) || null;
+  const phone = str(payload.telephone) || null;
+  const message = str(payload.message);
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
   let contactId: string | null = null;
   if (email || phone) {
@@ -104,12 +106,11 @@ export async function submitCapture(
   }
 
   if (!contactId) {
-    const parts = name.split(/\s+/).filter(Boolean);
     const { data: created, error: contactErr } = await supabase
       .from("contacts")
       .insert({
-        first_name: parts[0] || "Prospect",
-        last_name: parts.slice(1).join(" ") || "Kalao",
+        first_name: firstName || "Prospect",
+        last_name: lastName || "Kalao",
         email,
         phone,
         notes: message || null,
@@ -127,10 +128,10 @@ export async function submitCapture(
   const utmMedium = str(payload.utm_medium) || null;
   const utmCampaign = str(payload.utm_campaign) || null;
   const utmContent = str(payload.utm_content) || null;
-  const notes = [message, ...extras].filter(Boolean).join("\n") || null;
+  const notes = message || null;
 
   const { error: leadErr } = await supabase.from("leads").insert({
-    title: name || captureForm.title,
+    title: fullName || captureForm.title,
     contact_id: contactId,
     source: captureForm.default_source || captureForm.title,
     capture_form_id: captureForm.id,

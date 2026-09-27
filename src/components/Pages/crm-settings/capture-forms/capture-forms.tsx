@@ -16,7 +16,7 @@ import {
   updateCaptureForm,
   type CaptureFormRow,
 } from "@/lib/capture-forms";
-import type { CaptureField } from "@/lib/capture-submit";
+import { DEFAULT_CAPTURE_FIELDS } from "@/lib/capture-submit";
 
 function slugify(value: string) {
   return value
@@ -26,8 +26,6 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
-
-const EMPTY_FIELD: CaptureField = { key: "", label: "", type: "text", required: false };
 
 function FormModal({
   initial,
@@ -44,9 +42,6 @@ function FormModal({
   const [description, setDescription] = useState(initial?.description ?? "");
   const [successMessage, setSuccessMessage] = useState(initial?.success_message ?? "");
   const [status, setStatus] = useState<"draft" | "published">(initial?.status ?? "draft");
-  const [fields, setFields] = useState<CaptureField[]>(
-    initial?.fields?.length ? initial.fields : [{ ...EMPTY_FIELD, key: "name", label: "Nom", required: true }]
-  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedForm, setSavedForm] = useState<CaptureFormRow | null>(initial);
@@ -55,14 +50,10 @@ function FormModal({
     if (!slugTouched) setSlug(slugify(title));
   }, [title, slugTouched]);
 
-  const updateField = (index: number, patch: Partial<CaptureField>) => {
-    setFields((prev) => prev.map((f, i) => (i === index ? { ...f, ...patch } : f)));
-  };
-
   const handleSave = async () => {
     setError(null);
-    if (!title.trim() || !slug.trim() || !fields.length) {
-      setError("Titre, lien et au moins un champ sont requis.");
+    if (!title.trim() || !slug.trim()) {
+      setError("Titre et lien sont requis.");
       return;
     }
     setSaving(true);
@@ -74,9 +65,17 @@ function FormModal({
           description,
           success_message: successMessage,
           status,
-          fields,
+          fields: DEFAULT_CAPTURE_FIELDS,
         });
-        setSavedForm({ ...savedForm, title, slug, description, success_message: successMessage, status, fields });
+        setSavedForm({
+          ...savedForm,
+          title,
+          slug,
+          description,
+          success_message: successMessage,
+          status,
+          fields: DEFAULT_CAPTURE_FIELDS,
+        });
       } else {
         const created = await createCaptureForm({
           title,
@@ -84,7 +83,7 @@ function FormModal({
           description,
           success_message: successMessage,
           status,
-          fields,
+          fields: DEFAULT_CAPTURE_FIELDS,
         });
         setSavedForm(created);
       }
@@ -139,65 +138,17 @@ function FormModal({
               />
             </div>
 
-            <label className="form-label">Champs du formulaire</label>
-            {fields.map((field, index) => (
-              <div className="row g-2 mb-2 align-items-center" key={index}>
-                <div className="col-4">
-                  <input
-                    className="form-control form-control-sm"
-                    placeholder="Libellé"
-                    value={field.label}
-                    onChange={(e) =>
-                      updateField(index, {
-                        label: e.target.value,
-                        key: field.key || slugify(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div className="col-3">
-                  <select
-                    className="form-select form-select-sm"
-                    value={field.type}
-                    onChange={(e) => updateField(index, { type: e.target.value as CaptureField["type"] })}
-                  >
-                    <option value="text">Texte</option>
-                    <option value="email">Email</option>
-                    <option value="phone">Téléphone</option>
-                    <option value="textarea">Message</option>
-                    <option value="select">Liste</option>
-                  </select>
-                </div>
-                <div className="col-3">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={Boolean(field.required)}
-                      onChange={(e) => updateField(index, { required: e.target.checked })}
-                    />
-                    <label className="form-check-label">Obligatoire</label>
-                  </div>
-                </div>
-                <div className="col-2">
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => setFields((prev) => prev.filter((_, i) => i !== index))}
-                    disabled={fields.length <= 1}
-                  >
-                    <i className="ti ti-trash" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-primary mb-3"
-              onClick={() => setFields((prev) => [...prev, { ...EMPTY_FIELD }])}
-            >
-              <i className="ti ti-plus me-1" /> Ajouter un champ
-            </button>
+            <div className="mb-3">
+              <div className="form-label">Champs du formulaire</div>
+              <ul className="mb-0 ps-3">
+                {DEFAULT_CAPTURE_FIELDS.map((field) => (
+                  <li key={field.key}>
+                    {field.label}
+                    {field.required ? " *" : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <div className="form-check form-switch mb-3">
               <input
