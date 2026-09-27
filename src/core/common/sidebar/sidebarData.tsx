@@ -262,6 +262,17 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
+        label: "Formulaires de capture",
+        link: route.captureForms,
+        submenu: false,
+        showSubRoute: false,
+        icon: "forms",
+        base: "frontent",
+        materialicons: "start",
+        dot: true,
+        submenuItems: [],
+      },
+      {
         label: "Pipeline",
         link: route.pipeline,
         submenu: false,

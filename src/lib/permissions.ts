@@ -17,7 +17,15 @@ export const MODULES: { key: ModuleKey; label: string; prefixes: string[] }[] = 
   {
     key: "crm",
     label: "CRM",
-    prefixes: ["/crm", "/leads", "/leads-list", "/leads-details", "/leads-kanban", "/companies"],
+    prefixes: [
+      "/crm",
+      "/leads",
+      "/leads-list",
+      "/leads-details",
+      "/leads-kanban",
+      "/companies",
+      "/crm-setting/capture-forms",
+    ],
   },
   {
     key: "projects",

@@ -7,11 +7,14 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/reset-password")).toBe(true);
     expect(isPublicPath("/forgot-password")).toBe(true);
     expect(isPublicPath("/mfa-setup")).toBe(true);
+    expect(isPublicPath("/l/devis-visa")).toBe(true);
   });
 
   it("protège le CRM", () => {
     expect(isPublicPath("/dashboard")).toBe(false);
     expect(isPublicPath("/crm/contact-grid")).toBe(false);
     expect(isPublicPath("/docs/invoice/x")).toBe(false);
+    expect(isPublicPath("/leads")).toBe(false);
+    expect(isPublicPath("/leads-list")).toBe(false);
   });
 });

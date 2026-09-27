@@ -58,6 +58,7 @@ export const PUBLIC_PATHS = [
   "/coming-soon",
   "/error-404",
   "/mfa-setup",
+  "/l",
 ];
 
 export function isPublicPath(pathname: string): boolean {

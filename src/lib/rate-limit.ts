@@ -38,6 +38,11 @@ export const RESET_REQUEST_IP_WINDOW = 60 * 60;
 export const RESET_CONFIRM_MAX = 10;
 export const RESET_CONFIRM_WINDOW = 15 * 60;
 
+export const CAPTURE_IP_MAX = 20;
+export const CAPTURE_IP_WINDOW = 60 * 60;
+export const CAPTURE_FORM_MAX = 200;
+export const CAPTURE_FORM_WINDOW = 60 * 60;
+
 export function clientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
