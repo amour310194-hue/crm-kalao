@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isPublicPath, SESSION_IDLE_SECONDS, SESSION_MAX_SECONDS } from "@/lib/authz";
+import { isModuleAllowed, moduleForPath } from "@/lib/permissions";
 
 const LAST_SEEN = "kalao_last_seen";
 
@@ -97,6 +98,18 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const moduleKey = moduleForPath(path);
+    if (moduleKey && !(await isModuleAllowed(supabase, profile?.role ?? null, moduleKey))) {
+      const denied = request.nextUrl.clone();
+      denied.pathname = "/error-404";
+      return NextResponse.redirect(denied);
+    }
+
     const now = Date.now();
     const last = Number(request.cookies.get(LAST_SEEN)?.value ?? "0");
     if (last > 0 && now - last > SESSION_IDLE_SECONDS * 1000) {
