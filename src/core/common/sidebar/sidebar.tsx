@@ -8,6 +8,8 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import "overlayscrollbars/overlayscrollbars.css";
 import { sidebarForRole } from "./sidebarData";
 import { fetchSessionRole } from "@/lib/roles";
+import { fetchDeniedModuleKeys } from "@/lib/permissions";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import React from "react";
 import { all_routes } from "@/router/all_routes";
 import { updateTheme } from "@/core/redux/themeSlice";
@@ -23,11 +25,21 @@ const Sidebar = () => {
   // Track open state for each menu by label
   const [openMenus, setOpenMenus] = useState<{ [label: string]: boolean }>({});
   const [menuRole, setMenuRole] = useState<string | null>(null);
+  const [deniedModules, setDeniedModules] = useState<Set<string>>(new Set());
   const dispatch = useDispatch();
-  const navData = useMemo(() => sidebarForRole(menuRole), [menuRole]);
+  const navData = useMemo(
+    () => sidebarForRole(menuRole, deniedModules),
+    [menuRole, deniedModules]
+  );
 
   useEffect(() => {
-    void fetchSessionRole().then(setMenuRole);
+    void (async () => {
+      const role = await fetchSessionRole();
+      setMenuRole(role);
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase || !role) return;
+      setDeniedModules(await fetchDeniedModuleKeys(supabase, role));
+    })();
   }, []);
 
   // On mount or pathname change, auto-open submenus with an active link
