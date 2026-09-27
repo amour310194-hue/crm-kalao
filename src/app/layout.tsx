@@ -17,10 +17,10 @@ export const metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png?v=kalao", type: "image/png" },
+      { url: "/icon.png?v=officiel", type: "image/png" },
     ],
     shortcut: "/favicon.ico",
-    apple: "/apple-icon.png?v=kalao",
+    apple: "/apple-icon.png?v=officiel",
   },
 };
 
@@ -33,8 +33,8 @@ export default function RootLayout({
     <html lang="fr">
        <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" href="/icon.png?v=kalao" />
-        <link rel="apple-touch-icon" href="/apple-icon.png?v=kalao" />
+        <link rel="icon" type="image/png" href="/icon.png?v=officiel" />
+        <link rel="apple-touch-icon" href="/apple-icon.png?v=officiel" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
