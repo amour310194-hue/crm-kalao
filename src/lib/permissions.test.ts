@@ -22,9 +22,11 @@ describe("moduleForPath", () => {
     expect(moduleForPath("/crm/project-details/abc")).toBe("projects");
   });
 
-  it("associe la paie et les utilisateurs", () => {
+  it("associe la paie, les utilisateurs et la finance", () => {
     expect(moduleForPath("/timesheets")).toBe("hrm-payroll");
     expect(moduleForPath("/user-management/permissions")).toBe("user-management");
+    expect(moduleForPath("/finance/depenses")).toBe("finance");
+    expect(moduleForPath("/finance/stock")).toBe("finance");
   });
 
   it("laisse les pages hors registre sans module", () => {
