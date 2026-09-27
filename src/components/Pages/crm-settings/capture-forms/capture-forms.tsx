@@ -16,7 +16,8 @@ import {
   updateCaptureForm,
   type CaptureFormRow,
 } from "@/lib/capture-forms";
-import { DEFAULT_CAPTURE_FIELDS } from "@/lib/capture-submit";
+import { DEFAULT_CAPTURE_FIELDS, captureFormFields } from "@/lib/capture-submit";
+import { CaptureFormCard } from "@/components/capture/CaptureFormCard";
 
 function slugify(value: string) {
   return value
@@ -97,7 +98,7 @@ function FormModal({
 
   return (
     <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }} role="dialog">
-      <div className="modal-dialog modal-lg modal-dialog-scrollable">
+      <div className="modal-dialog modal-xl modal-dialog-scrollable">
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">{savedForm ? "Modifier le formulaire" : "Nouveau formulaire"}</h5>
@@ -105,6 +106,8 @@ function FormModal({
           </div>
           <div className="modal-body">
             {error ? <div className="alert alert-danger">{error}</div> : null}
+            <div className="row g-4">
+              <div className="col-lg-6">
             <div className="mb-3">
               <label className="form-label">Titre</label>
               <input className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -194,6 +197,26 @@ function FormModal({
                 </div>
               </div>
             ) : null}
+              </div>
+              <div className="col-lg-6">
+                <div className="bg-light rounded-3 p-3 h-100">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6 className="mb-0">Prévisualisation</h6>
+                    <span className="small text-muted">Comme le visiteur</span>
+                  </div>
+                  <div className="d-flex justify-content-center">
+                    <CaptureFormCard
+                      title={title}
+                      description={description}
+                      fields={DEFAULT_CAPTURE_FIELDS}
+                      successMessage={successMessage}
+                      preview
+                      compact
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-outline-secondary" onClick={onClose}>
@@ -209,10 +232,57 @@ function FormModal({
   );
 }
 
+function PreviewModal({
+  form,
+  onClose,
+}: {
+  form: CaptureFormRow;
+  onClose: () => void;
+}) {
+  const publicUrl = captureFormUrl(form.slug);
+  return (
+    <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }} role="dialog">
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Prévisualisation — {form.title}</h5>
+            <button type="button" className="btn-close" onClick={onClose} />
+          </div>
+          <div className="modal-body bg-light">
+            <div className="d-flex justify-content-center">
+              <CaptureFormCard
+                title={form.title}
+                description={form.description}
+                fields={captureFormFields(form.fields)}
+                successMessage={form.success_message}
+                preview
+                compact
+              />
+            </div>
+          </div>
+          <div className="modal-footer">
+            {form.status === "published" ? (
+              <a className="btn btn-outline-primary me-auto" href={publicUrl} target="_blank" rel="noreferrer">
+                Ouvrir le lien public
+              </a>
+            ) : (
+              <span className="me-auto small text-muted">Brouillon : le lien public n’est pas encore actif.</span>
+            )}
+            <button type="button" className="btn btn-outline-secondary" onClick={onClose}>
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CaptureFormsComponent() {
   const [rows, setRows] = useState<CaptureFormRow[]>([]);
   const [searchText, setSearchText] = useState("");
   const [editing, setEditing] = useState<CaptureFormRow | null | undefined>(undefined);
+  const [previewing, setPreviewing] = useState<CaptureFormRow | null>(null);
 
   const load = () => {
     void fetchCaptureForms().then((data) => setRows(data ?? []));
@@ -236,6 +306,15 @@ export default function CaptureFormsComponent() {
       dataIndex: "id",
       render: (_: string, row: CaptureFormRow) => (
         <div className="d-flex gap-2">
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setPreviewing(row)}
+            title="Prévisualiser"
+            aria-label="Prévisualiser"
+          >
+            <i className="ti ti-eye" />
+          </button>
           <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setEditing(row)}>
             <i className="ti ti-edit" />
           </button>
@@ -292,6 +371,7 @@ export default function CaptureFormsComponent() {
           }}
         />
       ) : null}
+      {previewing ? <PreviewModal form={previewing} onClose={() => setPreviewing(null)} /> : null}
     </>
   );
 }
