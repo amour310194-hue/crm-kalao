@@ -33,6 +33,33 @@ if (!supabaseUrl || !supabaseAnon) {
   console.info("[kalao] Variables Supabase chargées pour le client.");
 }
 
+const scriptSrc =
+  process.env.NODE_ENV === "development"
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
+const cspBase = [
+  "default-src 'self'",
+  // React Fast Refresh a besoin de eval() en dev. Bootstrap du template impose encore unsafe-inline.
+  scriptSrc,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
+  "base-uri 'self'",
+  "form-action 'self'",
+];
+
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+];
+
 const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
@@ -40,35 +67,23 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/l/:path*",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          ...securityHeaders,
           {
             key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              // React Fast Refresh a besoin de eval() en dev. Bootstrap du template impose encore unsafe-inline.
-              process.env.NODE_ENV === "development"
-                ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-                : "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com data:",
-              "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join("; "),
+            value: [...cspBase, "frame-ancestors *"].join("; "),
+          },
+        ],
+      },
+      {
+        source: "/((?!l/).*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          ...securityHeaders,
+          {
+            key: "Content-Security-Policy",
+            value: [...cspBase, "frame-ancestors 'none'"].join("; "),
           },
         ],
       },
