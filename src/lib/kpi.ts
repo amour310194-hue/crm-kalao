@@ -427,7 +427,7 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
 /** live=true dès qu’un fetch a abouti — y compris à zéro. Plus de maquette. */
 export function useKalaoKpis() {
   const [kpis, setKpis] = useState<KalaoKpis | null>(null);
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(true);
 
   const reload = useCallback(async () => {
     try {
@@ -487,7 +487,7 @@ export function toCalendarEvents(rows: DeadlineRow[]): CalendarEvent[] {
 /** Alimente FullCalendar et la colonne « Upcoming Event » sans toucher au HTML. */
 export function useKalaoCalendar() {
   const [deadlines, setDeadlines] = useState<DeadlineRow[]>([]);
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(true);
 
   useEffect(() => {
     void (async () => {

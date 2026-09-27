@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
  */
 export function useLiveRows<T>(_fallback: T[], load: () => Promise<T[] | null>) {
   const [rows, setRows] = useState<T[]>([]);
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(true);
 
   const reload = useCallback(async () => {
     try {

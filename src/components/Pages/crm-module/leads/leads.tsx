@@ -198,7 +198,9 @@ const initialLeadsColumns = [
 ];
 
 function LeadsKanbanBoard() {
-  const [columns, setColumns] = useState(initialLeadsColumns);
+  const [columns, setColumns] = useState(() =>
+    initialLeadsColumns.map((col) => ({ ...col, leads: 0, amount: "—", cards: [] as typeof col.cards }))
+  );
 
   const reloadLeads = () => {
     void fetchLeads().then((rows) => {
