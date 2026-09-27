@@ -149,18 +149,18 @@ const TodoComponent = () => {
                   <div className="d-flex align-items-center justify-content-end">
                     <p className="mb-0 me-2 pe-2 border-end fs-14">
                       Total Task :{" "}
-                      <span className="text-dark"> {live ? tasks!.length : 55} </span>
+                      <span className="text-dark"> {live ? tasks?.length ?? 0 : 0} </span>
                     </p>
                     <p className="mb-0 me-2 pe-2 border-end fs-14">
                       Pending :{" "}
                       <span className="text-dark">
                         {" "}
-                        {live ? tasks!.length - doneCount : 15}{" "}
+                        {live ? (tasks?.length ?? 0) - doneCount : 0}{" "}
                       </span>
                     </p>
                     <p className="mb-0 fs-14">
                       Completed :{" "}
-                      <span className="text-dark"> {live ? doneCount : 40} </span>
+                      <span className="text-dark"> {live ? doneCount : 0} </span>
                     </p>
                   </div>
                 </div>

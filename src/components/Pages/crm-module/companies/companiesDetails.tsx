@@ -74,7 +74,7 @@ const CompaniesDetailsComponent = () => {
     });
   }, []);
 
-  const live = Boolean(company);
+  const live = true;
   const primaryDossier = dossiers[0] ?? null;
 
   useEffect(() => {
@@ -113,7 +113,7 @@ const CompaniesDetailsComponent = () => {
           {/* Page Header */}
           <PageHeader
             title="Fournisseurs"
-            badgeCount={live ? null : 125}
+            badgeCount={null}
             showModuleTile={false}
             showExport={false}
           />
@@ -245,9 +245,7 @@ const CompaniesDetailsComponent = () => {
                         <i className="ti ti-mail fs-14" />
                       </span>
                       <p className="mb-0">
-                        {live
-                          ? company?.email || contact?.email || "—"
-                          : "novawave@gmail.com"}
+                        {company?.email || contact?.email || "—"}
                       </p>
                     </div>
                     <div className="d-flex align-items-center mb-2">
@@ -255,9 +253,7 @@ const CompaniesDetailsComponent = () => {
                         <i className="ti ti-phone fs-14" />
                       </span>
                       <p className="mb-0">
-                        {live
-                          ? company?.phone || contact?.phone || "—"
-                          : "+1 12445-47878"}
+                        {company?.phone || contact?.phone || "—"}
                       </p>
                     </div>
                     <div className="d-flex align-items-center mb-3">

@@ -171,7 +171,7 @@ const CalenderComponent = () => {
                 <h5 className="mb-2">
                   Upcoming Event
                   <span className="badge badge-success rounded-pill ms-2">
-                    {live ? deadlines.length : 15}
+                    {live ? deadlines.length : 0}
                   </span>
                 </h5>
                 {live

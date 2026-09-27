@@ -309,8 +309,10 @@ const DealsGridComponent = () => {
   ];
 
   function KanbanBoard() {
-    const [columns, setColumns] = useState(initialColumns);
-    const [live, setLive] = useState(false);
+    const [columns, setColumns] = useState(() =>
+      initialColumns.map((col) => ({ ...col, leads: 0, amount: "—", cards: [] as typeof col.cards }))
+    );
+    const [live, setLive] = useState(true);
 
     const reloadDeals = () => {
       void fetchDeals().then((rows) => {

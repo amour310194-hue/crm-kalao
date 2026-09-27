@@ -73,7 +73,7 @@ const ContactsDetailsComponent = () => {
     );
   }, [contactId]);
 
-  const live = Boolean(contact);
+  const live = true;
   const primaryDossier = dossiers[0] ?? null;
 
   useEffect(() => {
@@ -305,7 +305,7 @@ const ContactsDetailsComponent = () => {
                         <i className="ti ti-mail fs-14" />
                       </span>
                       <p className="mb-0">
-                        {live ? contact?.email || "—" : "darleeo@example.com"}
+                        {contact?.email || "—"}
                       </p>
                     </div>
                     <div className="d-flex align-items-center mb-2">
@@ -313,7 +313,7 @@ const ContactsDetailsComponent = () => {
                         <i className="ti ti-phone fs-14" />
                       </span>
                       <p className="mb-0">
-                        {live ? contact?.phone || "—" : "+1 12445-47878"}
+                        {contact?.phone || "—"}
                       </p>
                     </div>
                     <div className="d-flex align-items-center mb-3">
