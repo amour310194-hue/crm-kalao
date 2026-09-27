@@ -1,6 +1,7 @@
 "use client";
 
 import { all_routes } from "@/router/all_routes";
+import { moduleForPath } from "@/lib/permissions";
 
 const route = all_routes;
 const SidebarDataAll = [
@@ -1710,7 +1711,6 @@ const HIDDEN_MAIN_ITEMS = new Set([
   "Pipeline",
   "Contracts",
   "Manage Users",
-  "Roles & Permissions",
   "Delete Request",
   "Teams",
   "Invitations",
@@ -1750,14 +1750,46 @@ const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
   ]),
 };
 
-export function sidebarForRole(role?: string | null) {
-  if (role !== "staff") return SidebarData;
+function pathOf(link?: string) {
+  return (link ?? "").split("?")[0];
+}
+
+function itemDenied(
+  item: { link?: string; relatedRoutes?: string[] },
+  denied: Set<string>
+) {
+  const paths = [item.link, ...(item.relatedRoutes ?? [])].filter(Boolean) as string[];
+  return paths.some((path) => {
+    const key = moduleForPath(pathOf(path));
+    return Boolean(key && denied.has(key));
+  });
+}
+
+function filterMenuItems(items: unknown[] | undefined, denied: Set<string>): unknown[] {
+  if (!items?.length) return items ?? [];
+  return items.flatMap((raw) => {
+    const item = raw as {
+      link?: string;
+      relatedRoutes?: string[];
+      submenu?: boolean;
+      submenuItems?: unknown[];
+    };
+    if (itemDenied(item, denied)) return [];
+    const children = filterMenuItems(item.submenuItems, denied);
+    if (item.submenu && (item.submenuItems?.length ?? 0) > 0 && children.length === 0) {
+      return [];
+    }
+    return [{ ...item, submenuItems: item.submenuItems ? children : item.submenuItems }];
+  });
+}
+
+export function sidebarForRole(_role?: string | null, deniedModules: Iterable<string> = []) {
+  const denied = new Set(deniedModules);
+  if (denied.size === 0) return SidebarData;
   return SidebarData.map((section) => ({
     ...section,
-    submenuItems: (section.submenuItems ?? []).filter(
-      (item) => item.label !== "Paie simple"
-    ),
-  }));
+    submenuItems: filterMenuItems(section.submenuItems as unknown[], denied) as typeof section.submenuItems,
+  })).filter((section) => (section.submenuItems ?? []).length > 0);
 }
 
 export const SidebarData = SidebarDataAll.filter(
