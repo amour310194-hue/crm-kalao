@@ -14,6 +14,7 @@ describe("moduleForPath", () => {
   it("associe un chemin CRM au module crm", () => {
     expect(moduleForPath("/crm/contact-grid")).toBe("crm");
     expect(moduleForPath("/leads-list")).toBe("crm");
+    expect(moduleForPath("/crm-setting/capture-forms")).toBe("crm");
   });
 
   it("prend le préfixe le plus long (dossiers avant CRM)", () => {
@@ -29,6 +30,7 @@ describe("moduleForPath", () => {
   it("laisse les pages hors registre sans module", () => {
     expect(moduleForPath("/dashboard")).toBeNull();
     expect(moduleForPath("/login")).toBeNull();
+    expect(moduleForPath("/l/devis-visa")).toBeNull();
   });
 });
 
