@@ -91,6 +91,43 @@ const SidebarDataAll = [
         ],
       },
       {
+        label: "Gestion des utilisateurs",
+        link: route.manageusers,
+        submenu: true,
+        showSubRoute: false,
+        icon: "users",
+        base: "user-management",
+        materialicons: "start",
+        dot: true,
+        relatedRoutes: [
+          route.manageusers,
+          route.rolesPermissions,
+          route.permissions,
+          route.staffDirectoryGrid,
+          route.staffDirectoryList,
+          route.departments,
+          route.departmentsList,
+        ],
+        submenuItems: [
+          { label: "Utilisateurs", link: route.manageusers },
+          {
+            label: "Rôles et accès",
+            link: route.rolesPermissions,
+            relatedRoutes: [route.permissions],
+          },
+          {
+            label: "Annuaire",
+            link: route.staffDirectoryGrid,
+            relatedRoutes: [route.staffDirectoryList],
+          },
+          {
+            label: "Pôles",
+            link: route.departments,
+            relatedRoutes: [route.departments, route.departmentsList],
+          },
+        ],
+      },
+      {
         label: "Super Admin",
         link: route.superadminDashboard,
         submenu: true,
@@ -1691,6 +1728,7 @@ const HIDDEN_SECTIONS = new Set([
   "Settings",
   "Pages",
   "Marketing",
+  "User Management",
 ]);
 const HIDDEN_MAIN_ITEMS = new Set([
   "Super Admin",
