@@ -55,7 +55,7 @@ const NotificationsSettingsComponent = () => {
                         href={all_routes.connectedApps}
                         className="d-block p-2 fw-medium"
                       >
-                        Connected Apps
+                        Canaux et clés API
                       </Link>
                     </div>
                   </div>

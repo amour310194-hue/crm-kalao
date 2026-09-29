@@ -1296,7 +1296,7 @@ const SidebarDataAll = [
           { label: "Profile", link: route.profile },
           { label: "Security", link: route.security },
           { label: "Notifications", link: route.notification },
-          { label: "Connected Apps", link: route.connectedApps },
+          { label: "Canaux et clés API", link: route.connectedApps },
         ],
       },
       {

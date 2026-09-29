@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canDeleteAccount, isPublicPath } from "@/lib/authz";
+import { canDeleteAccount, canEditOrgSettings, isPublicPath } from "@/lib/authz";
 
 describe("isPublicPath", () => {
   it("laisse passer login et reset", () => {
@@ -41,5 +41,15 @@ describe("canDeleteAccount", () => {
 
   it("autorise un admin à supprimer un collaborateur", () => {
     expect(canDeleteAccount("admin", "staff", false)).toBeNull();
+  });
+});
+
+describe("canEditOrgSettings", () => {
+  it("réserve l'écriture aux super-admin, admin et direction", () => {
+    expect(canEditOrgSettings("super_admin")).toBe(true);
+    expect(canEditOrgSettings("admin")).toBe(true);
+    expect(canEditOrgSettings("direction")).toBe(true);
+    expect(canEditOrgSettings("manager")).toBe(false);
+    expect(canEditOrgSettings("staff")).toBe(false);
   });
 });
