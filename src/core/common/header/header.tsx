@@ -17,13 +17,7 @@ import {
 import { fetchMyProfile } from "@/lib/crm";
 import { ROLE_LABEL } from "@/lib/org";
 import MailUnreadBadge from "@/components/mail/MailUnreadBadge";
-
-/**
- * Aucune source de notifications n'existe encore côté base : les quatre entrées
- * du template sont masquées pour ne pas afficher une activité inventée. À passer
- * à true le jour où les notifications sont alimentées.
- */
-const HAS_NOTIFICATIONS = false;
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const Header = () => {
 
@@ -331,45 +325,7 @@ const Header = () => {
             </div>
             {/* Notification Dropdown */}
             <div className="header-item">
-              <div className="dropdown me-2">
-                <button
-                  className="topbar-link btn topbar-link dropdown-toggle drop-arrow-none"
-                  data-bs-toggle="dropdown"
-                  data-bs-offset="0,24"
-                  type="button"
-                  aria-haspopup="false"
-                  aria-expanded="false"
-                >
-                  <i className="ti ti-bell-check fs-16 animate-ring" />
-                  <span className={`badge rounded-pill${HAS_NOTIFICATIONS ? "" : " d-none"}`}>
-                    10
-                  </span>
-                </button>
-                <div
-                  className="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg"
-                  style={{ minHeight: 300 }}
-                >
-                  <div className="p-2 border-bottom">
-                    <div className="row align-items-center">
-                      <div className="col">
-                        <h6 className="m-0 fs-16 fw-semibold">
-                          {" "}
-                          Notifications
-                        </h6>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Notification Body */}
-                  <div
-                    className="notification-body position-relative z-2 rounded-0"
-                    data-simplebar=""
-                  >
-                    <p className="text-center text-muted py-4 mb-0">
-                      Aucune notification pour le moment.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <NotificationBell />
             </div>
             {/* User Dropdown */}
             <div className="dropdown profile-dropdown d-flex align-items-center justify-content-center">
