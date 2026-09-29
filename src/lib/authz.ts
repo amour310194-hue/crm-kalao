@@ -30,6 +30,19 @@ export function canCreateStaffAccount(role?: string | null): boolean {
   );
 }
 
+export function canDeleteAccount(
+  actorRole: string | null | undefined,
+  targetRole: string | null | undefined,
+  isSelf: boolean
+): string | null {
+  if (isSelf) return "Vous ne pouvez pas supprimer votre propre compte.";
+  if (!isCrmAdmin(actorRole)) return "Action réservée à un administrateur.";
+  if (targetRole === "super_admin" && actorRole !== "super_admin") {
+    return "Seul un super-admin peut supprimer un super-admin.";
+  }
+  return null;
+}
+
 export function canAssignRole(actor: string | null | undefined, next: string): boolean {
   if (!ACCOUNT_ROLES.includes(next as AccountRole)) return false;
   if (actor === "super_admin") return true;

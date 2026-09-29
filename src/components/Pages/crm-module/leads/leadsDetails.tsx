@@ -21,9 +21,11 @@ import {
   LEAD_STATUS_LABEL,
   type LeadRow,
 } from "@/lib/crm";
+import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
 
 const LeadsDetailsComponent = () => {
   const [lead, setLead] = useState<LeadRow | null>(null);
+  const [converting, setConverting] = useState(false);
 
   useEffect(() => {
     const id =
@@ -36,16 +38,10 @@ const LeadsDetailsComponent = () => {
     });
   }, []);
 
-  const onConvert = async () => {
-    if (!lead) return;
-    try {
-      await convertLead(lead.id);
-      const rows = await fetchLeads();
-      const row = rows?.find((item) => item.id === lead.id);
-      if (row) setLead(row);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
-    }
+  const refreshLead = async (id: string) => {
+    const rows = await fetchLeads();
+    const row = rows?.find((item) => item.id === id);
+    if (row) setLead(row);
   };
 
   return (
@@ -92,38 +88,13 @@ const LeadsDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="d-flex align-items-center flex-wrap gap-2">
-                      <span className="py-1 px-2 fs-12 bg-soft-danger rounded text-danger fw-medium">
-                        <i className="ti ti-lock me-1" />
-                        Private
-                      </span>
-                      <div className="dropdown">
-                        <Link
-                          href="#"
-                          className="btn btn-xs btn-success fs-12 py-1 px-2 fw-medium d-inline-flex align-items-center"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          {" "}
-                          <i className="ti ti-thumb-up me-1" />
-                          Closed
-                          <i className="ti ti-chevron-down ms-1" />{" "}
-                        </Link>
-                        <div className="dropdown-menu dropdown-menu-right">
-                          <Link
-                            className="dropdown-item"
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (lead) void onConvert();
-                            }}
-                          >
-                            <span>Closed</span>
-                          </Link>
-                          <Link className="dropdown-item" href="#">
-                            <span>Lost</span>
-                          </Link>
-                        </div>
-                      </div>
+                      {lead && lead.status !== "converted" ? (
+                        <button type="button" className="btn btn-primary btn-sm" onClick={() => setConverting(true)}>
+                          Convertir en client
+                        </button>
+                      ) : lead?.status === "converted" ? (
+                        <span className="badge bg-success">Converti</span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -387,8 +358,116 @@ const LeadsDetailsComponent = () => {
 			End Page Content
 		========================= */}
         <ModalLeadsDetails/>
+        {converting && lead ? (
+          <ConvertModal
+            lead={lead}
+            onClose={() => setConverting(false)}
+            onDone={async () => {
+              setConverting(false);
+              await refreshLead(lead.id);
+            }}
+          />
+        ) : null}
     </>
   );
 };
+
+function ConvertModal({
+  lead,
+  onClose,
+  onDone,
+}: {
+  lead: LeadRow;
+  onClose: () => void;
+  onDone: () => Promise<void>;
+}) {
+  const [services, setServices] = useState<CatalogItem[]>([]);
+  const [catalogItemId, setCatalogItemId] = useState("");
+  const [companyName, setCompanyName] = useState(lead.companies?.name ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void fetchCatalogItems().then((rows) => {
+      setServices((rows ?? []).filter((item) => item.kind === "service" && item.status === "active"));
+    });
+  }, []);
+
+  const selected = services.find((item) => item.id === catalogItemId);
+
+  const submit = async () => {
+    if (!selected) {
+      setError("Choisissez un service.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await convertLead(lead.id, {
+        catalogItemId: selected.id,
+        label: selected.name,
+        unitPrice: Number(selected.unit_price ?? 0),
+        taxRate: Number(selected.tax_rate ?? 0),
+        companyName: companyName.trim() || undefined,
+      });
+      await onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="modal fade show d-block" tabIndex={-1} style={{ background: "rgba(0,0,0,.45)" }}>
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Convertir en client</h5>
+            <button type="button" className="btn-close" onClick={onClose} />
+          </div>
+          <div className="modal-body">
+            <p className="text-muted small">
+              Un lead ne devient client qu&apos;après souscription à un service (affaire gagnée).
+            </p>
+            <div className="mb-3">
+              <label className="form-label">Service souscrit</label>
+              <select
+                className="form-select"
+                value={catalogItemId}
+                onChange={(e) => setCatalogItemId(e.target.value)}
+              >
+                <option value="">Choisir un service…</option>
+                {services.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} — {formatCatalogPrice(item.unit_price)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Société cliente (optionnel)</label>
+              <input
+                className="form-control"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Nom de l'entreprise"
+              />
+            </div>
+            {error ? <p className="text-danger small mb-0">{error}</p> : null}
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-light" onClick={onClose} disabled={busy}>
+              Annuler
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => void submit()} disabled={busy}>
+              {busy ? "Conversion…" : "Créer l'affaire et convertir"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default LeadsDetailsComponent;

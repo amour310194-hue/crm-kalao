@@ -131,6 +131,7 @@ export interface ContactRow {
   birth_date?: string | null;
   birth_place?: string | null;
   passport_no?: string | null;
+  status?: "prospect" | "client" | string | null;
   created_at?: string;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
 }
@@ -363,10 +364,14 @@ export async function fetchSuppliers(): Promise<CompanyRow[] | null> {
   return (data ?? []) as CompanyRow[];
 }
 
-export async function createCompany(input: Partial<CompanyRow> & { name: string }) {
+export async function createCompany(input: Partial<CompanyRow> & { name: string; party_role?: PartyRole }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { data, error } = await supabase.from("companies").insert({ ...input, party_role: "supplier" }).select("*").single();
+  const { data, error } = await supabase
+    .from("companies")
+    .insert({ ...input, party_role: input.party_role ?? "supplier" })
+    .select("*")
+    .single();
   throwIf(error);
   return data as CompanyRow;
 }
@@ -413,6 +418,18 @@ export async function fetchContacts(): Promise<ContactRow[] | null> {
   return (data ?? []) as ContactRow[];
 }
 
+export async function fetchClients(): Promise<ContactRow[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("*, companies(name, city, country)")
+    .eq("status", "client")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return (data ?? []) as ContactRow[];
+}
+
 export async function createContact(input: {
   first_name: string;
   last_name: string;
@@ -422,6 +439,7 @@ export async function createContact(input: {
   company_id?: string | null;
   notes?: string | null;
   account_type?: ClientKind | null;
+  status?: "prospect" | "client";
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -439,6 +457,7 @@ export async function createContact(input: {
       company_id: input.company_id || null,
       notes: input.notes || null,
       account_type,
+      status: input.status ?? "client",
     })
     .select("*")
     .single();
@@ -482,7 +501,7 @@ export function toContactsListRow(row: ContactRow, _index: number) {
       .toUpperCase(),
     Owner: "Kalao",
     Owner_Img: "avatar-01.jpg",
-    Status: "Active",
+    Status: row.status === "prospect" ? "Prospect" : "Client",
     Contact: row.email ?? "—",
     Created: formatDate(row.created_at),
     Email: row.email ?? "—",
@@ -575,20 +594,42 @@ function splitPersonName(title: string) {
   };
 }
 
-export async function convertLead(id: string) {
+export type ConvertServiceInput = {
+  catalogItemId: string;
+  label: string;
+  unitPrice: number;
+  taxRate?: number;
+  companyName?: string;
+};
+
+export function validateConvertService(service: Partial<ConvertServiceInput>): string | null {
+  if (!service.catalogItemId || !String(service.label ?? "").trim()) {
+    return "Choisissez un service.";
+  }
+  if (service.unitPrice == null || Number.isNaN(Number(service.unitPrice))) {
+    return "Indiquez un montant.";
+  }
+  return null;
+}
+
+export async function convertLead(id: string, service: ConvertServiceInput) {
+  const invalid = validateConvertService(service);
+  if (invalid) throw new Error(invalid);
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const leads = await fetchLeads();
   const lead = leads?.find((row) => row.id === id);
   if (!lead) throw new Error("Prospect introuvable");
+  if (lead.status === "converted") throw new Error("Ce prospect est déjà converti.");
 
   let companyId = lead.company_id;
   if (!companyId) {
     const company = await createCompany({
-      name: lead.title,
+      name: service.companyName?.trim() || lead.companies?.name || lead.title,
       country: "Cameroun",
       city: "Douala",
       notes: lead.notes,
+      party_role: "client",
     });
     companyId = company.id;
   }
@@ -601,6 +642,7 @@ export async function convertLead(id: string) {
       last_name: names.last_name,
       company_id: companyId,
       notes: lead.notes,
+      status: "prospect",
     });
     contactId = contact.id;
   }
@@ -613,11 +655,24 @@ export async function convertLead(id: string) {
       company_id: companyId,
       contact_id: contactId,
       lead_id: id,
-      stage: "qualification",
-      amount: Number(lead.estimated_value ?? 0),
+      stage: "won",
+      amount: service.unitPrice,
       notes: lead.notes,
     });
+  } else if (deal.stage !== "won") {
+    await updateDeal(deal.id, { stage: "won", amount: service.unitPrice });
   }
+
+  const { error: lineErr } = await supabase.from("deal_lines").insert({
+    deal_id: deal.id,
+    catalog_item_id: service.catalogItemId,
+    kind: "service",
+    label: service.label,
+    quantity: 1,
+    unit_price: service.unitPrice,
+    tax_rate: service.taxRate ?? 0,
+  });
+  throwIf(lineErr);
 
   await updateLead(id, {
     status: "converted",
@@ -1384,22 +1439,9 @@ export async function fetchManageUserRows() {
       LastActivity: "—",
       Created: "—",
       Status: emp?.status === "inactive" ? "Inactive" : "Active",
+      profileRole: p.role,
     };
   });
-  for (const e of employees ?? []) {
-    if (e.profile_id) continue;
-    rows.push({
-      key: e.id,
-      Name: e.full_name,
-      Role: e.job_title ?? "Collaborateur",
-      Image: "avatar-15.jpg",
-      Phone: e.phone ?? "—",
-      Email: e.email ?? "—",
-      LastActivity: "—",
-      Created: "—",
-      Status: e.status === "active" ? "Active" : "Inactive",
-    });
-  }
   return rows;
 }
 

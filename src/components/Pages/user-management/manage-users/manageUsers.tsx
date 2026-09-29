@@ -13,14 +13,39 @@ import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchManageUserRows } from "@/lib/crm";
-
+import { authJsonHeaders } from "@/lib/auth-headers";
 
 const ManageUsersComponent = () => {
   const loadUsers = useCallback(() => fetchManageUserRows(), []);
-  const { rows: data } = useLiveRows(ManageuserListData, loadUsers);
+  const { rows: data, reload } = useLiveRows(ManageuserListData, loadUsers);
+  const [pending, setPending] = useState<{ key: string; Name: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const confirmDelete = async () => {
+    if (!pending) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/staff/delete-account", {
+        method: "POST",
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ userId: pending.key }),
+      });
+      const json = (await res.json()) as { ok?: boolean; reason?: string };
+      if (!res.ok || !json.ok) throw new Error(json.reason || "Suppression impossible");
+      setPending(null);
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const columns = [
     {
-      title: "Name",
+      title: "Nom",
       dataIndex: "Name",
       render: (text: any, render: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
@@ -41,32 +66,32 @@ const ManageUsersComponent = () => {
       sorter: (a: any, b: any) => a.Name.length - b.Name.length,
     },
     {
-      title: "Phone",
+      title: "Téléphone",
       dataIndex: "Phone",
 
       sorter: (a: any, b: any) => a.Phone.length - b.Phone.length,
     },
     {
-      title: "Email",
+      title: "E-mail",
       dataIndex: "Email",
 
       sorter: (a: any, b: any) => a.Email.length - b.Email.length,
     },
     {
-      title: "Created",
+      title: "Créé",
       dataIndex: "Created",
 
       sorter: (a: any, b: any) => a.Created.length - b.Created.length,
     },
     {
-      title: "Last Activity",
+      title: "Dernière activité",
       dataIndex: "LastActivity",
 
       sorter: (a: any, b: any) => a.LastActivity.length - b.LastActivity.length,
     },
 
     {
-      title: "Status",
+      title: "Statut",
       dataIndex: "Status",
       render: (text: any) => (
         <span
@@ -80,39 +105,21 @@ const ManageUsersComponent = () => {
       sorter: (a: any, b: any) => a.Status.length - b.Status.length,
     },
     {
-      title: "Action",
+      title: "Actions",
       dataIndex: "Action",
-      render: () => (
-        <div className="dropdown table-action">
-          <Link
-            href="#"
-            className="action-icon btn btn-xs shadow btn-icon btn-outline-light"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i className="ti ti-dots-vertical" />
-          </Link>
-          <div className="dropdown-menu dropdown-menu-right">
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvas_edit"
-            >
-              <i className="ti ti-edit text-blue" /> Edit
-            </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="modal"
-              data-bs-target="#delete_contact"
-            >
-              <i className="ti ti-trash" /> Delete
-            </Link>
-          </div>
-        </div>
+      render: (_: unknown, record: { key: string; Name: string }) => (
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => {
+            setError(null);
+            setPending({ key: record.key, Name: record.Name });
+          }}
+        >
+          <i className="ti ti-trash me-1" />
+          Supprimer
+        </button>
       ),
-      sorter: (a: any, b: any) => a.Action.length - b.Action.length,
     },
   ];
 
@@ -131,8 +138,8 @@ const ManageUsersComponent = () => {
         <div className="content pb-0">
           {/* Page Header */}
           <PageHeader
-            title="Manage Users"
-            badgeCount={152}
+            title="Utilisateurs"
+            badgeCount={data.length}
             showModuleTile={false}
             showExport={true}
           />
@@ -146,15 +153,9 @@ const ManageUsersComponent = () => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <Link
-                href="#"
-                className="btn btn-primary"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#offcanvas_add"
-              >
-                <i className="ti ti-square-rounded-plus-filled me-1" />
-                Add User
-              </Link>
+              <span className="text-muted small">
+                Les comptes se créent depuis l&apos;onglet Collaborateurs.
+              </span>
             </div>
             <div className="card-body">
               {/* table header */}
@@ -723,6 +724,42 @@ const ManageUsersComponent = () => {
 			End Page Content
 		========================= */}
         <ModalUserManagement/>
+        {pending ? (
+          <div className="modal fade show d-block" tabIndex={-1} style={{ background: "rgba(0,0,0,.45)" }}>
+            <div className="modal-dialog modal-dialog-centered modal-sm">
+              <div className="modal-content">
+                <div className="modal-body p-4 text-center">
+                  <h5 className="mb-2">Supprimer le compte</h5>
+                  <p className="mb-3">
+                    Confirmer la suppression de <strong>{pending.Name}</strong> ? Cette personne ne pourra plus se connecter.
+                  </p>
+                  {error ? <p className="text-danger small">{error}</p> : null}
+                  <div className="d-flex justify-content-center gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      disabled={busy}
+                      onClick={() => {
+                        setPending(null);
+                        setError(null);
+                      }}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      disabled={busy}
+                      onClick={() => void confirmDelete()}
+                    >
+                      {busy ? "Suppression…" : "Supprimer"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
     </>
   );
 };

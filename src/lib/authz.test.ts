@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPublicPath } from "@/lib/authz";
+import { canDeleteAccount, isPublicPath } from "@/lib/authz";
 
 describe("isPublicPath", () => {
   it("laisse passer login et reset", () => {
@@ -16,5 +16,30 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/docs/invoice/x")).toBe(false);
     expect(isPublicPath("/leads")).toBe(false);
     expect(isPublicPath("/leads-list")).toBe(false);
+  });
+});
+
+describe("canDeleteAccount", () => {
+  it("interdit de se supprimer soi-même", () => {
+    expect(canDeleteAccount("admin", "staff", true)).toBe(
+      "Vous ne pouvez pas supprimer votre propre compte."
+    );
+  });
+
+  it("réserve l'action aux administrateurs", () => {
+    expect(canDeleteAccount("staff", "staff", false)).toBe(
+      "Action réservée à un administrateur."
+    );
+  });
+
+  it("seul un super-admin peut supprimer un super-admin", () => {
+    expect(canDeleteAccount("admin", "super_admin", false)).toBe(
+      "Seul un super-admin peut supprimer un super-admin."
+    );
+    expect(canDeleteAccount("super_admin", "super_admin", false)).toBeNull();
+  });
+
+  it("autorise un admin à supprimer un collaborateur", () => {
+    expect(canDeleteAccount("admin", "staff", false)).toBeNull();
   });
 });

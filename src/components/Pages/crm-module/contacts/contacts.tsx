@@ -9,12 +9,12 @@ import KalaoAvatar from "@/components/docs/KalaoAvatar";
 import { all_routes } from "@/router/all_routes";
 import Footer from "@/core/common/footer/footer";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { fetchContacts, toContactsListRow } from "@/lib/crm";
+import { fetchClients, toContactsListRow } from "@/lib/crm";
 import { ContactsListData } from "../../../../core/json/contactsListData";
 
 const ContactsComponent = () => {
   const loadContacts = useCallback(async () => {
-    const rows = await fetchContacts();
+    const rows = await fetchClients();
     return rows ? rows.map(toContactsListRow) : null;
   }, []);
   const { rows, live, reload } = useLiveRows(ContactsListData, loadContacts);
