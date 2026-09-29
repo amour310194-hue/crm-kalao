@@ -13,7 +13,7 @@ import ModalContacts from "./modals/modalContacts";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
-import { deleteContact, fetchContacts, toContactsListRow } from "@/lib/crm";
+import { deleteContact, fetchClients, toContactsListRow } from "@/lib/crm";
 import { liveHref } from "@/lib/docs";
 
 const ContactsListComponent = () => {
@@ -28,7 +28,7 @@ const ContactsListComponent = () => {
     }));
   };
   const loadContacts = useCallback(async () => {
-    const rows = await fetchContacts();
+    const rows = await fetchClients();
     return rows ? rows.map(toContactsListRow) : null;
   }, []);
   const { rows: data, live, reload } = useLiveRows(ContactsListData, loadContacts);
