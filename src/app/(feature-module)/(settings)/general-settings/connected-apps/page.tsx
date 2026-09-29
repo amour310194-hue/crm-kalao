@@ -1,7 +1,7 @@
 ﻿import ConnectedAppsComponent from "@/components/Pages/settings/general-settings/connectedApps";
 
 export const metadata = {
-  title: "Settings - Connected Apps",
+  title: "Canaux et clés API | Kalao CRM",
 };
 
 export default function ConnectedApps(){

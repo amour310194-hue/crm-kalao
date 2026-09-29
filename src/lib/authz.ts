@@ -20,6 +20,10 @@ export function isCrmAdmin(role?: string | null): boolean {
   );
 }
 
+export function canEditOrgSettings(role?: string | null): boolean {
+  return role === "super_admin" || role === "admin" || role === "direction";
+}
+
 export function canCreateStaffAccount(role?: string | null): boolean {
   return (
     role === "super_admin" ||
