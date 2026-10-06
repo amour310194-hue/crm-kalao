@@ -7,6 +7,7 @@ import Datatable from "@/core/common/dataTable";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import { fetchCatalogItems, type CatalogItem } from "@/lib/catalog";
 import { formatMoney, formatDate, uploadAttachment } from "@/lib/crm";
+import { canMutateFinance } from "@/lib/roles";
 import {
   EXPENSE_CATEGORIES,
   EXPENSE_METHODS,
@@ -16,6 +17,7 @@ import {
   expenseMethodLabel,
   fetchExpenses,
   todayDouala,
+  updateExpense,
   type ExpenseCategory,
   type ExpenseMethod,
   type ExpenseRow,
@@ -25,24 +27,26 @@ import { fetchStockLocations, type StockLocation } from "@/lib/stock";
 function ExpenseModal({
   catalog,
   locations,
+  existing,
   onClose,
   onSaved,
 }: {
   catalog: CatalogItem[];
   locations: StockLocation[];
+  existing?: ExpenseRow | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [category, setCategory] = useState<ExpenseCategory>("carburant");
-  const [label, setLabel] = useState("");
-  const [amount, setAmount] = useState("");
-  const [spentAt, setSpentAt] = useState(todayDouala());
-  const [method, setMethod] = useState<ExpenseMethod>("cash");
-  const [supplier, setSupplier] = useState("");
-  const [catalogItemId, setCatalogItemId] = useState("");
-  const [locationId, setLocationId] = useState("");
-  const [qty, setQty] = useState("");
-  const [notes, setNotes] = useState("");
+  const [category, setCategory] = useState<ExpenseCategory>(existing?.category ?? "carburant");
+  const [label, setLabel] = useState(existing?.label ?? "");
+  const [amount, setAmount] = useState(existing ? String(existing.amount) : "");
+  const [spentAt, setSpentAt] = useState(existing?.spent_at ?? todayDouala());
+  const [method, setMethod] = useState<ExpenseMethod>(existing?.method ?? "cash");
+  const [supplier, setSupplier] = useState(existing?.supplier ?? "");
+  const [catalogItemId, setCatalogItemId] = useState(existing?.catalog_item_id ?? "");
+  const [locationId, setLocationId] = useState(existing?.stock_location_id ?? "");
+  const [qty, setQty] = useState(existing?.qty != null ? String(existing.qty) : "");
+  const [notes, setNotes] = useState(existing?.notes ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +57,7 @@ function ExpenseModal({
     setError(null);
     setSaving(true);
     try {
-      let attachmentId: string | null = null;
+      let attachmentId: string | null = existing?.attachment_id ?? null;
       if (file) {
         const attached = await uploadAttachment({
           file,
@@ -61,7 +65,7 @@ function ExpenseModal({
         });
         attachmentId = attached.id;
       }
-      await createExpense({
+      const payload = {
         category,
         label,
         amount: Number(amount.replace(",", ".")),
@@ -73,7 +77,12 @@ function ExpenseModal({
         qty: qty ? Number(qty.replace(",", ".")) : null,
         notes,
         attachment_id: attachmentId,
-      });
+      };
+      if (existing) {
+        await updateExpense(existing.id, payload);
+      } else {
+        await createExpense(payload);
+      }
       onSaved();
       onClose();
     } catch (err) {
@@ -88,7 +97,7 @@ function ExpenseModal({
       <div className="modal-dialog modal-lg modal-dialog-scrollable">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Enregistrer une dépense</h5>
+            <h5 className="modal-title">{existing ? "Modifier la dépense" : "Enregistrer une dépense"}</h5>
             <button type="button" className="btn-close" onClick={onClose} />
           </div>
           <div className="modal-body">
@@ -194,6 +203,8 @@ export default function DepensesComponent() {
   const [locations, setLocations] = useState<StockLocation[]>([]);
   const [searchText, setSearchText] = useState("");
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<ExpenseRow | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
 
   const load = () => {
     void fetchExpenses().then((data) => setRows(data ?? []));
@@ -203,6 +214,7 @@ export default function DepensesComponent() {
     load();
     void fetchCatalogItems().then((data) => setCatalog(data ?? []));
     void fetchStockLocations().then((data) => setLocations(data ?? []));
+    void canMutateFinance().then(setCanEdit);
   }, []);
 
   const columns = [
@@ -235,23 +247,31 @@ export default function DepensesComponent() {
     {
       title: "Action",
       dataIndex: "id",
-      render: (_: string, row: ExpenseRow) => (
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-danger"
-          onClick={async () => {
-            if (!confirm("Supprimer cette dépense ?")) return;
-            try {
-              await deleteExpense(row.id);
-              load();
-            } catch (err) {
-              alert(err instanceof Error ? err.message : "Suppression refusée");
-            }
-          }}
-        >
-          <i className="ti ti-trash" />
-        </button>
-      ),
+      render: (_: string, row: ExpenseRow) =>
+        canEdit ? (
+          <div className="d-flex gap-1">
+            <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setEditing(row)}>
+              Modifier
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger"
+              onClick={async () => {
+                if (!confirm("Supprimer cette dépense ?")) return;
+                try {
+                  await deleteExpense(row.id);
+                  load();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Suppression refusée");
+                }
+              }}
+            >
+              <i className="ti ti-trash" />
+            </button>
+          </div>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
     },
   ];
 
@@ -263,10 +283,12 @@ export default function DepensesComponent() {
           <div className="card border-0 rounded-0">
             <div className="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
               <SearchInput value={searchText} onChange={setSearchText} />
-              <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
-                <i className="ti ti-square-rounded-plus-filled me-1" />
-                Enregistrer une dépense
-              </button>
+              {canEdit ? (
+                <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
+                  <i className="ti ti-square-rounded-plus-filled me-1" />
+                  Enregistrer une dépense
+                </button>
+              ) : null}
             </div>
             <div className="card-body">
               <Datatable
@@ -281,10 +303,14 @@ export default function DepensesComponent() {
         <Footer />
       </div>
       {creating ? (
+        <ExpenseModal catalog={catalog} locations={locations} onClose={() => setCreating(false)} onSaved={load} />
+      ) : null}
+      {editing ? (
         <ExpenseModal
           catalog={catalog}
           locations={locations}
-          onClose={() => setCreating(false)}
+          existing={editing}
+          onClose={() => setEditing(null)}
           onSaved={load}
         />
       ) : null}

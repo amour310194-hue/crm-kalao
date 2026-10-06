@@ -1,7 +1,7 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { canCreateStaffAccount, isCrmAdmin } from "@/lib/authz";
+import { canCreateStaffAccount, canEditFinance, isCrmAdmin } from "@/lib/authz";
 
-export { canCreateStaffAccount, isCrmAdmin } from "@/lib/authz";
+export { canCreateStaffAccount, canEditFinance, isCrmAdmin } from "@/lib/authz";
 
 export const PAY_DOC_KINDS = ["employment", "certificate", "payslip"] as const;
 
@@ -49,5 +49,15 @@ export async function assertCanDelete() {
   // Affichage seulement. La suppression factures/paiements est interdite par la RLS v24.
   if (!(await canMassDelete())) {
     throw new Error("Suppression réservée à la direction.");
+  }
+}
+
+export async function canMutateFinance(): Promise<boolean> {
+  return canEditFinance(await fetchSessionRole());
+}
+
+export async function assertCanEditFinance() {
+  if (!(await canMutateFinance())) {
+    throw new Error("Modification réservée à la finance ou à un administrateur.");
   }
 }

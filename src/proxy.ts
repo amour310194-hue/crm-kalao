@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isPublicPath, SESSION_IDLE_SECONDS, SESSION_MAX_SECONDS } from "@/lib/authz";
+import { isMfaExemptPath, isPublicPath, SESSION_IDLE_SECONDS, SESSION_MAX_SECONDS, mustEnrollMfa } from "@/lib/authz";
 import { isModuleAllowed, moduleForPath } from "@/lib/permissions";
 
 const LAST_SEEN = "kalao_last_seen";
@@ -108,6 +108,16 @@ export async function proxy(request: NextRequest) {
       const denied = request.nextUrl.clone();
       denied.pathname = "/error-404";
       return NextResponse.redirect(denied);
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const aal = session?.aal ?? "aal1";
+    if (mustEnrollMfa(profile?.role ?? null, aal) && !isMfaExemptPath(path)) {
+      const mfa = request.nextUrl.clone();
+      mfa.pathname = "/mfa-setup";
+      return NextResponse.redirect(mfa);
     }
 
     const now = Date.now();

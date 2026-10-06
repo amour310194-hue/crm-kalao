@@ -1,7 +1,7 @@
 ﻿import SecuritySettingsComponent from "@/components/Pages/settings/general-settings/securitySettings";
 
 export const metadata = {
-  title: "Settings - Security",
+    title: "Sécurité",
 };
 
 export default function Security(){

@@ -24,6 +24,17 @@ export function canEditOrgSettings(role?: string | null): boolean {
   return role === "super_admin" || role === "admin" || role === "direction";
 }
 
+/** Aligné sur public.is_finance() : dépenses, caisse, paiements, stock. */
+export function canEditFinance(role?: string | null): boolean {
+  return (
+    role === "super_admin" ||
+    role === "admin" ||
+    role === "manager" ||
+    role === "direction" ||
+    role === "finance"
+  );
+}
+
 export function canCreateStaffAccount(role?: string | null): boolean {
   return (
     role === "super_admin" ||
@@ -79,16 +90,30 @@ export const PUBLIC_PATHS = [
 ];
 
 export function isPublicPath(pathname: string): boolean {
-  if (pathname === "/") return true;
-  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+export function isMfaExemptPath(pathname: string): boolean {
+  return (
+    pathname === "/mfa-setup" ||
+    pathname === "/general-settings/security" ||
+    pathname.startsWith("/general-settings/security/")
+  );
 }
 
 export function mfaEnforced(): boolean {
-  return process.env.MFA_ENFORCE === "1" || process.env.MFA_ENFORCE === "true";
+  return process.env.MFA_ENFORCE !== "0" && process.env.MFA_ENFORCE !== "false";
 }
 
 export function roleNeedsMfa(role?: string | null): boolean {
   return Boolean(role && MFA_REQUIRED_ROLES.includes(role as AccountRole));
+}
+
+/** direction/admin/finance/rh : session aal2 obligatoire (sauf /mfa-setup). */
+export function mustEnrollMfa(role?: string | null, aal?: string | null): boolean {
+  if (!mfaEnforced()) return false;
+  if (!roleNeedsMfa(role)) return false;
+  return aal !== "aal2";
 }
 
 /** Session : 12 h d'inactivité, 7 j max (côté cookie / JWT). */

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { all_routes } from "@/router/all_routes";
-import { mfaEnforced } from "@/lib/authz";
+import { isMfaExemptPath, mustEnrollMfa } from "@/lib/authz";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -19,19 +19,30 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowserClient();
 
     const redirectIfUnauthenticated = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        router.replace(all_routes.login);
-        return;
-      }
-      if (mfaEnforced()) {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          router.replace(all_routes.login);
+          return;
+        }
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.session.user.id)
+          .maybeSingle();
         const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal.data?.currentLevel === "aal1" && aal.data?.nextLevel === "aal2") {
+        if (
+          mustEnrollMfa(profile?.role ?? null, aal.data?.currentLevel ?? data.session.aal) &&
+          !isMfaExemptPath(pathname)
+        ) {
           router.replace("/mfa-setup");
           return;
         }
+        setReady(true);
+      } catch (err) {
+        console.error("AuthGuard", err);
+        setReady(true);
       }
-      setReady(true);
     };
 
     void redirectIfUnauthenticated();

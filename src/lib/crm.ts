@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { assertCanDelete, canSeePayroll } from "@/lib/roles";
+import { assertCanDelete, assertCanEditFinance, canSeePayroll } from "@/lib/roles";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
 import {
   canadaSchedule,
@@ -226,6 +226,8 @@ export interface PaymentRow {
   created_at?: string;
   method: string;
   transaction_id: string | null;
+  notes?: string | null;
+  status?: string;
   invoices?: {
     number: string | null;
     due_date: string | null;
@@ -1039,11 +1041,19 @@ export async function deleteInvoice(_id: string) {
   throw new Error("Une facture émise s’annule, elle ne se supprime pas.");
 }
 
+export function validatePaymentPatch(input: { amount: number; method: string; paid_at: string }): string | null {
+  if (!(Number(input.amount) > 0)) return "Le montant doit être supérieur à 0.";
+  if (!input.paid_at) return "La date est requise.";
+  if (!input.method.trim()) return "Le mode de paiement est requis.";
+  return null;
+}
+
 export async function recordPayment(input: {
   invoice_id: string;
   amount: number;
   method?: string;
 }) {
+  await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("payments").insert({
@@ -1055,6 +1065,47 @@ export async function recordPayment(input: {
   throwIf(error);
 }
 
+export async function updatePayment(
+  id: string,
+  input: { amount: number; method: string; paid_at: string; notes?: string | null }
+) {
+  await assertCanEditFinance();
+  const errorMsg = validatePaymentPatch(input);
+  if (errorMsg) throw new Error(errorMsg);
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase
+    .from("payments")
+    .update({
+      amount: Number(input.amount),
+      method: input.method,
+      paid_at: input.paid_at,
+      notes: input.notes?.trim() || null,
+    })
+    .eq("id", id)
+    .eq("status", "valide");
+  throwIf(error);
+}
+
+export async function cancelPayment(id: string, reason: string) {
+  await assertCanEditFinance();
+  if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from("payments")
+    .update({
+      status: "annule",
+      cancelled_at: new Date().toISOString(),
+      cancelled_by: auth.user?.id ?? null,
+      cancel_reason: reason.trim(),
+    })
+    .eq("id", id)
+    .eq("status", "valide");
+  throwIf(error);
+}
+
 export async function markInvoicePaid(invoice: InvoiceRow, partial = false) {
   const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
   const amount = partial ? Math.max(remaining / 2, 0.01) : remaining;
@@ -1063,6 +1114,7 @@ export async function markInvoicePaid(invoice: InvoiceRow, partial = false) {
 }
 
 export async function markInvoiceUnpaid(invoiceId: string, reason = "Remise en impayé") {
+  await assertCanEditFinance();
   if (!invoiceId) throw new Error("Facture manquante");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -1187,15 +1239,29 @@ export async function fetchPayments(): Promise<PaymentRow[] | null> {
 }
 
 export function toPaymentsListRow(row: PaymentRow) {
+  const cancelled = row.status === "annule";
   return {
     key: row.id,
     InvoiceID: row.invoices?.number ? `#${row.invoices.number}` : "—",
     Image: "company-icon-01.svg",
     Client: row.invoices?.companies?.name ?? "—",
     Amount: formatMoney(row.amount),
+    amountValue: Number(row.amount),
+    paidAt: row.paid_at,
+    methodValue: row.method,
+    notes: row.notes ?? "",
+    status: row.status ?? "valide",
     DueDate: formatDate(row.invoices?.due_date),
-    Due_Date: formatDate(row.invoices?.due_date),
-    PaymentMethod: row.method === "cash" ? "Cash" : "Credit",
+    Due_Date: formatDate(row.paid_at || row.invoices?.due_date),
+    PaymentMethod: cancelled
+      ? "Annulé"
+      : row.method === "cash"
+        ? "Espèces"
+        : row.method === "mobile_money"
+          ? "Mobile money"
+          : row.method === "bank_transfer"
+            ? "Virement"
+            : row.method,
     TransactionID: row.transaction_id ?? "—",
     companyId: row.invoices?.company_id ?? null,
     invoiceId: row.invoice_id,

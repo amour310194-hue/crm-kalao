@@ -19,6 +19,11 @@ export const fr = {
   payments: "Paiements",
   paidAt: "Date de paiement",
   emptyChart: "Pas encore de données à afficher",
+  loadFailed: "Chargement impossible. Réessayez.",
+  saveFailed: "Enregistrement impossible. Réessayez.",
+  sessionExpired: "Session expirée. Reconnectez-vous.",
+  loginToken: "Jeton de connexion",
+  accessDenied: "Accès réservé à un administrateur.",
 } as const;
 
 export type MessageKey = keyof typeof fr;

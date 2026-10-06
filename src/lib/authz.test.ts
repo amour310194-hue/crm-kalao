@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { canDeleteAccount, canEditOrgSettings, isPublicPath } from "@/lib/authz";
+import {
+  canDeleteAccount,
+  canEditFinance,
+  canEditOrgSettings,
+  isMfaExemptPath,
+  isPublicPath,
+  mustEnrollMfa,
+} from "@/lib/authz";
 
 describe("isPublicPath", () => {
   it("laisse passer login et reset", () => {
@@ -16,6 +23,14 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/docs/invoice/x")).toBe(false);
     expect(isPublicPath("/leads")).toBe(false);
     expect(isPublicPath("/leads-list")).toBe(false);
+  });
+});
+
+describe("isMfaExemptPath", () => {
+  it("laisse la page Sécurité accessible pour configurer la 2FA", () => {
+    expect(isMfaExemptPath("/general-settings/security")).toBe(true);
+    expect(isMfaExemptPath("/mfa-setup")).toBe(true);
+    expect(isMfaExemptPath("/dashboard")).toBe(false);
   });
 });
 
@@ -51,5 +66,23 @@ describe("canEditOrgSettings", () => {
     expect(canEditOrgSettings("direction")).toBe(true);
     expect(canEditOrgSettings("manager")).toBe(false);
     expect(canEditOrgSettings("staff")).toBe(false);
+  });
+});
+
+describe("canEditFinance", () => {
+  it("autorise admin, direction et finance", () => {
+    expect(canEditFinance("admin")).toBe(true);
+    expect(canEditFinance("finance")).toBe(true);
+    expect(canEditFinance("staff")).toBe(false);
+    expect(canEditFinance("commercial")).toBe(false);
+  });
+});
+
+describe("mustEnrollMfa", () => {
+  it("renvoie un compte direction sans aal2 vers l’inscription 2FA", () => {
+    expect(mustEnrollMfa("direction", "aal1")).toBe(true);
+    expect(mustEnrollMfa("direction", "aal2")).toBe(false);
+    expect(mustEnrollMfa("staff", "aal1")).toBe(false);
+    expect(mustEnrollMfa("finance", null)).toBe(true);
   });
 });

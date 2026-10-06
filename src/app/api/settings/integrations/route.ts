@@ -10,47 +10,58 @@ import {
   findProvider,
 } from "@/lib/integrations";
 
+function jsonError(reason: string, status: number) {
+  return Response.json({ ok: false, reason }, { status });
+}
+
 export async function GET(request: NextRequest) {
-  const authed = await requireUser(request);
-  if (!authed) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
-  if (!canEditOrgSettings(authed.role)) {
-    return Response.json({ ok: false, reason: "forbidden" }, { status: 403 });
+  try {
+    const authed = await requireUser(request);
+    if (!authed) return jsonError("auth", 401);
+    if (!canEditOrgSettings(authed.role)) return jsonError("forbidden", 403);
+
+    const admin = getServiceSupabase();
+    const { data, error } = await admin
+      .from("integration_credentials")
+      .select("provider, field_key, last4, public_value");
+    if (error) {
+      console.error("integrations GET", error.message);
+      return jsonError("chargement_impossible", 500);
+    }
+
+    const rows = data ?? [];
+    const providers = INTEGRATION_PROVIDERS.map((provider) =>
+      buildProviderStatus(
+        provider,
+        rows
+          .filter((row) => row.provider === provider.id)
+          .map((row) => ({
+            field_key: row.field_key,
+            last4: row.last4,
+            public_value: row.public_value,
+            ciphertext: row.last4 ? "set" : null,
+          }))
+      )
+    );
+
+    return Response.json({
+      ok: true,
+      origin: new URL(request.url).origin,
+      email: {
+        id: "email",
+        label: "E-mail (Resend)",
+        status: process.env.RESEND_API_KEY ? "serveur" : "absent",
+      },
+      providers,
+    });
+  } catch (err) {
+    console.error("integrations GET", err);
+    return jsonError("serveur", 500);
   }
-
-  const admin = getServiceSupabase();
-  const { data, error } = await admin
-    .from("integration_credentials")
-    .select("provider, field_key, last4, public_value");
-  if (error) return Response.json({ ok: false, reason: error.message }, { status: 500 });
-
-  const rows = data ?? [];
-  const providers = INTEGRATION_PROVIDERS.map((provider) =>
-    buildProviderStatus(
-      provider,
-      rows
-        .filter((row) => row.provider === provider.id)
-        .map((row) => ({
-          field_key: row.field_key,
-          last4: row.last4,
-          public_value: row.public_value,
-          ciphertext: row.last4 ? "set" : null,
-        }))
-    )
-  );
-
-  return Response.json({
-    ok: true,
-    origin: new URL(request.url).origin,
-    email: {
-      id: "email",
-      label: "E-mail (Resend)",
-      status: process.env.RESEND_API_KEY ? "serveur" : "absent",
-    },
-    providers,
-  });
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const authed = await requireUser(request);
   if (!authed) return Response.json({ ok: false, reason: "auth" }, { status: 401 });
   if (!canEditOrgSettings(authed.role)) {
@@ -123,4 +134,8 @@ export async function POST(request: NextRequest) {
   });
 
   return Response.json({ ok: true, provider: provider.id });
+  } catch (err) {
+    console.error("integrations POST", err);
+    return jsonError("serveur", 500);
+  }
 }

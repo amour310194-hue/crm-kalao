@@ -8,6 +8,7 @@ import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
+import { mustEnrollMfa } from "@/lib/authz";
 type PasswordField = "password" | "confirmPassword";
 
 const Login = () => {
@@ -54,13 +55,53 @@ const Login = () => {
         password,
       });
       if (signInError) {
-        const next = fails + 1;
-        setFails(next);
-        if (next >= 5) setLockedUntil(Date.now() + 30_000);
+        await fetch("/api/auth/login-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, success: false }),
+        });
+        const nextFails = fails + 1;
+        setFails(nextFails);
+        if (nextFails >= 5) setLockedUntil(Date.now() + 30_000);
         setError("Email ou mot de passe incorrect.");
         return;
       }
       setFails(0);
+      const { data: sessionData } = await supabase.auth.getSession();
+      let sessionId: string | null = null;
+      try {
+        const payloadB64 = sessionData.session?.access_token?.split(".")[1];
+        if (payloadB64) {
+          const json = JSON.parse(atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"))) as {
+            session_id?: string;
+          };
+          sessionId = json.session_id ?? null;
+        }
+      } catch {
+        sessionId = null;
+      }
+      const eventRes = await fetch("/api/auth/login-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          success: true,
+          sessionId,
+        }),
+      });
+      const eventJson = (await eventRes.json().catch(() => ({}))) as { token?: string };
+      if (eventJson.token) sessionStorage.setItem("kalao_cxn_token", eventJson.token);
+      const userId = sessionData.session?.user.id;
+      let role: string | null = null;
+      if (userId) {
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+        role = profile?.role ?? null;
+      }
+      const aal = sessionData.session?.aal ?? "aal1";
+      if (mustEnrollMfa(role, aal)) {
+        router.push("/mfa-setup");
+        return;
+      }
       router.push(all_routes.dashboard);
     } catch {
       setError("Impossible de se connecter. Vérifiez la configuration Supabase.");
