@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { assertCanEditFinance } from "@/lib/roles";
 
 export const EXPENSE_CATEGORIES = [
   { value: "achat_stock", label: "Achat de stock" },
@@ -112,6 +113,7 @@ export async function fetchExpenses(): Promise<ExpenseRow[] | null> {
 }
 
 export async function createExpense(input: ExpenseInput): Promise<ExpenseRow> {
+  await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const payload = toExpenseInsert(input);
@@ -120,14 +122,17 @@ export async function createExpense(input: ExpenseInput): Promise<ExpenseRow> {
   return data as ExpenseRow;
 }
 
-export async function updateExpense(id: string, patch: Partial<ExpenseRow>) {
+export async function updateExpense(id: string, input: ExpenseInput) {
+  await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase.from("expenses").update(patch).eq("id", id);
+  const payload = toExpenseInsert(input);
+  const { error } = await supabase.from("expenses").update(payload).eq("id", id);
   throwIf(error);
 }
 
 export async function deleteExpense(id: string) {
+  await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("expenses").delete().eq("id", id);

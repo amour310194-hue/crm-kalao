@@ -404,6 +404,7 @@ export const all_routes = {
   captureForms: "/crm-setting/capture-forms",
 
   expenses: "/finance/depenses",
+  cash: "/finance/caisse",
   stock: "/finance/stock",
 
   //Layouts Pages

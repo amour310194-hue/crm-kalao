@@ -9,28 +9,33 @@ import { fetchCatalogItems, type CatalogItem } from "@/lib/catalog";
 import { formatDate } from "@/lib/crm";
 import {
   createStockMovement,
+  deleteStockMovement,
   fetchStockLocations,
   fetchStockMovements,
   qtyForItemAtLocation,
+  updateStockMovement,
   type StockLocation,
   type StockMovement,
 } from "@/lib/stock";
+import { canMutateFinance } from "@/lib/roles";
 
 function MovementModal({
   catalog,
   locations,
+  existing,
   onClose,
   onSaved,
 }: {
   catalog: CatalogItem[];
   locations: StockLocation[];
+  existing?: StockMovement | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [catalogItemId, setCatalogItemId] = useState("");
-  const [locationId, setLocationId] = useState("");
-  const [qty, setQty] = useState("");
-  const [reason, setReason] = useState("");
+  const [catalogItemId, setCatalogItemId] = useState(existing?.catalog_item_id ?? "");
+  const [locationId, setLocationId] = useState(existing?.location_id ?? "");
+  const [qty, setQty] = useState(existing ? String(existing.qty) : "");
+  const [reason, setReason] = useState(existing?.reason ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const products = catalog.filter((item) => item.kind === "product" || item.track_stock);
@@ -39,12 +44,14 @@ function MovementModal({
     setError(null);
     setSaving(true);
     try {
-      await createStockMovement({
+      const payload = {
         catalog_item_id: catalogItemId,
         location_id: locationId || null,
         qty: Number(qty.replace(",", ".")),
         reason,
-      });
+      };
+      if (existing) await updateStockMovement(existing.id, payload);
+      else await createStockMovement(payload);
       onSaved();
       onClose();
     } catch (err) {
@@ -59,7 +66,7 @@ function MovementModal({
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Nouveau mouvement</h5>
+            <h5 className="modal-title">{existing ? "Modifier le mouvement" : "Nouveau mouvement"}</h5>
             <button type="button" className="btn-close" onClick={onClose} />
           </div>
           <div className="modal-body">
@@ -124,7 +131,9 @@ export default function StockComponent() {
   const [locationId, setLocationId] = useState("");
   const [searchText, setSearchText] = useState("");
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<StockMovement | null>(null);
   const [historyId, setHistoryId] = useState<string | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
 
   const load = () => {
     void fetchCatalogItems().then((data) => setCatalog(data ?? []));
@@ -134,6 +143,7 @@ export default function StockComponent() {
   useEffect(() => {
     load();
     void fetchStockLocations().then((data) => setLocations(data ?? []));
+    void canMutateFinance().then(setCanEdit);
   }, []);
 
   const rows = useMemo(() => {
@@ -191,10 +201,12 @@ export default function StockComponent() {
                   ))}
                 </select>
               </div>
-              <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
-                <i className="ti ti-square-rounded-plus-filled me-1" />
-                Nouveau mouvement
-              </button>
+              {canEdit ? (
+                <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
+                  <i className="ti ti-square-rounded-plus-filled me-1" />
+                  Nouveau mouvement
+                </button>
+              ) : null}
             </div>
             <div className="card-body">
               <Datatable columns={columns} dataSource={rows} Selection={false} searchText={searchText} />
@@ -215,6 +227,7 @@ export default function StockComponent() {
                             <th>Site</th>
                             <th>Quantité</th>
                             <th>Motif</th>
+                            {canEdit ? <th>Action</th> : null}
                           </tr>
                         </thead>
                         <tbody>
@@ -224,6 +237,32 @@ export default function StockComponent() {
                               <td>{locations.find((item) => item.id === row.location_id)?.name ?? "—"}</td>
                               <td>{row.qty}</td>
                               <td>{row.reason || "—"}</td>
+                              {canEdit ? (
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary me-1"
+                                    onClick={() => setEditing(row)}
+                                  >
+                                    Modifier
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={async () => {
+                                      if (!confirm("Supprimer ce mouvement ?")) return;
+                                      try {
+                                        await deleteStockMovement(row.id);
+                                        load();
+                                      } catch (err) {
+                                        alert(err instanceof Error ? err.message : "Suppression refusée");
+                                      }
+                                    }}
+                                  >
+                                    Supprimer
+                                  </button>
+                                </td>
+                              ) : null}
                             </tr>
                           ))}
                         </tbody>
@@ -241,6 +280,15 @@ export default function StockComponent() {
       </div>
       {creating ? (
         <MovementModal catalog={catalog} locations={locations} onClose={() => setCreating(false)} onSaved={load} />
+      ) : null}
+      {editing ? (
+        <MovementModal
+          catalog={catalog}
+          locations={locations}
+          existing={editing}
+          onClose={() => setEditing(null)}
+          onSaved={load}
+        />
       ) : null}
     </>
   );

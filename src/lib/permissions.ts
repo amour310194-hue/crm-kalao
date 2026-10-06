@@ -61,7 +61,7 @@ export const MODULES: { key: ModuleKey; label: string; prefixes: string[] }[] = 
   },
   {
     key: "finance",
-    label: "Finance (dépenses, stock)",
+    label: "Finance (dépenses, caisse, stock)",
     prefixes: ["/finance"],
   },
   {

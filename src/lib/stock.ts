@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { assertCanEditFinance } from "@/lib/roles";
 
 export interface StockLocation {
   id: string;
@@ -59,6 +60,7 @@ export async function createStockMovement(input: {
   qty: number;
   reason: string;
 }) {
+  await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   if (!input.catalog_item_id) throw new Error("Choisissez un article.");
@@ -69,5 +71,39 @@ export async function createStockMovement(input: {
     qty: input.qty,
     reason: input.reason.trim() || "mouvement",
   });
+  throwIf(error);
+}
+
+export async function updateStockMovement(
+  id: string,
+  input: {
+    catalog_item_id: string;
+    location_id: string | null;
+    qty: number;
+    reason: string;
+  }
+) {
+  await assertCanEditFinance();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  if (!input.catalog_item_id) throw new Error("Choisissez un article.");
+  if (!Number.isFinite(input.qty) || input.qty === 0) throw new Error("La quantité ne peut pas être nulle.");
+  const { error } = await supabase
+    .from("stock_movements")
+    .update({
+      catalog_item_id: input.catalog_item_id,
+      location_id: input.location_id,
+      qty: input.qty,
+      reason: input.reason.trim() || "mouvement",
+    })
+    .eq("id", id);
+  throwIf(error);
+}
+
+export async function deleteStockMovement(id: string) {
+  await assertCanEditFinance();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.from("stock_movements").delete().eq("id", id);
   throwIf(error);
 }

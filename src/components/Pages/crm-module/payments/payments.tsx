@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import { PaymentsListData } from "../../../../core/json/paymentsListData";
@@ -14,12 +14,20 @@ import { all_routes } from "@/router/all_routes";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
 import { useLiveRows } from "@/lib/useLiveRows";
 import { fetchPayments, toPaymentsListRow } from "@/lib/crm";
+import { canMutateFinance } from "@/lib/roles";
 import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import KalaoCashBar from "@/components/docs/KalaoCashBar";
+import PaymentEditModal, { type PaymentEditTarget } from "./PaymentEditModal";
 
 const PaymentsComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
+  const [canEdit, setCanEdit] = useState(false);
+  const [editPay, setEditPay] = useState<PaymentEditTarget | null>(null);
+
+  useEffect(() => {
+    void canMutateFinance().then(setCanEdit);
+  }, []);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -91,7 +99,7 @@ const PaymentsComponent = () => {
     {
       title: "Action",
       dataIndex: "Action",
-      render: (_: unknown, record: { key?: string }) => (
+      render: (_: unknown, record: PaymentEditTarget & { key?: string }) => (
         <div className="dropdown table-action">
           <Link
             href="#"
@@ -109,16 +117,27 @@ const PaymentsComponent = () => {
               data-bs-toggle={isLiveId(record.key) ? undefined : "offcanvas"}
               data-bs-target={isLiveId(record.key) ? undefined : "#offcanvas_view"}
             >
-              <i className="ti ti-eye text-indigo" /> Preview
+              <i className="ti ti-eye text-indigo" /> Aperçu
             </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="modal"
-              data-bs-target="#delete_payments"
-            >
-              <i className="ti ti-trash" /> Delete
-            </Link>
+            {isLiveId(record.key) && canEdit && record.status !== "annule" ? (
+              <button
+                type="button"
+                className="dropdown-item"
+                onClick={() => setEditPay(record)}
+              >
+                <i className="ti ti-edit text-blue" /> Modifier
+              </button>
+            ) : null}
+            {!isLiveId(record.key) ? (
+              <Link
+                className="dropdown-item"
+                href="#"
+                data-bs-toggle="modal"
+                data-bs-target="#delete_payments"
+              >
+                <i className="ti ti-trash" /> Delete
+              </Link>
+            ) : null}
           </div>
         </div>
       ),
@@ -619,6 +638,9 @@ const PaymentsComponent = () => {
 			End Page Content
 		========================= */}
     <ModalPayments/>
+    {editPay ? (
+      <PaymentEditModal row={editPay} onClose={() => setEditPay(null)} onSaved={reload} />
+    ) : null}
     </>
   );
 };

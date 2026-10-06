@@ -15,6 +15,33 @@ import {
 
 type EmailStatus = { id: string; label: string; status: "serveur" | "absent" };
 
+const REASON_FR: Record<string, string> = {
+  auth: "Session expirée. Reconnectez-vous.",
+  forbidden: "Accès réservé à un administrateur.",
+  serveur: "Le serveur n’a pas pu répondre. Réessayez.",
+  chargement_impossible: "Chargement impossible. Réessayez.",
+  chiffrement_absent: "Le chiffrement des clés n’est pas configuré sur le serveur.",
+  provider: "Canal inconnu.",
+  trop_long: "La clé est trop longue.",
+  bad_payload: "Requête invalide.",
+};
+
+async function readJson(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text();
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    console.error("integrations: réponse non JSON", res.status);
+    return {};
+  }
+}
+
+function explain(reason?: string): string {
+  if (!reason) return "Chargement impossible. Réessayez.";
+  return REASON_FR[reason] ?? "Une erreur s’est produite. Réessayez.";
+}
+
 export default function ConnectedAppsComponent() {
   const [origin, setOrigin] = useState("");
   const [email, setEmail] = useState<EmailStatus | null>(null);
@@ -29,7 +56,7 @@ export default function ConnectedAppsComponent() {
     setError(null);
     try {
       const res = await fetch("/api/settings/integrations", { headers: await authJsonHeaders() });
-      const json = (await res.json()) as {
+      const json = (await readJson(res)) as {
         ok?: boolean;
         reason?: string;
         origin?: string;
@@ -40,7 +67,7 @@ export default function ConnectedAppsComponent() {
         setForbidden(true);
         return;
       }
-      if (!res.ok || !json.ok) throw new Error(json.reason || "Chargement impossible");
+      if (!res.ok || !json.ok) throw new Error(explain(json.reason));
       setOrigin(json.origin ?? window.location.origin);
       setEmail(json.email ?? null);
       setProviders(json.providers ?? []);
@@ -82,8 +109,8 @@ export default function ConnectedAppsComponent() {
         headers: await authJsonHeaders(),
         body: JSON.stringify({ provider: providerId, values }),
       });
-      const json = (await res.json()) as { ok?: boolean; reason?: string };
-      if (!res.ok || !json.ok) throw new Error(json.reason || "Enregistrement impossible");
+      const json = (await readJson(res)) as { ok?: boolean; reason?: string };
+      if (!res.ok || !json.ok) throw new Error(explain(json.reason));
       setDrafts((prev) => ({ ...prev, [providerId]: {} }));
       setOk("Enregistré. Les clés ne sont pas encore testées auprès des réseaux.");
       await load();
@@ -154,7 +181,7 @@ export default function ConnectedAppsComponent() {
                           <span
                             className={`badge ${email?.status === "serveur" ? "badge-soft-info" : "badge-soft-secondary"}`}
                           >
-                            {email?.status === "serveur" ? "Clé présente sur le serveur" : "Clé Resend absente"}
+                            {email?.status === "serveur" ? "Présente sur ce déploiement" : "Non configurée sur ce déploiement"}
                           </span>
                         </div>
                       </div>

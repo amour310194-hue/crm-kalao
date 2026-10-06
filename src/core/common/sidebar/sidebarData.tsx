@@ -401,6 +401,17 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
+        label: "Caisse",
+        link: route.cash,
+        submenu: false,
+        showSubRoute: false,
+        icon: "cash",
+        base: "finance",
+        materialicons: "start",
+        dot: true,
+        submenuItems: [],
+      },
+      {
         label: "Stock",
         link: route.stock,
         submenu: false,
