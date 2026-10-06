@@ -256,7 +256,11 @@ export default function MfaSetupPage() {
     }
   };
 
-  const showChooser = ready && method === "choose" && !qr && !smsSent;
+  const showChooser = ready && method === "choose" && !qr && !smsSent && !ok;
+  const step = ok || recoveryCodes ? 3 : qr || smsSent || method === "phone" ? 2 : 1;
+
+  const methodIcon = (kind: MfaKind) =>
+    kind === "phone" ? "ti-message" : kind === "webauthn" ? "ti-key" : "ti-device-mobile";
 
   return (
     <div className="kalao-mfa p-3">
@@ -267,10 +271,15 @@ export default function MfaSetupPage() {
               <div className="text-center auth-logo mb-3">
                 <ImageWithBasePath src="assets/img/kalao-logo.png" className="img-fluid" alt="Groupe Kalao" />
               </div>
+              <div className="kalao-mfa-steps" aria-hidden>
+                <span className={`kalao-mfa-step${step >= 1 ? " is-on" : ""}`} />
+                <span className={`kalao-mfa-step${step >= 2 ? " is-on" : ""}`} />
+                <span className={`kalao-mfa-step${step >= 3 ? " is-on" : ""}`} />
+              </div>
               <p className="text-uppercase small fw-semibold mb-1" style={{ color: "#e8a317", letterSpacing: "0.08em" }}>
                 Sécurité du compte
               </p>
-              <h1 className="h3 mb-2">Plusieurs méthodes d’authentification</h1>
+              <h1 className="h3 mb-2">Protégez votre accès</h1>
               <p className="text-muted mb-4">
                 Choisissez au moins une méthode. Vous pouvez en ajouter d’autres ensuite. Obligatoire pour super-admin,
                 admin, direction, finance et RH.
@@ -285,7 +294,7 @@ export default function MfaSetupPage() {
               ) : null}
 
               {showChooser ? (
-                <>
+                <div className="kalao-mfa-methods">
                   {aal !== "aal2" && verified.length > 0 ? (
                     <p className="small text-muted">Confirmez une méthode déjà liée pour ouvrir cette session.</p>
                   ) : null}
@@ -300,14 +309,24 @@ export default function MfaSetupPage() {
                         disabled={busy}
                         onClick={() => void challengeExisting(factor.id, kind)}
                       >
-                        <strong>{MFA_METHOD_LABEL[kind]}</strong>
-                        <span className="small text-muted">Déjà configurée — valider maintenant</span>
+                        <span className="kalao-mfa-ico">
+                          <i className={`ti ${methodIcon(kind)}`} />
+                        </span>
+                        <span>
+                          <strong>{MFA_METHOD_LABEL[kind]}</strong>
+                          <span className="small text-muted">Déjà configurée — valider maintenant</span>
+                        </span>
                       </button>
                     );
                   })}
                   <button type="button" className="kalao-mfa-method" disabled={busy} onClick={() => void enrollTotp()}>
-                    <strong>Application authenticator</strong>
-                    <span className="small text-muted">Google Authenticator, Authy, Microsoft Authenticator</span>
+                    <span className="kalao-mfa-ico">
+                      <i className="ti ti-qrcode" />
+                    </span>
+                    <span>
+                      <strong>Application authenticator</strong>
+                      <span className="small text-muted">Google Authenticator, Authy, Microsoft Authenticator</span>
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -318,14 +337,24 @@ export default function MfaSetupPage() {
                       setMsg(null);
                     }}
                   >
-                    <strong>Code par SMS</strong>
-                    <span className="small text-muted">Numéro Cameroun ou international. Nécessite SMS Auth.</span>
+                    <span className="kalao-mfa-ico">
+                      <i className="ti ti-message" />
+                    </span>
+                    <span>
+                      <strong>Code par SMS</strong>
+                      <span className="small text-muted">Numéro Cameroun ou international. Nécessite SMS Auth.</span>
+                    </span>
                   </button>
                   <button type="button" className="kalao-mfa-method" disabled={busy} onClick={() => void enrollWebauthn()}>
-                    <strong>Clé de sécurité / passkey</strong>
-                    <span className="small text-muted">Clé USB, Windows Hello, empreinte — si le navigateur le permet</span>
+                    <span className="kalao-mfa-ico">
+                      <i className="ti ti-key" />
+                    </span>
+                    <span>
+                      <strong>Clé de sécurité / passkey</strong>
+                      <span className="small text-muted">Clé USB, Windows Hello, empreinte — si le navigateur le permet</span>
+                    </span>
                   </button>
-                </>
+                </div>
               ) : null}
 
               {method === "phone" && !smsSent ? (
@@ -417,6 +446,15 @@ export default function MfaSetupPage() {
                 </form>
               ) : null}
 
+              {ok && !recoveryCodes ? (
+                <div className="kalao-mfa-ok">
+                  <div className="kalao-mfa-ok-mark">
+                    <i className="ti ti-check" />
+                  </div>
+                  <p className="mb-0">Accès sécurisé. Ouverture du CRM…</p>
+                </div>
+              ) : null}
+
               {recoveryCodes ? (
                 <div className="alert alert-warning mt-3">
                   <p className="fw-semibold mb-2">Codes de secours — copiez-les maintenant, ils ne seront plus réaffichés.</p>
@@ -452,6 +490,12 @@ export default function MfaSetupPage() {
           <div className="kalao-mfa-side h-100">
             <span className="kalao-mfa-orb is-gold" />
             <span className="kalao-mfa-orb is-teal" />
+            <span className="kalao-mfa-pulse" />
+            <span className="kalao-mfa-pulse is-2" />
+            <span className="kalao-mfa-pulse is-3" />
+            <span className="kalao-mfa-shield">
+              <i className="ti ti-shield-lock" />
+            </span>
             <div className="kalao-mfa-side-copy">
               <div className="kalao-mfa-goldbar" />
               <h2 className="h3 mb-3">Une méthode, ou plusieurs</h2>
