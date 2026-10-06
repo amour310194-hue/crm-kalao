@@ -176,6 +176,30 @@ $kalao-gold: #e8a317;
   box-shadow: 0 0 0 4px rgba(232, 163, 23, 0.22);
 }
 
+.kalao-mfa-method {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(22, 75, 90, 0.14);
+  background: #fff;
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  margin-bottom: 0.7rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.kalao-mfa-method:hover,
+.kalao-mfa-method:focus {
+  transform: translateY(-3px);
+  border-color: $kalao-gold;
+  box-shadow: 0 12px 28px rgba(22, 75, 90, 0.14);
+}
+
+.kalao-mfa-method strong {
+  display: block;
+  color: $kalao-teal;
+}
+
 .kalao-mfa-side {
   position: relative;
   overflow: hidden;
