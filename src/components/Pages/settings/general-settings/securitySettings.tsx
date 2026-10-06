@@ -9,8 +9,16 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { authJsonHeaders } from "@/lib/auth-headers";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  collectMfaFactors,
+  explainMfaError,
+  factorKind,
+  MFA_METHOD_LABEL,
+  type MfaFactor,
+  type MfaKind,
+} from "@/lib/mfa-methods";
 
-type Factor = { id: string; status: string; factor_type: string; friendly_name?: string };
+type Factor = MfaFactor;
 type SessionRow = {
   id: string;
   created_at: string;
@@ -69,7 +77,13 @@ export default function SecuritySettingsComponent() {
       if (isSupabaseConfigured()) {
         const supabase = getSupabaseBrowserClient();
         const listed = await supabase.auth.mfa.listFactors();
-        setFactors([...(listed.data?.totp ?? []), ...(listed.data?.phone ?? [])] as Factor[]);
+        const packed = listed.data as {
+          totp?: Factor[];
+          phone?: Factor[];
+          webauthn?: Factor[];
+          all?: Factor[];
+        };
+        setFactors(collectMfaFactors(packed ?? {}));
         const level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         setAal(level.data?.currentLevel ?? null);
       }
@@ -160,7 +174,26 @@ export default function SecuritySettingsComponent() {
     }
   };
 
-  const totpVerified = factors.some((f) => f.factor_type === "totp" && f.status === "verified");
+  const unenroll = async (factorId: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId });
+      if (unenrollError) throw new Error(explainMfaError(unenrollError.message));
+      setOk("Méthode retirée.");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const methodStatus = (kind: MfaKind) => {
+    const on = factors.some((f) => factorKind(f) === kind && f.status === "verified");
+    return on ? "configurée" : "non configurée";
+  };
 
   return (
     <>
@@ -220,18 +253,48 @@ export default function SecuritySettingsComponent() {
 
               <div className="card mb-3">
                 <div className="card-body">
-                  <h5 className="mb-3">Double authentification (TOTP)</h5>
-                  <p className="mb-2">
-                    Statut : <strong>{totpVerified ? "configurée" : "non configurée"}</strong>
-                    {aal ? ` — session ${aal}` : null}
+                  <h5 className="mb-2">Méthodes d’authentification</h5>
+                  <p className="text-muted small">
+                    Plusieurs méthodes peuvent être liées. Le statut vient d’Auth, jamais d’un badge « Connected ».
+                    {aal ? ` Session actuelle : ${aal}.` : null}
                   </p>
-                  <p className="small text-muted">
-                    Le statut vient de votre compte Auth (facteurs TOTP). Auth ne fournit pas de codes de secours :
-                    enregistrez un second appareil authenticator si besoin.
-                  </p>
-                  <Link href="/mfa-setup" className="btn btn-outline-primary">
-                    {totpVerified ? "Gérer / vérifier le TOTP" : "Configurer le TOTP"}
-                  </Link>
+                  <div className="table-responsive">
+                    <table className="table mb-3">
+                      <thead>
+                        <tr>
+                          <th>Méthode</th>
+                          <th>Statut</th>
+                          <th />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(["totp", "phone", "webauthn"] as const).map((kind) => {
+                          const factor = factors.find((f) => factorKind(f) === kind && f.status === "verified");
+                          return (
+                            <tr key={kind}>
+                              <td>{MFA_METHOD_LABEL[kind]}</td>
+                              <td>{methodStatus(kind)}</td>
+                              <td className="text-end">
+                                <Link href={`/mfa-setup?method=${kind}`} className="btn btn-sm btn-outline-primary me-1">
+                                  {factor ? "Vérifier" : "Configurer"}
+                                </Link>
+                                {factor ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-secondary"
+                                    disabled={busy}
+                                    onClick={() => void unenroll(factor.id)}
+                                  >
+                                    Retirer
+                                  </button>
+                                ) : null}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 

@@ -21,6 +21,7 @@ export function getSupabaseBrowserClient(): SupabaseClient {
   if (!browserClient) {
     browserClient = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       cookieOptions: { maxAge: SESSION_MAX_SECONDS, path: "/", sameSite: "lax" },
+      auth: { experimental: { recoveryCodes: true } },
     });
   }
 
