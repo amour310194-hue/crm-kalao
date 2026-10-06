@@ -102,7 +102,11 @@ export function isPublicPath(pathname: string): boolean {
 
 export function isMfaExemptPath(pathname: string): boolean {
   const path = normalizePathname(pathname);
-  return path === "/mfa-setup" || path === "/general-settings/security";
+  return (
+    path === "/mfa-setup" ||
+    path === "/general-settings" ||
+    path.startsWith("/general-settings/")
+  );
 }
 
 export function mfaEnforced(): boolean {
