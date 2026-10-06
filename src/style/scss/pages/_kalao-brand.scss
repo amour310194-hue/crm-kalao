@@ -69,11 +69,11 @@ $kalao-gold: #e8a317;
 @keyframes kalao-mfa-rise {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translateY(28px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -93,7 +93,7 @@ $kalao-gold: #e8a317;
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(18px, -24px, 0) scale(1.08);
+    transform: translate3d(22px, -28px, 0) scale(1.12);
   }
 }
 
@@ -102,24 +102,115 @@ $kalao-gold: #e8a317;
     background-position: 0% 50%;
   }
   100% {
-    background-position: 100% 50%;
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes kalao-mfa-mesh {
+  0% {
+    background-position: 0% 40%;
+  }
+  50% {
+    background-position: 100% 60%;
+  }
+  100% {
+    background-position: 0% 40%;
+  }
+}
+
+@keyframes kalao-mfa-scan {
+  0% {
+    top: 8%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    top: 86%;
+    opacity: 0;
+  }
+}
+
+@keyframes kalao-mfa-ring {
+  0% {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes kalao-mfa-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes kalao-mfa-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
   }
 }
 
 .kalao-mfa {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
-  background: linear-gradient(160deg, #0f3340 0%, $kalao-teal 42%, #0b2a33 100%);
+  overflow: hidden;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(232, 163, 23, 0.22), transparent 55%),
+    radial-gradient(900px 420px at 110% 110%, rgba(22, 75, 90, 0.65), transparent 50%),
+    linear-gradient(125deg, #0b2a33, $kalao-teal 48%, #102f38);
+  background-size: 140% 140%;
+  animation: kalao-mfa-mesh 18s ease-in-out infinite;
+}
+
+.kalao-mfa::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.45) 0.6px, transparent 0.7px);
+  background-size: 18px 18px;
+}
+
+.kalao-mfa > .row {
+  position: relative;
+  z-index: 1;
 }
 
 .kalao-mfa-shell {
-  animation: kalao-mfa-rise 0.7s ease both;
+  animation: kalao-mfa-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .kalao-mfa-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(11, 42, 51, 0.28);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 28px 70px rgba(11, 42, 51, 0.32);
   padding: 2rem 1.75rem;
+  animation: kalao-mfa-float 6.5s ease-in-out infinite;
 }
 
 .kalao-mfa-steps {
@@ -143,6 +234,8 @@ $kalao-gold: #e8a317;
 }
 
 .kalao-mfa-qr-wrap {
+  position: relative;
+  overflow: hidden;
   width: 220px;
   height: 220px;
   margin: 0 auto 1.25rem;
@@ -150,7 +243,18 @@ $kalao-gold: #e8a317;
   border-radius: 18px;
   background: #fff;
   border: 1px solid rgba(22, 75, 90, 0.12);
-  animation: kalao-mfa-glow 2.4s ease-in-out infinite;
+  animation: kalao-mfa-glow 2.4s ease-in-out infinite, kalao-mfa-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kalao-mfa-qr-wrap::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, $kalao-gold, transparent);
+  animation: kalao-mfa-scan 2.6s ease-in-out infinite;
 }
 
 .kalao-mfa-qr-wrap img {
@@ -177,22 +281,55 @@ $kalao-gold: #e8a317;
 }
 
 .kalao-mfa-method {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
   width: 100%;
   text-align: left;
   border: 1px solid rgba(22, 75, 90, 0.14);
   background: #fff;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 0.95rem 1rem;
   margin-bottom: 0.7rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  opacity: 0;
+  animation: kalao-mfa-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.kalao-mfa-methods .kalao-mfa-method:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.kalao-mfa-methods .kalao-mfa-method:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.kalao-mfa-methods .kalao-mfa-method:nth-child(3) {
+  animation-delay: 0.19s;
+}
+.kalao-mfa-methods .kalao-mfa-method:nth-child(4) {
+  animation-delay: 0.26s;
+}
+.kalao-mfa-methods .kalao-mfa-method:nth-child(5) {
+  animation-delay: 0.33s;
 }
 
 .kalao-mfa-method:hover,
 .kalao-mfa-method:focus {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: $kalao-gold;
-  box-shadow: 0 12px 28px rgba(22, 75, 90, 0.14);
+  box-shadow: 0 14px 32px rgba(22, 75, 90, 0.16);
+}
+
+.kalao-mfa-ico {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, rgba(232, 163, 23, 0.2), rgba(22, 75, 90, 0.12));
+  color: $kalao-teal;
+  font-size: 1.25rem;
 }
 
 .kalao-mfa-method strong {
@@ -203,12 +340,50 @@ $kalao-gold: #e8a317;
 .kalao-mfa-side {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 24px;
   min-height: 280px;
-  background: linear-gradient(165deg, rgba(232, 163, 23, 0.18), transparent 40%),
+  background: linear-gradient(165deg, rgba(232, 163, 23, 0.22), transparent 42%),
     linear-gradient(200deg, #123f4c, $kalao-teal 55%, #0b2a33);
   color: #fff;
-  animation: kalao-mfa-rise 0.85s 0.08s ease both;
+  animation: kalao-mfa-rise 0.9s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kalao-mfa-pulse {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 160px;
+  height: 160px;
+  margin: -80px 0 0 -80px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 163, 23, 0.45);
+  animation: kalao-mfa-ring 2.8s ease-out infinite;
+}
+
+.kalao-mfa-pulse.is-2 {
+  animation-delay: 0.9s;
+}
+
+.kalao-mfa-pulse.is-3 {
+  animation-delay: 1.8s;
+}
+
+.kalao-mfa-shield {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(232, 163, 23, 0.45);
+  color: $kalao-gold;
+  font-size: 2rem;
+  animation: kalao-mfa-float 4.5s ease-in-out infinite;
 }
 
 .kalao-mfa-orb {
@@ -254,10 +429,24 @@ $kalao-gold: #e8a317;
 }
 
 .btn-kalao-gold {
+  position: relative;
+  overflow: hidden;
   background: $kalao-gold;
   border-color: $kalao-gold;
   color: #132a32;
   font-weight: 600;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-kalao-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.45) 45%, transparent 70%);
+  background-size: 220% 100%;
+  animation: kalao-mfa-shimmer 2.2s linear infinite;
+  pointer-events: none;
+  opacity: 0.4;
 }
 
 .btn-kalao-gold:hover,
@@ -265,14 +454,50 @@ $kalao-gold: #e8a317;
   background: #d49412;
   border-color: #d49412;
   color: #132a32;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(232, 163, 23, 0.35);
+}
+
+.kalao-mfa-ok {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.kalao-mfa-ok-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $kalao-teal;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 0.85rem;
+  animation: kalao-mfa-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .kalao-mfa,
   .kalao-mfa-shell,
   .kalao-mfa-side,
   .kalao-mfa-orb,
   .kalao-mfa-qr-wrap,
-  .kalao-mfa-step.is-on {
-    animation: none;
+  .kalao-mfa-qr-wrap::after,
+  .kalao-mfa-step.is-on,
+  .kalao-mfa-method,
+  .kalao-mfa-card,
+  .kalao-mfa-pulse,
+  .kalao-mfa-shield,
+  .btn-kalao-gold::after,
+  .kalao-mfa-ok-mark {
+    animation: none !important;
+  }
+
+  .kalao-mfa-method {
+    opacity: 1;
   }
 }
