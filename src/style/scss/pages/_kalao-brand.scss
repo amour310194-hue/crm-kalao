@@ -65,3 +65,190 @@ $kalao-gold: #e8a317;
   max-width: 220px;
   object-fit: contain;
 }
+
+@keyframes kalao-mfa-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kalao-mfa-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 163, 23, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 16px rgba(232, 163, 23, 0);
+  }
+}
+
+@keyframes kalao-mfa-orb {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -24px, 0) scale(1.08);
+  }
+}
+
+@keyframes kalao-mfa-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.kalao-mfa {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f3340 0%, $kalao-teal 42%, #0b2a33 100%);
+}
+
+.kalao-mfa-shell {
+  animation: kalao-mfa-rise 0.7s ease both;
+}
+
+.kalao-mfa-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(11, 42, 51, 0.28);
+  padding: 2rem 1.75rem;
+}
+
+.kalao-mfa-steps {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.kalao-mfa-step {
+  flex: 1;
+  height: 4px;
+  border-radius: 99px;
+  background: #e6eef0;
+  overflow: hidden;
+}
+
+.kalao-mfa-step.is-on {
+  background: linear-gradient(90deg, $kalao-teal, $kalao-gold, $kalao-teal);
+  background-size: 200% 100%;
+  animation: kalao-mfa-shimmer 2.4s linear infinite;
+}
+
+.kalao-mfa-qr-wrap {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 1.25rem;
+  padding: 12px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid rgba(22, 75, 90, 0.12);
+  animation: kalao-mfa-glow 2.4s ease-in-out infinite;
+}
+
+.kalao-mfa-qr-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+}
+
+.kalao-otp {
+  letter-spacing: 0.48em;
+  font-size: 1.45rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.85rem 0.5rem 0.85rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(22, 75, 90, 0.2);
+}
+
+.kalao-otp:focus {
+  border-color: $kalao-gold;
+  box-shadow: 0 0 0 4px rgba(232, 163, 23, 0.22);
+}
+
+.kalao-mfa-side {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  min-height: 280px;
+  background: linear-gradient(165deg, rgba(232, 163, 23, 0.18), transparent 40%),
+    linear-gradient(200deg, #123f4c, $kalao-teal 55%, #0b2a33);
+  color: #fff;
+  animation: kalao-mfa-rise 0.85s 0.08s ease both;
+}
+
+.kalao-mfa-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: kalao-mfa-orb 8s ease-in-out infinite;
+}
+
+.kalao-mfa-orb.is-gold {
+  width: 180px;
+  height: 180px;
+  right: -40px;
+  top: -30px;
+  background: radial-gradient(circle, rgba(232, 163, 23, 0.55), transparent 68%);
+}
+
+.kalao-mfa-orb.is-teal {
+  width: 240px;
+  height: 240px;
+  left: -60px;
+  bottom: -50px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 70%);
+  animation-delay: -2.5s;
+}
+
+.kalao-mfa-side-copy {
+  position: relative;
+  z-index: 1;
+  padding: 2.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.kalao-mfa-goldbar {
+  width: 72px;
+  height: 4px;
+  border-radius: 99px;
+  background: $kalao-gold;
+  margin-bottom: 1rem;
+}
+
+.btn-kalao-gold {
+  background: $kalao-gold;
+  border-color: $kalao-gold;
+  color: #132a32;
+  font-weight: 600;
+}
+
+.btn-kalao-gold:hover,
+.btn-kalao-gold:focus {
+  background: #d49412;
+  border-color: #d49412;
+  color: #132a32;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kalao-mfa-shell,
+  .kalao-mfa-side,
+  .kalao-mfa-orb,
+  .kalao-mfa-qr-wrap,
+  .kalao-mfa-step.is-on {
+    animation: none;
+  }
+}

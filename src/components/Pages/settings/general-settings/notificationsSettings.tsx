@@ -3,8 +3,7 @@
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SettingsTopbar from "../settings-topbar/settingsTopbar";
-import Link from "next/link";
-import { all_routes } from "@/router/all_routes";
+import GeneralSettingsNav from "./generalSettingsNav";
 
 const NotificationsSettingsComponent = () => {
   return (
@@ -28,42 +27,8 @@ const NotificationsSettingsComponent = () => {
           {/* start row */}
           <div className="row">
             <div className="col-xl-3 col-lg-12 theiaStickySidebar">
-              <div className="card mb-3 mb-xl-0">
-                <div className="card-body">
-                  <div className="settings-sidebar">
-                    <h5 className="mb-3 fs-17">General Settings</h5>
-                    <div className="list-group list-group-flush settings-sidebar">
-                      <Link
-                        href={all_routes.profile}
-                        className="d-block p-2 fw-medium "
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        href={all_routes.security}
-                        className="d-block p-2 fw-medium "
-                      >
-                        Security
-                      </Link>
-                      <Link
-                        href={all_routes.notification}
-                        className="d-block p-2 fw-medium active"
-                      >
-                        Notifications
-                      </Link>
-                      <Link
-                        href={all_routes.connectedApps}
-                        className="d-block p-2 fw-medium"
-                      >
-                        Canaux et clés API
-                      </Link>
-                    </div>
-                  </div>
-                </div>{" "}
-                {/* end card body */}
-              </div>{" "}
-              {/* end card */}
-            </div>{" "}
+              <GeneralSettingsNav />
+            </div>
             {/* end col */}
             <div className="col-xl-9 col-lg-12">
               <div className="card mb-0">

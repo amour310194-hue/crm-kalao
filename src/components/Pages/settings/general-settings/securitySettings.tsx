@@ -4,11 +4,11 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import Footer from "@/core/common/footer/footer";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import SettingsTopbar from "../settings-topbar/settingsTopbar";
+import GeneralSettingsNav from "./generalSettingsNav";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { authJsonHeaders } from "@/lib/auth-headers";
-import { formatDate } from "@/lib/crm";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Factor = { id: string; status: string; factor_type: string; friendly_name?: string };
 type SessionRow = {
@@ -29,6 +29,21 @@ type LoginRow = {
   token?: string | null;
 };
 
+function formatWhen(value: string | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  try {
+    return new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return value;
+  }
+}
+
 export default function SecuritySettingsComponent() {
   const [email, setEmail] = useState<string | null>(null);
   const [passwordChangedAt, setPasswordChangedAt] = useState<string | null>(null);
@@ -39,7 +54,7 @@ export default function SecuritySettingsComponent() {
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [current, setCurrent] = useState("");
-  const [next, setNext] = useState("");
+  const [nextPassword, setNextPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [mine, setMine] = useState<string | null>(null);
 
@@ -51,11 +66,13 @@ export default function SecuritySettingsComponent() {
       } catch {
         setMine(null);
       }
-      const supabase = getSupabaseBrowserClient();
-      const listed = await supabase.auth.mfa.listFactors();
-      setFactors([...(listed.data?.totp ?? []), ...(listed.data?.phone ?? [])] as Factor[]);
-      const level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      setAal(level.data?.currentLevel ?? null);
+      if (isSupabaseConfigured()) {
+        const supabase = getSupabaseBrowserClient();
+        const listed = await supabase.auth.mfa.listFactors();
+        setFactors([...(listed.data?.totp ?? []), ...(listed.data?.phone ?? [])] as Factor[]);
+        const level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        setAal(level.data?.currentLevel ?? null);
+      }
 
       const res = await fetch("/api/settings/security", { headers: await authJsonHeaders() });
       const text = await res.text();
@@ -99,7 +116,7 @@ export default function SecuritySettingsComponent() {
       const res = await fetch("/api/settings/password", {
         method: "POST",
         headers: await authJsonHeaders(),
-        body: JSON.stringify({ current, next }),
+        body: JSON.stringify({ current, next: nextPassword }),
       });
       const json = (await res.json().catch(() => ({}))) as { ok?: boolean; reason?: string };
       if (!res.ok || !json.ok) {
@@ -110,7 +127,7 @@ export default function SecuritySettingsComponent() {
         throw new Error(map[json.reason ?? ""] ?? "Impossible de changer le mot de passe.");
       }
       setCurrent("");
-      setNext("");
+      setNextPassword("");
       setOk("Mot de passe mis à jour.");
       await load();
     } catch (err) {
@@ -146,199 +163,190 @@ export default function SecuritySettingsComponent() {
   const totpVerified = factors.some((f) => f.factor_type === "totp" && f.status === "verified");
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <PageHeader title="Sécurité" badgeCount={false} showModuleTile={false} showExport={false} />
-        <SettingsTopbar />
-        <div className="row">
-          <div className="col-xl-3 col-lg-12 theiaStickySidebar">
-            <div className="card mb-3 mb-xl-0">
-              <div className="card-body">
-                <h5 className="mb-3 fs-17">Paramètres généraux</h5>
-                <div className="list-group list-group-flush">
-                  <Link href={all_routes.profile} className="d-block p-2 fw-medium">
-                    Profil
-                  </Link>
-                  <Link href={all_routes.security} className="d-block p-2 fw-medium active">
-                    Sécurité
-                  </Link>
-                  <Link href={all_routes.notification} className="d-block p-2 fw-medium">
-                    Notifications
-                  </Link>
-                  <Link href={all_routes.connectedApps} className="d-block p-2 fw-medium">
-                    Canaux et clés API
+    <>
+      <div className="page-wrapper">
+        <div className="content">
+          <PageHeader title="Settings" badgeCount={false} showModuleTile={false} showExport={false} />
+          <SettingsTopbar />
+          <div className="row">
+            <div className="col-xl-3 col-lg-12 theiaStickySidebar">
+              <GeneralSettingsNav />
+            </div>
+            <div className="col-xl-9 col-lg-12">
+              {error ? <div className="alert alert-danger">{error}</div> : null}
+              {ok ? <div className="alert alert-success">{ok}</div> : null}
+
+              <div className="card mb-3">
+                <div className="card-body">
+                  <div className="border-bottom mb-3 pb-3">
+                    <h5 className="mb-0 fs-17">Sécurité</h5>
+                  </div>
+                  <h6 className="mb-3">Mot de passe</h6>
+                  <p className="text-muted">
+                    Compte : {email ?? "—"}. Dernier changement : {formatWhen(passwordChangedAt)}
+                  </p>
+                  <form onSubmit={(e) => void changePassword(e)} className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Mot de passe actuel</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        value={current}
+                        onChange={(e) => setCurrent(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Nouveau mot de passe</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        value={nextPassword}
+                        onChange={(e) => setNextPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={10}
+                        required
+                      />
+                    </div>
+                    <div className="col-12">
+                      <button type="submit" className="btn btn-primary" disabled={busy}>
+                        Enregistrer le mot de passe
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <div className="card mb-3">
+                <div className="card-body">
+                  <h5 className="mb-3">Double authentification (TOTP)</h5>
+                  <p className="mb-2">
+                    Statut : <strong>{totpVerified ? "configurée" : "non configurée"}</strong>
+                    {aal ? ` — session ${aal}` : null}
+                  </p>
+                  <p className="small text-muted">
+                    Le statut vient de votre compte Auth (facteurs TOTP). Auth ne fournit pas de codes de secours :
+                    enregistrez un second appareil authenticator si besoin.
+                  </p>
+                  <Link href="/mfa-setup" className="btn btn-outline-primary">
+                    {totpVerified ? "Gérer / vérifier le TOTP" : "Configurer le TOTP"}
                   </Link>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="col-xl-9 col-lg-12">
-            {error ? <div className="alert alert-danger">{error}</div> : null}
-            {ok ? <div className="alert alert-success">{ok}</div> : null}
 
-            <div className="card mb-3">
-              <div className="card-body">
-                <h5 className="mb-3">Mot de passe</h5>
-                <p className="text-muted">
-                  Compte : {email ?? "—"}. Dernier changement : {formatDate(passwordChangedAt)}
-                </p>
-                <form onSubmit={changePassword} className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label">Mot de passe actuel</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={current}
-                      onChange={(e) => setCurrent(e.target.value)}
-                      autoComplete="current-password"
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label">Nouveau mot de passe</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={next}
-                      onChange={(e) => setNext(e.target.value)}
-                      autoComplete="new-password"
-                      minLength={10}
-                      required
-                    />
-                  </div>
-                  <div className="col-12">
-                    <button type="submit" className="btn btn-primary" disabled={busy}>
-                      Enregistrer le mot de passe
+              <div className="card mb-3">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="mb-0">Sessions actives</h5>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      disabled={busy}
+                      onClick={() => void sessionAction("signout_all")}
+                    >
+                      Déconnecter partout
                     </button>
                   </div>
-                </form>
-              </div>
-            </div>
-
-            <div className="card mb-3">
-              <div className="card-body">
-                <h5 className="mb-3">Double authentification (TOTP)</h5>
-                <p className="mb-2">
-                  Statut :{" "}
-                  <strong>{totpVerified ? "configurée" : "non configurée"}</strong>
-                  {aal ? ` — session ${aal}` : null}
-                </p>
-                <p className="small text-muted">
-                  Le statut vient de votre compte Auth (facteurs TOTP). Supabase ne fournit pas de codes de
-                  secours : enregistrez un second appareil authenticator si besoin.
-                </p>
-                <Link href="/mfa-setup" className="btn btn-outline-primary">
-                  {totpVerified ? "Gérer / vérifier le TOTP" : "Configurer le TOTP"}
-                </Link>
-              </div>
-            </div>
-
-            <div className="card mb-3">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="mb-0">Sessions actives</h5>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger"
-                    disabled={busy}
-                    onClick={() => void sessionAction("signout_all")}
-                  >
-                    Déconnecter partout
-                  </button>
+                  {sessions.length === 0 ? (
+                    <p className="text-muted mb-0">
+                      Aucune autre session listée (appareil actuel uniquement côté navigateur).
+                    </p>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Appareil</th>
+                            <th>Jeton</th>
+                            <th>IP</th>
+                            <th>Niveau</th>
+                            <th>Vu</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sessions.map((row) => (
+                            <tr key={row.id}>
+                              <td className="small">{row.user_agent || "—"}</td>
+                              <td>
+                                <code>{row.tag || "—"}</code>
+                                {mine && row.tag === mine ? (
+                                  <span className="badge badge-soft-info ms-1">cet appareil</span>
+                                ) : null}
+                              </td>
+                              <td>{row.ip || "—"}</td>
+                              <td>{row.aal || "—"}</td>
+                              <td>{formatWhen(row.updated_at || row.created_at)}</td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => void sessionAction("signout_session", row.id)}
+                                >
+                                  Déconnecter cet appareil
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-                {sessions.length === 0 ? (
-                  <p className="text-muted mb-0">Aucune autre session listée (appareil actuel uniquement côté navigateur).</p>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>Appareil</th>
-                          <th>Jeton</th>
-                          <th>IP</th>
-                          <th>Niveau</th>
-                          <th>Vu</th>
-                          <th />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sessions.map((row) => (
-                          <tr key={row.id}>
-                            <td className="small">{row.user_agent || "—"}</td>
-                            <td>
-                              <code>{row.tag || "—"}</code>
-                              {mine && row.tag === mine ? (
-                                <span className="badge badge-soft-info ms-1">cet appareil</span>
-                              ) : null}
-                            </td>
-                            <td>{row.ip || "—"}</td>
-                            <td>{row.aal || "—"}</td>
-                            <td>{formatDate(row.updated_at || row.created_at)}</td>
-                            <td>
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary"
-                                onClick={() => void sessionAction("signout_session", row.id)}
-                              >
-                                Déconnecter cet appareil
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </div>
-            </div>
 
-            <div className="card mb-0">
-              <div className="card-body">
-                <h5 className="mb-3">Historique de connexion (30 derniers)</h5>
-                {mine ? (
-                  <p className="small text-muted">
-                    Jeton de cette connexion : <code>{mine}</code>
-                  </p>
-                ) : null}
-                {events.length === 0 ? (
-                  <p className="text-muted mb-0">Aucun accès enregistré pour l’instant. Les prochaines tentatives (réussies ou non) apparaîtront ici.</p>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Jeton</th>
-                          <th>Résultat</th>
-                          <th>IP</th>
-                          <th>Appareil</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {events.map((row) => (
-                          <tr key={row.id}>
-                            <td>{formatDate(row.created_at)}</td>
-                            <td>
-                              <code>{row.token || "—"}</code>
-                              {mine && row.token === mine ? (
-                                <span className="badge badge-soft-info ms-1">cet appareil</span>
-                              ) : null}
-                            </td>
-                            <td>{row.success ? "Réussi" : "Échec"}</td>
-                            <td>{row.ip || "—"}</td>
-                            <td className="small">{row.user_agent || "—"}</td>
+              <div className="card mb-0">
+                <div className="card-body">
+                  <h5 className="mb-3">Historique de connexion (30 derniers)</h5>
+                  {mine ? (
+                    <p className="small text-muted">
+                      Jeton de cette connexion : <code>{mine}</code>
+                    </p>
+                  ) : null}
+                  {events.length === 0 ? (
+                    <p className="text-muted mb-0">
+                      Aucun accès enregistré pour l’instant. Les prochaines tentatives (réussies ou non) apparaîtront
+                      ici.
+                    </p>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Jeton</th>
+                            <th>Résultat</th>
+                            <th>IP</th>
+                            <th>Appareil</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        </thead>
+                        <tbody>
+                          {events.map((row) => (
+                            <tr key={row.id}>
+                              <td>{formatWhen(row.created_at)}</td>
+                              <td>
+                                <code>{row.token || "—"}</code>
+                                {mine && row.token === mine ? (
+                                  <span className="badge badge-soft-info ms-1">cet appareil</span>
+                                ) : null}
+                              </td>
+                              <td>{row.success ? "Réussi" : "Échec"}</td>
+                              <td>{row.ip || "—"}</td>
+                              <td className="small">{row.user_agent || "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </>
   );
 }
