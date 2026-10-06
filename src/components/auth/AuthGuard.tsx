@@ -17,35 +17,38 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     const supabase = getSupabaseBrowserClient();
+    let cancelled = false;
 
     const redirectIfUnauthenticated = async () => {
       try {
         const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
         if (!data.session) {
           router.replace(all_routes.login);
           return;
         }
+        setReady(true);
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", data.session.user.id)
           .maybeSingle();
         const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        const level = aal.data?.currentLevel ?? "aal1";
         if (
-          mustEnrollMfa(profile?.role ?? null, aal.data?.currentLevel ?? data.session.aal) &&
+          mustEnrollMfa(profile?.role ?? null, level) &&
           !isMfaExemptPath(pathname)
         ) {
           router.replace("/mfa-setup");
-          return;
         }
-        setReady(true);
       } catch (err) {
         console.error("AuthGuard", err);
         setReady(true);
       }
     };
 
-    void redirectIfUnauthenticated();
+    const watchdog = window.setTimeout(() => setReady(true), 2500);
+    void redirectIfUnauthenticated().finally(() => window.clearTimeout(watchdog));
 
     const {
       data: { subscription },
@@ -57,6 +60,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      cancelled = true;
+      window.clearTimeout(watchdog);
       subscription.unsubscribe();
     };
   }, [pathname, router]);

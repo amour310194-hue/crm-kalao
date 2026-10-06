@@ -27,7 +27,7 @@ const SettingsTopbar = () => {
               }`}
             >
               <i className="ti ti-settings-cog me-2" />
-              General Settings
+              Paramètres généraux
             </Link>
           </li>
           <li className="nav-item me-3">
@@ -45,7 +45,7 @@ const SettingsTopbar = () => {
               }`}
             >
               <i className="ti ti-world-cog me-2" />
-              Website Settings
+              Paramètres du site
             </Link>
           </li>
           <li className="nav-item me-3">
@@ -60,7 +60,7 @@ const SettingsTopbar = () => {
               }`}
             >
               <i className="ti ti-apps me-2" />
-              App Settings
+              Applications
             </Link>
           </li>
           <li className="nav-item me-3">
@@ -75,7 +75,7 @@ const SettingsTopbar = () => {
               }`}
             >
               <i className="ti ti-device-laptop me-2" />
-              System Settings
+              Système
             </Link>
           </li>
           <li className="nav-item me-3">
@@ -91,7 +91,7 @@ const SettingsTopbar = () => {
               }`}
             >
               <i className="ti ti-moneybag me-2" />
-              Financial Settings
+              Finance
             </Link>
           </li>
           <li className="nav-item">
@@ -111,7 +111,7 @@ const SettingsTopbar = () => {
               }`}
             >
               <i className="ti ti-flag-cog me-2" />
-              Other Settings
+              Autres
             </Link>
           </li>
         </ul>

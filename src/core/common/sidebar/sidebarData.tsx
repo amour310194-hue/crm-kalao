@@ -1311,7 +1311,7 @@ const SidebarDataAll = [
         ],
       },
       {
-        label: "Website Settings",
+        label: "Paramètres du site",
         link: route.companySettings,
         submenu: true,
         showSubRoute: false,
@@ -1325,7 +1325,7 @@ const SidebarDataAll = [
           { label: "Prefixes", link: route.prefixes },
           { label: "Preference", link: route.preference },
           { label: "Appearance", link: route.appearance },
-          { label: "Language", link: route.languageWeb },
+          { label: "Langue", link: route.languageWeb },
         ],
       },
       {

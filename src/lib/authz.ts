@@ -89,16 +89,20 @@ export const PUBLIC_PATHS = [
   "/l",
 ];
 
+function normalizePathname(pathname: string): string {
+  const path = pathname.split("?")[0] || "/";
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path;
+}
+
 export function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const path = normalizePathname(pathname);
+  return PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
 export function isMfaExemptPath(pathname: string): boolean {
-  return (
-    pathname === "/mfa-setup" ||
-    pathname === "/general-settings/security" ||
-    pathname.startsWith("/general-settings/security/")
-  );
+  const path = normalizePathname(pathname);
+  return path === "/mfa-setup" || path === "/general-settings/security";
 }
 
 export function mfaEnforced(): boolean {

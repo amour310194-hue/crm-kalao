@@ -110,10 +110,13 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(denied);
     }
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const aal = session?.aal ?? "aal1";
+    let aal = "aal1";
+    try {
+      const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      aal = assurance.data?.currentLevel ?? "aal1";
+    } catch (err) {
+      console.error("proxy aal", err);
+    }
     if (mustEnrollMfa(profile?.role ?? null, aal) && !isMfaExemptPath(path)) {
       const mfa = request.nextUrl.clone();
       mfa.pathname = "/mfa-setup";

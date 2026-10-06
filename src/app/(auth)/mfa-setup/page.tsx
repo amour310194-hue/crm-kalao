@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { all_routes } from "@/router/all_routes";
 
@@ -16,13 +17,17 @@ export default function MfaSetupPage() {
   const [aal, setAal] = useState<string | null>(null);
 
   const refresh = async () => {
-    const supabase = getSupabaseBrowserClient();
-    const listed = await supabase.auth.mfa.listFactors();
-    const verified = (listed.data?.totp ?? []).filter((f) => f.status === "verified");
-    setHasVerified(verified.length > 0);
-    if (verified[0] && !factorId) setFactorId(verified[0].id);
-    const level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    setAal(level.data?.currentLevel ?? null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const listed = await supabase.auth.mfa.listFactors();
+      const verified = (listed.data?.totp ?? []).filter((f) => f.status === "verified");
+      setHasVerified(verified.length > 0);
+      if (verified[0] && !factorId) setFactorId(verified[0].id);
+      const level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      setAal(level.data?.currentLevel ?? null);
+    } catch (err) {
+      console.error("mfa refresh", err);
+    }
   };
 
   useEffect(() => {
@@ -114,6 +119,9 @@ export default function MfaSetupPage() {
         </form>
       ) : null}
       {msg ? <p className="mt-3 text-muted">{msg}</p> : null}
+      <p className="mt-4 mb-0">
+        <Link href={all_routes.security}>Ouvrir Paramètres → Sécurité</Link>
+      </p>
     </div>
   );
 }
