@@ -97,7 +97,8 @@ const Login = () => {
         const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
         role = profile?.role ?? null;
       }
-      const aal = sessionData.session?.aal ?? "aal1";
+      const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      const aal = assurance.data?.currentLevel ?? "aal1";
       if (mustEnrollMfa(role, aal)) {
         router.push("/mfa-setup");
         return;

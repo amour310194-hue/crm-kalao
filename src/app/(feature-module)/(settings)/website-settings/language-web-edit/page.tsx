@@ -1,11 +1,10 @@
-﻿import LanguageWebEditComponent from "@/components/Pages/settings/website-settings/languageWebEdit";
+﻿import { redirect } from "next/navigation";
+import { all_routes } from "@/router/all_routes";
 
 export const metadata = {
-  title: "Language Edit",
+  title: "Langue",
 };
 
-export default function LanguageWebEdit(){
-    return(
-        <><LanguageWebEditComponent/></>
-    )
+export default function LanguageWebEdit() {
+  redirect(all_routes.languageWeb);
 }

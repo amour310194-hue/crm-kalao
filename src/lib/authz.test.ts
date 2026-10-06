@@ -29,6 +29,7 @@ describe("isPublicPath", () => {
 describe("isMfaExemptPath", () => {
   it("laisse la page Sécurité accessible pour configurer la 2FA", () => {
     expect(isMfaExemptPath("/general-settings/security")).toBe(true);
+    expect(isMfaExemptPath("/general-settings/security/")).toBe(true);
     expect(isMfaExemptPath("/mfa-setup")).toBe(true);
     expect(isMfaExemptPath("/dashboard")).toBe(false);
   });

@@ -1,11 +1,9 @@
 ﻿import LanguageSettingsComponent from "@/components/Pages/settings/website-settings/languageSettings";
 
 export const metadata = {
-  title: "Settings - Language Web",
+  title: "Langue",
 };
 
-export default function Languageweb(){
-    return(
-        <><LanguageSettingsComponent/></>
-    )
+export default function Languageweb() {
+  return <LanguageSettingsComponent />;
 }
