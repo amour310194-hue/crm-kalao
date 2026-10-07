@@ -159,9 +159,6 @@ const ProjectsListComponent = () => {
           {text === "Active" ? "Actif" : text === "Inactive" ? "Inactif" : text}
         </span>
       ),
-          {text}
-        </span>
-      ),
       sorter: (a: any, b: any) => a.Status.length - b.Status.length,
     },
 

@@ -42,8 +42,6 @@ import {
 import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
 import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
 import ClientEditForm from "../contacts/ClientEditForm";
-import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
-import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
 
 const CompaniesDetailsComponent = () => {
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
