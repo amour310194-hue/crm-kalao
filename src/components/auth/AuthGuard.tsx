@@ -40,8 +40,16 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           .maybeSingle();
         const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         const level = aal.data?.currentLevel ?? "aal1";
+        let emailOk = false;
+        try {
+          const status = await fetch("/api/mfa/email/status", { credentials: "include" });
+          const json = (await status.json()) as { ok?: boolean };
+          emailOk = Boolean(json.ok);
+        } catch {
+          emailOk = false;
+        }
         if (
-          mustEnrollMfa(profile?.role ?? null, level) &&
+          mustEnrollMfa(profile?.role ?? null, level, emailOk) &&
           !isMfaExemptPath(pathname)
         ) {
           router.replace("/mfa-setup");

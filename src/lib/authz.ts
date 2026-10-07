@@ -128,11 +128,17 @@ export function roleNeedsMfa(role?: string | null): boolean {
   return Boolean(role && MFA_REQUIRED_ROLES.includes(role as AccountRole));
 }
 
-/** direction/admin/finance/rh : session aal2 obligatoire (sauf /mfa-setup). */
-export function mustEnrollMfa(role?: string | null, aal?: string | null): boolean {
+/** direction/admin/finance/rh : TOTP (aal2) ou code e-mail de session. */
+export function mustEnrollMfa(
+  role?: string | null,
+  aal?: string | null,
+  emailMfaOk = false
+): boolean {
   if (!mfaEnforced()) return false;
   if (!roleNeedsMfa(role)) return false;
-  return aal !== "aal2";
+  if (aal === "aal2") return false;
+  if (emailMfaOk) return false;
+  return true;
 }
 
 /** Session : 12 h d'inactivité, 7 j max (côté cookie / JWT). */

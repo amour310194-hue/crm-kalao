@@ -104,4 +104,8 @@ describe("mustEnrollMfa", () => {
     expect(mustEnrollMfa("staff", "aal1")).toBe(false);
     expect(mustEnrollMfa("finance", null)).toBe(true);
   });
+
+  it("accepte un code e-mail déjà validé pour la session", () => {
+    expect(mustEnrollMfa("direction", "aal1", true)).toBe(false);
+  });
 });

@@ -6,36 +6,35 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { all_routes } from "@/router/all_routes";
 import { totpQrSrc } from "@/lib/totp-qr";
+import { authJsonHeaders } from "@/lib/auth-headers";
+import KalaoOtpBoxes from "@/components/auth/KalaoOtpBoxes";
 import {
   collectMfaFactors,
   explainMfaError,
-  factorKind,
-  MFA_METHOD_LABEL,
-  toE164,
   unverifiedFactors,
   verifiedFactors,
   type MfaFactor,
   type MfaKind,
 } from "@/lib/mfa-methods";
 
+type Screen = "choose" | "totp" | "email";
+
 export default function MfaSetupPage() {
   const router = useRouter();
-  const [method, setMethod] = useState<MfaKind | "choose">("choose");
+  const [screen, setScreen] = useState<Screen>("choose");
   const [factorId, setFactorId] = useState<string | null>(null);
   const [factors, setFactors] = useState<MfaFactor[]>([]);
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
-  const [phone, setPhone] = useState("");
-  const [smsSent, setSmsSent] = useState(false);
+  const [emailHint, setEmailHint] = useState<string | null>(null);
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
-  const [aal, setAal] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [ready, setReady] = useState(false);
-  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
+  const [preparing, setPreparing] = useState(false);
 
   const verified = verifiedFactors(factors);
 
@@ -47,17 +46,11 @@ export default function MfaSetupPage() {
         router.replace(all_routes.login);
         return;
       }
+      setEmailHint(userData.user.email ?? null);
       const listed = await supabase.auth.mfa.listFactors();
-      const packed = listed.data as {
-        totp?: MfaFactor[];
-        phone?: MfaFactor[];
-        webauthn?: MfaFactor[];
-        all?: MfaFactor[];
-      };
+      const packed = listed.data as { totp?: MfaFactor[]; all?: MfaFactor[] };
       const nextFactors = collectMfaFactors(packed ?? {});
       setFactors(nextFactors);
-      const level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      setAal(level.data?.currentLevel ?? null);
       const verifiedNext = verifiedFactors(nextFactors);
       if (!factorId && verifiedNext[0]) setFactorId(verifiedNext[0].id);
     } catch (err) {
@@ -68,12 +61,10 @@ export default function MfaSetupPage() {
   }, [factorId, router]);
 
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("method");
-    if (q === "totp" || q === "phone" || q === "webauthn") setMethod(q);
     void refresh();
   }, [refresh]);
 
-  const afterVerified = async () => {
+  const afterTotpVerified = async () => {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.refreshSession();
     let level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -81,42 +72,29 @@ export default function MfaSetupPage() {
       await supabase.auth.refreshSession();
       level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     }
-    setAal(level.data?.currentLevel ?? null);
     if (level.data?.currentLevel !== "aal2") {
       setOk(false);
-      setMsg("Le code est accepté mais la session n’est pas encore au niveau 2. Validez à nouveau le code.");
+      setMsg("Le code est accepté mais la session n’est pas encore au niveau 2. Saisissez un nouveau code.");
       return false;
     }
     setOk(true);
-    setMsg("Méthode activée.");
-    let codes: string[] | null = null;
-    try {
-      const rec = await supabase.auth.mfa.recoveryCodes.generate();
-      if (!rec.error && rec.data?.codes?.length) {
-        codes = rec.data.codes;
-        setRecoveryCodes(codes);
-      }
-    } catch {
-      /* codes de secours optionnels selon le projet Auth */
-    }
-    if (!codes) {
-      window.setTimeout(() => router.replace(all_routes.dashboard), 900);
-    }
+    setMsg(null);
+    window.setTimeout(() => router.replace(all_routes.dashboard), 700);
     return true;
   };
 
   const enrollTotp = async () => {
+    setScreen("totp");
+    setPreparing(true);
     setBusy(true);
     setMsg(null);
+    setQr(null);
+    setSecret(null);
+    setCode("");
     try {
       const supabase = getSupabaseBrowserClient();
       const listed = await supabase.auth.mfa.listFactors();
-      const packed = listed.data as {
-        totp?: MfaFactor[];
-        phone?: MfaFactor[];
-        webauthn?: MfaFactor[];
-        all?: MfaFactor[];
-      };
+      const packed = listed.data as { totp?: MfaFactor[]; all?: MfaFactor[] };
       const pending = unverifiedFactors(collectMfaFactors(packed ?? {})).filter(
         (factor) => factor.factor_type === "totp"
       );
@@ -129,117 +107,77 @@ export default function MfaSetupPage() {
       });
       if (error || !data || !("totp" in data) || !data.totp) {
         setMsg(explainMfaError(error?.message));
+        setScreen("choose");
         return;
       }
       setFactorId(data.id);
       setQr(totpQrSrc(data.totp.qr_code));
       setSecret(data.totp.secret);
-      setMethod("totp");
     } catch (err) {
       console.error(err);
       setMsg("Impossible de générer le QR.");
+      setScreen("choose");
     } finally {
       setBusy(false);
+      setPreparing(false);
     }
   };
 
-  const enrollPhone = async () => {
-    const e164 = toE164(phone);
-    if (!e164) {
-      setMsg("Indiquez un numéro international, ex. +2376XXXXXXXX.");
-      return;
-    }
+  const challengeTotp = async (id: string) => {
+    setScreen("totp");
+    setPreparing(true);
     setBusy(true);
     setMsg(null);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: "phone",
-        friendlyName: "SMS Kalao",
-        phone: e164,
-      });
-      if (error || !data) {
-        setMsg(explainMfaError(error?.message));
-        return;
-      }
-      setFactorId(data.id);
-      const challenge = await supabase.auth.mfa.challenge({ factorId: data.id });
-      if (challenge.error) {
-        setMsg(explainMfaError(challenge.error.message));
-        return;
-      }
-      setChallengeId(challenge.data.id);
-      setSmsSent(true);
-      setMsg("Code envoyé par SMS si le canal est configuré sur Auth.");
-    } catch (err) {
-      console.error(err);
-      setMsg(explainMfaError(undefined));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const challengeExisting = async (id: string, kind: MfaKind) => {
-    setBusy(true);
-    setMsg(null);
+    setQr(null);
     setFactorId(id);
-    setMethod(kind);
+    setCode("");
     try {
       const supabase = getSupabaseBrowserClient();
-      if (kind === "webauthn") {
-        const result = await supabase.auth.mfa.webauthn.authenticate({
-          factorId: id,
-          webauthn: { rpId: window.location.hostname, rpOrigins: [window.location.origin] },
-        });
-        if (result.error) {
-          setMsg(explainMfaError(result.error.message));
-          return;
-        }
-        await afterVerified();
-        return;
-      }
       const challenge = await supabase.auth.mfa.challenge({ factorId: id });
       if (challenge.error) {
         setMsg(explainMfaError(challenge.error.message));
+        setScreen("choose");
         return;
       }
       setChallengeId(challenge.data.id);
-      if (kind === "phone") {
-        setSmsSent(true);
-        setMsg("Code envoyé par SMS.");
-      }
     } catch (err) {
       console.error(err);
       setMsg(explainMfaError(undefined));
+      setScreen("choose");
     } finally {
       setBusy(false);
+      setPreparing(false);
     }
   };
 
-  const enrollWebauthn = async () => {
+  const sendEmailCode = async () => {
+    setScreen("email");
+    setPreparing(true);
     setBusy(true);
     setMsg(null);
+    setCode("");
     try {
-      const supabase = getSupabaseBrowserClient();
-      const result = await supabase.auth.mfa.webauthn.register({
-        friendlyName: "Clé Kalao",
-        webauthn: { rpId: window.location.hostname, rpOrigins: [window.location.origin] },
+      const res = await fetch("/api/mfa/email/send", {
+        method: "POST",
+        headers: await authJsonHeaders(),
       });
-      if (result.error) {
-        setMsg(explainMfaError(result.error.message));
+      const json = (await res.json()) as { ok?: boolean; message?: string; to?: string };
+      if (!res.ok || !json.ok) {
+        setMsg(json.message || "Impossible d’envoyer le code e-mail.");
+        setScreen("choose");
         return;
       }
-      await refresh();
-      await afterVerified();
-    } catch (err) {
-      console.error(err);
-      setMsg(explainMfaError(undefined));
+      if (json.to) setEmailHint(json.to);
+    } catch {
+      setMsg("Impossible d’envoyer le code e-mail.");
+      setScreen("choose");
     } finally {
       setBusy(false);
+      setPreparing(false);
     }
   };
 
-  const verifyCode = async (event?: FormEvent) => {
+  const verifyTotp = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!factorId || code.trim().length < 6) return;
     setBusy(true);
@@ -266,9 +204,34 @@ export default function MfaSetupPage() {
         return;
       }
       await refresh();
-      await afterVerified();
+      await afterTotpVerified();
     } catch (err) {
       console.error(err);
+      setMsg("Vérification impossible.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verifyEmail = async (event?: FormEvent) => {
+    event?.preventDefault();
+    if (code.trim().length < 6) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/mfa/email/verify", {
+        method: "POST",
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      const json = (await res.json()) as { ok?: boolean; message?: string };
+      if (!res.ok || !json.ok) {
+        setMsg(json.message || "Code incorrect ou expiré.");
+        return;
+      }
+      setOk(true);
+      window.setTimeout(() => router.replace(all_routes.dashboard), 700);
+    } catch {
       setMsg("Vérification impossible.");
     } finally {
       setBusy(false);
@@ -286,11 +249,26 @@ export default function MfaSetupPage() {
     }
   };
 
-  const showChooser = ready && method === "choose" && !qr && !smsSent && !ok;
-  const step = ok || recoveryCodes ? 3 : qr || smsSent || method === "phone" ? 2 : 1;
+  const backToChoose = () => {
+    setScreen("choose");
+    setQr(null);
+    setSecret(null);
+    setCode("");
+    setChallengeId(null);
+    setMsg(null);
+    setPreparing(false);
+  };
 
-  const methodIcon = (kind: MfaKind) =>
-    kind === "phone" ? "ti-message" : kind === "webauthn" ? "ti-key" : "ti-device-mobile";
+  const showChooser = ready && screen === "choose" && !ok;
+  const step = ok ? 3 : screen === "choose" ? 1 : 2;
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("method") as MfaKind | null;
+    if (!ready || screen !== "choose") return;
+    if (q === "totp") void enrollTotp();
+    if (q === "email") void sendEmailCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   return (
     <div className="kalao-mfa p-3">
@@ -311,8 +289,7 @@ export default function MfaSetupPage() {
               </p>
               <h1 className="h3 mb-2">Protégez votre accès</h1>
               <p className="text-muted mb-4">
-                Choisissez au moins une méthode. Vous pouvez en ajouter d’autres ensuite. Obligatoire pour super-admin,
-                admin, direction, finance et RH.
+                Choisissez une méthode. Obligatoire pour super-admin, admin, direction, finance et RH.
               </p>
 
               {!ready ? (
@@ -325,101 +302,65 @@ export default function MfaSetupPage() {
 
               {showChooser ? (
                 <div className="kalao-mfa-methods">
-                  {aal !== "aal2" && verified.length > 0 ? (
-                    <p className="small text-muted">Confirmez une méthode déjà liée pour ouvrir cette session.</p>
+                  {verified.map((factor) => (
+                    <button
+                      key={factor.id}
+                      type="button"
+                      className="kalao-mfa-method"
+                      disabled={busy}
+                      onClick={() => void challengeTotp(factor.id)}
+                    >
+                      <span className="kalao-mfa-ico">
+                        <i className="ti ti-device-mobile" />
+                      </span>
+                      <span>
+                        <strong>Appli d’authentification</strong>
+                        <span className="small text-muted">Déjà liée — saisir le code</span>
+                      </span>
+                    </button>
+                  ))}
+                  {verified.length === 0 ? (
+                    <button type="button" className="kalao-mfa-method" disabled={busy} onClick={() => void enrollTotp()}>
+                      <span className="kalao-mfa-ico">
+                        <i className="ti ti-qrcode" />
+                      </span>
+                      <span>
+                        <strong>Appli d’authentification</strong>
+                        <span className="small text-muted">Google Authenticator, Authy, Microsoft Authenticator</span>
+                      </span>
+                    </button>
                   ) : null}
-                  {verified.map((factor) => {
-                    const kind = factorKind(factor);
-                    if (!kind) return null;
-                    return (
-                      <button
-                        key={factor.id}
-                        type="button"
-                        className="kalao-mfa-method"
-                        disabled={busy}
-                        onClick={() => void challengeExisting(factor.id, kind)}
-                      >
-                        <span className="kalao-mfa-ico">
-                          <i className={`ti ${methodIcon(kind)}`} />
-                        </span>
-                        <span>
-                          <strong>{MFA_METHOD_LABEL[kind]}</strong>
-                          <span className="small text-muted">Déjà configurée — valider maintenant</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                  <button type="button" className="kalao-mfa-method" disabled={busy} onClick={() => void enrollTotp()}>
+                  <button type="button" className="kalao-mfa-method" disabled={busy} onClick={() => void sendEmailCode()}>
                     <span className="kalao-mfa-ico">
-                      <i className="ti ti-qrcode" />
+                      <i className="ti ti-mail" />
                     </span>
                     <span>
-                      <strong>Application authenticator</strong>
-                      <span className="small text-muted">Google Authenticator, Authy, Microsoft Authenticator</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="kalao-mfa-method"
-                    disabled={busy}
-                    onClick={() => {
-                      setMethod("phone");
-                      setMsg(null);
-                    }}
-                  >
-                    <span className="kalao-mfa-ico">
-                      <i className="ti ti-message" />
-                    </span>
-                    <span>
-                      <strong>Code par SMS</strong>
-                      <span className="small text-muted">Numéro Cameroun ou international. Nécessite SMS Auth.</span>
-                    </span>
-                  </button>
-                  <button type="button" className="kalao-mfa-method" disabled={busy} onClick={() => void enrollWebauthn()}>
-                    <span className="kalao-mfa-ico">
-                      <i className="ti ti-key" />
-                    </span>
-                    <span>
-                      <strong>Clé de sécurité / passkey</strong>
-                      <span className="small text-muted">Clé USB, Windows Hello, empreinte — si le navigateur le permet</span>
+                      <strong>Authentification par e-mail</strong>
+                      <span className="small text-muted">
+                        Code à 6 chiffres envoyé {emailHint ? `à ${emailHint}` : "sur votre adresse"}
+                      </span>
                     </span>
                   </button>
                 </div>
               ) : null}
 
-              {method === "phone" && !smsSent ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void enrollPhone();
-                  }}
-                >
-                  <label className="form-label" htmlFor="mfa-phone">
-                    Numéro (indicatif +237…)
-                  </label>
-                  <input
-                    id="mfa-phone"
-                    className="form-control mb-3"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+2376XXXXXXXX"
-                    autoComplete="tel"
-                    required
-                  />
-                  <button type="submit" className="btn btn-kalao-gold w-100 py-2" disabled={busy}>
-                    {busy ? "Envoi…" : "Envoyer le code SMS"}
-                  </button>
-                  <button type="button" className="btn btn-link w-100 mt-2" onClick={() => setMethod("choose")}>
-                    Autre méthode
-                  </button>
-                </form>
-              ) : null}
-
-              {qr ? (
-                <form onSubmit={(e) => void verifyCode(e)}>
-                  <div className="kalao-mfa-qr-wrap">
-                    <img src={qr} alt="QR code TOTP Kalao" />
-                  </div>
+              {screen === "totp" && !ok ? (
+                <form onSubmit={(e) => void verifyTotp(e)}>
+                  {preparing && !qr ? (
+                    <div className="text-center py-3">
+                      <div className="spinner-border mb-2" style={{ color: "#164b5a" }} role="status">
+                        <span className="visually-hidden">Préparation</span>
+                      </div>
+                      <p className="text-muted mb-3">Préparation du QR… les cases sont prêtes pour le code.</p>
+                    </div>
+                  ) : null}
+                  {qr ? (
+                    <div className="kalao-mfa-qr-wrap">
+                      <img src={qr} alt="QR code TOTP Kalao" />
+                    </div>
+                  ) : !preparing ? (
+                    <p className="text-muted">Saisissez le code à 6 chiffres de l’application.</p>
+                  ) : null}
                   {secret ? (
                     <div
                       className="d-flex align-items-center justify-content-between gap-2 mb-3 p-2 rounded-3"
@@ -434,49 +375,55 @@ export default function MfaSetupPage() {
                       </button>
                     </div>
                   ) : null}
-                  <label className="form-label" htmlFor="mfa-code">
-                    Code à 6 chiffres
-                  </label>
-                  <input
-                    id="mfa-code"
-                    className="form-control kalao-otp mb-3"
+                  <p className="form-label mb-2">Code de l’application</p>
+                  <KalaoOtpBoxes
+                    idPrefix="mfa-totp"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    required
-                    maxLength={6}
-                    placeholder="••••••"
+                    disabled={busy && !preparing}
+                    onChange={setCode}
+                    onComplete={(full) => {
+                      if (!busy && full.length === 6) void verifyTotp();
+                    }}
                   />
                   <button type="submit" className="btn btn-kalao-gold w-100 py-2" disabled={busy || code.length < 6}>
                     {busy ? "Vérification…" : "Valider"}
                   </button>
-                </form>
-              ) : null}
-
-              {smsSent ? (
-                <form onSubmit={(e) => void verifyCode(e)}>
-                  <label className="form-label" htmlFor="mfa-sms">
-                    Code SMS à 6 chiffres
-                  </label>
-                  <input
-                    id="mfa-sms"
-                    className="form-control kalao-otp mb-3"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    required
-                    maxLength={6}
-                    placeholder="••••••"
-                  />
-                  <button type="submit" className="btn btn-kalao-gold w-100 py-2" disabled={busy || code.length < 6}>
-                    {busy ? "Vérification…" : "Valider le SMS"}
+                  <button type="button" className="btn btn-link w-100 mt-2" onClick={backToChoose}>
+                    Autre méthode
                   </button>
                 </form>
               ) : null}
 
-              {ok && !recoveryCodes ? (
+              {screen === "email" && !ok ? (
+                <form onSubmit={(e) => void verifyEmail(e)}>
+                  <p className="text-muted">
+                    {preparing
+                      ? "Envoi du code…"
+                      : `Un code a été envoyé ${emailHint ? `à ${emailHint}` : "sur votre adresse e-mail"}.`}
+                  </p>
+                  <p className="form-label mb-2">Code reçu par e-mail</p>
+                  <KalaoOtpBoxes
+                    idPrefix="mfa-email"
+                    value={code}
+                    disabled={busy && preparing}
+                    onChange={setCode}
+                    onComplete={(full) => {
+                      if (!busy && !preparing && full.length === 6) void verifyEmail();
+                    }}
+                  />
+                  <button type="submit" className="btn btn-kalao-gold w-100 py-2" disabled={busy || preparing || code.length < 6}>
+                    {busy ? "Vérification…" : "Valider"}
+                  </button>
+                  <button type="button" className="btn btn-link w-100 mt-2" disabled={busy} onClick={() => void sendEmailCode()}>
+                    Renvoyer le code
+                  </button>
+                  <button type="button" className="btn btn-link w-100" onClick={backToChoose}>
+                    Autre méthode
+                  </button>
+                </form>
+              ) : null}
+
+              {ok ? (
                 <div className="kalao-mfa-ok">
                   <div className="kalao-mfa-ok-mark">
                     <i className="ti ti-check" />
@@ -485,31 +432,11 @@ export default function MfaSetupPage() {
                 </div>
               ) : null}
 
-              {recoveryCodes ? (
-                <div className="alert alert-warning mt-3">
-                  <p className="fw-semibold mb-2">Codes de secours — copiez-les maintenant, ils ne seront plus réaffichés.</p>
-                  <ul className="mb-2">
-                    {recoveryCodes.map((item) => (
-                      <li key={item}>
-                        <code>{item}</code>
-                      </li>
-                    ))}
-                  </ul>
-                  <button type="button" className="btn btn-sm btn-dark" onClick={() => router.replace(all_routes.dashboard)}>
-                    Continuer vers le CRM
-                  </button>
-                </div>
-              ) : null}
-
               {msg ? (
                 <p className={`mt-3 mb-0 small ${ok ? "text-success" : "text-danger"}`} role="status">
                   {msg}
                 </p>
               ) : null}
-
-              <p className="mt-4 mb-0 small text-muted">
-                {aal ? `Session ${aal}` : "Validez un code pour ouvrir le CRM."}
-              </p>
             </div>
           </div>
         </div>
@@ -525,11 +452,10 @@ export default function MfaSetupPage() {
             </span>
             <div className="kalao-mfa-side-copy">
               <div className="kalao-mfa-goldbar" />
-              <h2 className="h3 mb-3">Une méthode, ou plusieurs</h2>
+              <h2 className="h3 mb-3">Deux méthodes</h2>
               <ol className="ps-3 mb-0" style={{ lineHeight: 1.7 }}>
-                <li>Authenticator : QR, fonctionne hors réseau.</li>
-                <li>SMS : code reçu sur votre téléphone.</li>
-                <li>Clé / passkey : validation biométrique ou clé USB.</li>
+                <li>Appli d’authentification : scannez le QR, puis saisissez le code.</li>
+                <li>E-mail : un code à 6 chiffres est envoyé sur votre adresse.</li>
               </ol>
             </div>
           </div>
