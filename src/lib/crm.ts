@@ -723,7 +723,7 @@ export async function convertLead(id: string, service: ConvertServiceInput) {
       catalog_item_id: service.catalogItemId,
     });
     dossierId = createdDos.id;
-  } else {
+  } else if (existingDos) {
     await supabase
       .from("dossiers")
       .update({

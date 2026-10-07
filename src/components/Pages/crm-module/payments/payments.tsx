@@ -20,6 +20,10 @@ import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import PaymentEditModal, { type PaymentEditTarget } from "./PaymentEditModal";
 
+function invoiceDocHref(invoiceId?: string | null) {
+  return isLiveId(invoiceId) ? docHref("invoice", invoiceId as string) : "#";
+}
+
 const PaymentsComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [canEdit, setCanEdit] = useState(false);
@@ -41,15 +45,11 @@ const PaymentsComponent = () => {
     {
       title: "Invoice ID",
       dataIndex: "InvoiceID",
-      render: (text: string, record: { key?: string }) => (
+      render: (text: string, record: { invoiceId?: string }) => (
         <Link
-          href={
-            isLiveId((record as { invoiceId?: string }).invoiceId)
-              ? docHref("invoice", (record as { invoiceId: string }).invoiceId)
-              : "#"
-          }
+          href={invoiceDocHref(record.invoiceId)}
           className="title-name"
-          target={isLiveId((record as { invoiceId?: string }).invoiceId) ? "_blank" : undefined}
+          target={isLiveId(record.invoiceId) ? "_blank" : undefined}
         >
           {text}
         </Link>
@@ -116,20 +116,10 @@ const PaymentsComponent = () => {
           <div className="dropdown-menu dropdown-menu-right" style={{}}>
             <Link
               className="dropdown-item"
-              href={
-                isLiveId((record as { invoiceId?: string }).invoiceId)
-                  ? docHref("invoice", (record as { invoiceId: string }).invoiceId)
-                  : "#"
-              }
-              target={
-                isLiveId((record as { invoiceId?: string }).invoiceId) ? "_blank" : undefined
-              }
-              data-bs-toggle={
-                isLiveId((record as { invoiceId?: string }).invoiceId) ? undefined : "offcanvas"
-              }
-              data-bs-target={
-                isLiveId((record as { invoiceId?: string }).invoiceId) ? undefined : "#offcanvas_view"
-              }
+              href={invoiceDocHref(record.invoiceId)}
+              target={isLiveId(record.invoiceId) ? "_blank" : undefined}
+              data-bs-toggle={isLiveId(record.invoiceId) ? undefined : "offcanvas"}
+              data-bs-target={isLiveId(record.invoiceId) ? undefined : "#offcanvas_view"}
             >
               <i className="ti ti-eye text-indigo" /> Voir la facture
             </Link>
@@ -196,7 +186,7 @@ const PaymentsComponent = () => {
                       ])}
                     printHref={
                       isLiveId((data[0] as { invoiceId?: string } | undefined)?.invoiceId)
-                        ? docHref("invoice", (data[0] as { invoiceId: string }).invoiceId)
+                        ? invoiceDocHref((data[0] as { invoiceId?: string }).invoiceId)
                         : null
                     }
                   />

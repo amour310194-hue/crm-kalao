@@ -8,6 +8,7 @@ import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 export type PaymentEditTarget = {
   key: string;
   InvoiceID: string;
+  invoiceId?: string;
   amountValue: number;
   paidAt: string;
   methodValue: string;
