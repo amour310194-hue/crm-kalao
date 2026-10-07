@@ -43,9 +43,13 @@ const PaymentsComponent = () => {
       dataIndex: "InvoiceID",
       render: (text: string, record: { key?: string }) => (
         <Link
-          href={isLiveId(record.key) ? docHref("receipt", record.key) : "#"}
+          href={
+            isLiveId((record as { invoiceId?: string }).invoiceId)
+              ? docHref("invoice", (record as { invoiceId: string }).invoiceId)
+              : "#"
+          }
           className="title-name"
-          target={isLiveId(record.key) ? "_blank" : undefined}
+          target={isLiveId((record as { invoiceId?: string }).invoiceId) ? "_blank" : undefined}
         >
           {text}
         </Link>
@@ -112,12 +116,22 @@ const PaymentsComponent = () => {
           <div className="dropdown-menu dropdown-menu-right" style={{}}>
             <Link
               className="dropdown-item"
-              href={isLiveId(record.key) ? docHref("receipt", record.key) : "#"}
-              target={isLiveId(record.key) ? "_blank" : undefined}
-              data-bs-toggle={isLiveId(record.key) ? undefined : "offcanvas"}
-              data-bs-target={isLiveId(record.key) ? undefined : "#offcanvas_view"}
+              href={
+                isLiveId((record as { invoiceId?: string }).invoiceId)
+                  ? docHref("invoice", (record as { invoiceId: string }).invoiceId)
+                  : "#"
+              }
+              target={
+                isLiveId((record as { invoiceId?: string }).invoiceId) ? "_blank" : undefined
+              }
+              data-bs-toggle={
+                isLiveId((record as { invoiceId?: string }).invoiceId) ? undefined : "offcanvas"
+              }
+              data-bs-target={
+                isLiveId((record as { invoiceId?: string }).invoiceId) ? undefined : "#offcanvas_view"
+              }
             >
-              <i className="ti ti-eye text-indigo" /> Aperçu
+              <i className="ti ti-eye text-indigo" /> Voir la facture
             </Link>
             {isLiveId(record.key) && canEdit && record.status !== "annule" ? (
               <button
@@ -181,7 +195,9 @@ const PaymentsComponent = () => {
                         row.TransactionID,
                       ])}
                     printHref={
-                      rowLiveId(data[0]) ? docHref("receipt", rowLiveId(data[0]) as string) : null
+                      isLiveId((data[0] as { invoiceId?: string } | undefined)?.invoiceId)
+                        ? docHref("invoice", (data[0] as { invoiceId: string }).invoiceId)
+                        : null
                     }
                   />
                 </>

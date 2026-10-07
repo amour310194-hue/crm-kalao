@@ -463,7 +463,22 @@ export async function createContact(input: {
     .select("*")
     .single();
   throwIf(error);
-  return data as ContactRow;
+  const created = data as ContactRow;
+  await createActivity({
+    type: "note",
+    subject: "Fiche client créée",
+    contact_id: created.id,
+    company_id: created.company_id,
+    notes: created.notes,
+  });
+  await createDossier({
+    title: `Dossier — ${clientDisplayName(created)}`,
+    kind: "consulting",
+    company_id: created.company_id,
+    contact_id: created.id,
+    notes: created.notes,
+  });
+  return created;
 }
 
 export async function updateContact(id: string, input: Partial<ContactRow>) {
@@ -641,11 +656,18 @@ export async function convertLead(id: string, service: ConvertServiceInput) {
     const contact = await createContact({
       first_name: names.first_name,
       last_name: names.last_name,
+      phone: lead.contacts?.phone ?? null,
       company_id: companyId,
       notes: lead.notes,
-      status: "prospect",
+      status: "client",
     });
     contactId = contact.id;
+  } else {
+    await updateContact(contactId, {
+      status: "client",
+      company_id: companyId,
+      notes: lead.notes ?? undefined,
+    });
   }
 
   const deals = await fetchDeals();
@@ -681,12 +703,90 @@ export async function convertLead(id: string, service: ConvertServiceInput) {
     contact_id: contactId,
   });
 
+  await attachLeadHistoryToContact({
+    leadId: id,
+    contactId,
+    companyId,
+    dealId: deal.id,
+  });
+
+  const dossierKind = parseKind(`${service.label} ${lead.title}`);
+  const existingDos = (await fetchDossiers())?.find((row) => row.contact_id === contactId);
+  let dossierId = existingDos?.id ?? null;
+  if (!dossierId) {
+    const createdDos = await createDossier({
+      title: service.label || lead.title,
+      kind: dossierKind,
+      company_id: companyId,
+      contact_id: contactId,
+      notes: lead.notes,
+      catalog_item_id: service.catalogItemId,
+    });
+    dossierId = createdDos.id;
+  } else {
+    await supabase
+      .from("dossiers")
+      .update({
+        title: service.label || lead.title || existingDos.title,
+        kind: dossierKind,
+        notes: lead.notes || existingDos.notes,
+      })
+      .eq("id", dossierId);
+    if (service.catalogItemId) {
+      await supabase.from("dossier_assets").insert({
+        dossier_id: dossierId,
+        catalog_item_id: service.catalogItemId,
+        qty: 1,
+      });
+    }
+  }
+
+  await createActivity({
+    type: "note",
+    subject: "Prospect converti en client",
+    contact_id: contactId,
+    company_id: companyId,
+    deal_id: deal.id,
+    notes: lead.notes || service.label,
+  });
+
   return {
     companyId,
     contactId,
     dealId: deal.id,
     leadId: id,
+    dossierId,
   };
+}
+
+async function attachLeadHistoryToContact(input: {
+  leadId: string;
+  contactId: string;
+  companyId: string | null;
+  dealId: string;
+}) {
+  const supabase = db();
+  if (!supabase) return;
+  await supabase
+    .from("activities")
+    .update({ contact_id: input.contactId, company_id: input.companyId })
+    .eq("deal_id", input.dealId);
+  await supabase
+    .from("attachments")
+    .update({ entity_type: "contact", entity_id: input.contactId })
+    .eq("entity_type", "lead")
+    .eq("entity_id", input.leadId);
+  await supabase.from("crm_emails").update({ contact_id: input.contactId }).eq("lead_id", input.leadId);
+  const { data: person } = await supabase
+    .from("contacts")
+    .select("email")
+    .eq("id", input.contactId)
+    .maybeSingle();
+  const email = person?.email?.trim();
+  if (email) {
+    await supabase.from("crm_emails").update({ contact_id: input.contactId }).eq("to_email", email);
+    await supabase.from("crm_emails").update({ contact_id: input.contactId }).eq("from_email", email);
+  }
 }
 
 export function leadAffiliationNames(row: LeadRow): string {
@@ -901,20 +1001,7 @@ export async function acceptQuote(quoteId: string) {
     .select("id")
     .eq("quote_id", quoteId)
     .maybeSingle();
-  if (!existing) {
-    const { error: invErr } = await supabase.from("invoices").insert({
-      number: docNumber("INV"),
-      company_id: quote.company_id,
-      contact_id: quote.contact_id,
-      quote_id: quote.id,
-      project: quote.number ?? "Devis accepté",
-      due_date: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-      amount: final,
-      paid_amount: 0,
-      status: "unpaid",
-    });
-    throwIf(invErr);
-  }
+  // Les factures sont saisies à la main — pas de génération à l'acceptation du devis.
 
   const locations = await fetchStockLocations();
   const boutique = locations?.find((l) => l.code === "LOC-BOUT") ?? locations?.[0];
@@ -1658,6 +1745,39 @@ export async function fetchAttachments(entityType?: EntityType, entityId?: strin
   );
 }
 
+export function belongsToClient(
+  contact: { id: string; company_id?: string | null },
+  row: { contact_id?: string | null; company_id?: string | null }
+) {
+  if (row.contact_id && row.contact_id === contact.id) return true;
+  if (contact.company_id && row.company_id && row.company_id === contact.company_id) return true;
+  return false;
+}
+
+export async function fetchFicheAttachments(contactId: string, dossierIds: string[] = []) {
+  const rows = await fetchAttachments();
+  if (!rows) return [];
+  return rows.filter(
+    (row) =>
+      (row.entity_type === "contact" && row.entity_id === contactId) ||
+      (row.entity_type === "lead" && row.entity_id === contactId) ||
+      (row.entity_type === "dossier" && dossierIds.includes(row.entity_id))
+  );
+}
+
+export async function fetchFicheEmails(contactId: string) {
+  const supabase = db();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("crm_emails")
+    .select("id, subject, to_email, from_email, created_at, folder, status")
+    .eq("contact_id", contactId)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  if (error) return [];
+  return data ?? [];
+}
+
 export async function uploadAttachment(input: {
   file: File;
   entity_type: EntityType;
@@ -2039,6 +2159,7 @@ export async function createDossier(input: {
       type: "task",
       subject: `Échéance ${input.title}`,
       company_id: companyId,
+      contact_id: contactId,
       notes: "Échéance du dossier d'immigration",
       due_at: endAt || undefined,
     });

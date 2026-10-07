@@ -4,6 +4,7 @@ import Link from "next/link";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
 import {
+  createActivity,
   dossierFlag,
   formatDate,
   type ActivityRow,
@@ -102,6 +103,91 @@ export function FichePipeline({
   );
 }
 
+export function FicheAddActivity({
+  contactId,
+  companyId,
+  type,
+  label,
+  onCreated,
+}: {
+  contactId: string;
+  companyId?: string | null;
+  type: "note" | "call" | "task" | "email";
+  label: string;
+  onCreated: (row: ActivityRow) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <>
+      <button type="button" className="link-primary fw-medium border-0 bg-transparent p-0" onClick={() => setOpen(true)}>
+        <i className="ti ti-circle-plus me-1" />
+        {label}
+      </button>
+      {open ? (
+        <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.45)" }} role="dialog">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{label}</h5>
+                <button type="button" className="btn-close" onClick={() => setOpen(false)} />
+              </div>
+              <div className="modal-body">
+                {error ? <div className="alert alert-danger py-2">{error}</div> : null}
+                <div className="mb-2">
+                  <label className="form-label">Objet</label>
+                  <input className="form-control" value={subject} onChange={(e) => setSubject(e.target.value)} />
+                </div>
+                <div className="mb-0">
+                  <label className="form-label">Détail</label>
+                  <textarea className="form-control" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline-secondary" onClick={() => setOpen(false)}>
+                  Fermer
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={busy || !subject.trim()}
+                  onClick={async () => {
+                    setBusy(true);
+                    setError(null);
+                    try {
+                      const row = await createActivity({
+                        type,
+                        subject: subject.trim(),
+                        notes: notes.trim() || null,
+                        contact_id: contactId,
+                        company_id: companyId,
+                      });
+                      onCreated(row);
+                      setSubject("");
+                      setNotes("");
+                      setOpen(false);
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "Enregistrement impossible.");
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {busy ? "Enregistrement…" : "Enregistrer"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export function LiveActivityCards({
   rows,
   empty,
@@ -124,6 +210,7 @@ export function LiveActivityCards({
                 <div>
                   <h6 className="fw-medium fs-14 mb-1">{row.subject}</h6>
                   <p className="mb-0">{formatDate(row.due_at ?? row.created_at)}</p>
+                  {row.notes ? <p className="mb-0 mt-1 text-muted">{row.notes}</p> : null}
                 </div>
               </div>
             </div>

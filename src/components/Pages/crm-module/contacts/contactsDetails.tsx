@@ -13,11 +13,13 @@ import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import {
+  belongsToClient,
   clientDisplayName,
   deleteAttachment,
   dossierFlag,
   fetchActivities,
-  fetchAttachments,
+  fetchFicheAttachments,
+  fetchFicheEmails,
   fetchContacts,
   fetchDossiers,
   type ActivityRow,
@@ -29,6 +31,7 @@ import {
 import { updateDossier } from "@/lib/dossiers";
 import {
   FICHE_EXTRA_TABS,
+  FicheAddActivity,
   FicheDossierTab,
   FichePipeline,
   FicheSuiviTab,
@@ -48,6 +51,9 @@ const ContactsDetailsComponent = () => {
   const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [files, setFiles] = useState<AttachmentRow[]>([]);
   const [activities, setActivities] = useState<ActivityRow[]>([]);
+  const [emails, setEmails] = useState<
+    { id: string; subject: string | null; to_email: string | null; from_email: string | null; created_at: string; folder: string | null }[]
+  >([]);
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
 
   useEffect(() => {
@@ -63,14 +69,13 @@ const ContactsDetailsComponent = () => {
         if (place) setLocationLabel(place);
         setDossiers(
           (dos ?? []).filter(
-            (d) => d.contact_id === row.id || d.company_id === row.company_id
+            (d) =>
+              d.contact_id === row.id ||
+              (!d.contact_id && Boolean(row.company_id) && d.company_id === row.company_id)
           )
         );
-        setActivities(
-          (acts ?? []).filter(
-            (a) => a.contact_id === row.id || a.company_id === row.company_id
-          )
-        );
+        setActivities((acts ?? []).filter((a) => belongsToClient(row, a)));
+        void fetchFicheEmails(row.id).then(setEmails);
       }
     );
   }, [contactId]);
@@ -78,28 +83,29 @@ const ContactsDetailsComponent = () => {
   const live = true;
   const primaryDossier = dossiers[0] ?? null;
 
+  const reloadFiles = async (id: string, dossierIds: string[]) => {
+    const rows = await fetchFicheAttachments(id, dossierIds);
+    setFiles(rows);
+  };
+
   useEffect(() => {
     const entityId = contactId;
     if (!entityId) return;
-    void fetchAttachments("contact", entityId).then((rows) => {
-      if (rows) setFiles(rows);
-    });
-  }, [contactId]);
+    void reloadFiles(entityId, dossiers.map((d) => d.id));
+  }, [contactId, dossiers]);
 
   const uploadToFiche = async (file: File) => {
     const entityId = contactId;
     if (!entityId) return;
     await uploadAttachment({ file, entity_type: "contact", entity_id: entityId });
-    const rows = await fetchAttachments("contact", entityId);
-    if (rows) setFiles(rows);
+    await reloadFiles(entityId, dossiers.map((d) => d.id));
   };
 
   const removeFile = async (id: string) => {
     await deleteAttachment(id);
     const entityId = contactId;
     if (!entityId) return;
-    const rows = await fetchAttachments("contact", entityId);
-    if (rows) setFiles(rows);
+    await reloadFiles(entityId, dossiers.map((d) => d.id));
   };
 
   return (
@@ -677,30 +683,15 @@ const ContactsDetailsComponent = () => {
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                       <h5 className="fw-semibold mb-0">Activités</h5>
-                      <div className="dropdown">
-                        <Link
-                          href="#"
-                          className="dropdown-toggle btn btn-outline-light px-2 shadow"
-                          data-bs-toggle="dropdown"
-                        >
-                          <i className="ti ti-sort-ascending-2 me-2" />
-                          Sort By
-                        </Link>
-                        <div className="dropdown-menu">
-                          <ul>
-                            <li>
-                              <Link href="#" className="dropdown-item">
-                                Newest
-                              </Link>
-                            </li>
-                            <li>
-                              <Link href="#" className="dropdown-item">
-                                Oldest
-                              </Link>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
+                      {contact ? (
+                        <FicheAddActivity
+                          contactId={contact.id}
+                          companyId={contact.company_id}
+                          type="task"
+                          label="Ajouter une activité"
+                          onCreated={(row) => setActivities((prev) => [row, ...prev])}
+                        />
+                      ) : null}
                     </div>
                     <div className="card-body">
                       {live ? (
@@ -888,41 +879,15 @@ const ContactsDetailsComponent = () => {
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                       <h5 className="fw-semibold mb-0">Notes</h5>
-                      <div className="d-inline-flex align-items-center">
-                        <div className="dropdown me-2">
-                          <Link
-                            href="#"
-                            className="dropdown-toggle btn btn-outline-light px-2 shadow"
-                            data-bs-toggle="dropdown"
-                          >
-                            <i className="ti ti-sort-ascending-2 me-2" />
-                            Sort By
-                          </Link>
-                          <div className="dropdown-menu">
-                            <ul>
-                              <li>
-                                <Link href="#" className="dropdown-item">
-                                  Newest
-                                </Link>
-                              </li>
-                              <li>
-                                <Link href="#" className="dropdown-item">
-                                  Oldest
-                                </Link>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <Link
-                          href="#"
-                          data-bs-toggle="modal"
-                          data-bs-target="#add_notes"
-                          className="link-primary fw-medium"
-                        >
-                          <i className="ti ti-circle-plus me-1" />
-                          Add New
-                        </Link>
-                      </div>
+                      {contact ? (
+                        <FicheAddActivity
+                          contactId={contact.id}
+                          companyId={contact.company_id}
+                          type="note"
+                          label="Ajouter une note"
+                          onCreated={(row) => setActivities((prev) => [row, ...prev])}
+                        />
+                      ) : null}
                     </div>
                     <div className="card-body">
                       {live ? (
@@ -1257,17 +1222,15 @@ const ContactsDetailsComponent = () => {
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                       <h5 className="fw-semibold mb-0">Appels</h5>
-                      <div className="d-inline-flex align-items-center">
-                        <Link
-                          href="#"
-                          data-bs-toggle="modal"
-                          data-bs-target="#create_call"
-                          className="link-primary fw-medium"
-                        >
-                          <i className="ti ti-circle-plus me-1" />
-                          Add New
-                        </Link>
-                      </div>
+                      {contact ? (
+                        <FicheAddActivity
+                          contactId={contact.id}
+                          companyId={contact.company_id}
+                          type="call"
+                          label="Ajouter un appel"
+                          onCreated={(row) => setActivities((prev) => [row, ...prev])}
+                        />
+                      ) : null}
                     </div>
                     <div className="card-body">
                       {live ? (
@@ -1557,17 +1520,16 @@ const ContactsDetailsComponent = () => {
                           <div className="row align-items-center">
                             <div className="col-md-8">
                               <div className="mb-3">
-                                <h6 className="mb-1">Manage Documents</h6>
+                                <h6 className="mb-1">Documents du client</h6>
                                 <p>
-                                  Send customizable quotes, proposals and
-                                  contracts to close deals faster.
+                                  Pièces du contact et des dossiers liés : passeport, justificatifs, courriers.
                                 </p>
                               </div>
                             </div>
                             <div className="col-md-4 text-md-end">
                               <div className="mb-3">
                                 <label className="btn btn-primary mb-0">
-                                  Create Document
+                                  Ajouter un fichier
                                   <input
                                     type="file"
                                     className="d-none"
@@ -1625,6 +1587,10 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       ))}
+                      {files.length ? null : (
+                        <p className="text-muted">Aucun fichier pour ce client.</p>
+                      )}
+                      <div className="d-none">
                       <div className="card border shadow-none mb-3">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">
@@ -1826,6 +1792,7 @@ const ContactsDetailsComponent = () => {
                           </div>
                         </div>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1861,6 +1828,24 @@ const ContactsDetailsComponent = () => {
                           />
                         </div>
                       ) : null}
+                      {emails.length ? (
+                        <div className="mb-3">
+                          {emails.map((mail) => (
+                            <div className="card border shadow-none mb-2" key={mail.id}>
+                              <div className="card-body p-3">
+                                <h6 className="fw-medium fs-14 mb-1">{mail.subject || "(sans objet)"}</h6>
+                                <p className="mb-0 text-muted">
+                                  {mail.from_email || "—"} → {mail.to_email || "—"}
+                                  {" · "}
+                                  {mail.folder || "envoyé"}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted">Aucun e-mail rattaché à cette fiche.</p>
+                      )}
                       <div className="card border mb-0">
                         <div className="card-body pb-0">
                           <div className="row align-items-center">

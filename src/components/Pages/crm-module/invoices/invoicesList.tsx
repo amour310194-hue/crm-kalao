@@ -161,13 +161,11 @@ const InvoicesListComponent = () => {
             </Link>
             <Link
               className="dropdown-item"
-              href={
-                isLiveId(record.key)
-                  ? `${all_routes.invoice_details}?id=${record.key}`
-                  : all_routes.invoice_details
-              }
+              href={isLiveId(record.key) ? docHref("invoice", record.key) : "#"}
+              target={isLiveId(record.key) ? "_blank" : undefined}
             >
-              <i className="ti ti-clipboard-copy me-1" /> View Invoices
+              <i className="ti ti-clipboard-copy me-1" />
+              Voir la facture
             </Link>
             <Link
               className="dropdown-item"

@@ -65,12 +65,15 @@ const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) =>
     };
     if (id) {
       await updateContact(id, payload);
+      onSaved?.();
+      closeBootstrapChrome(form);
+      showBootstrap("create_success");
     } else {
-      await createContact(payload);
+      const created = await createContact(payload);
+      onSaved?.();
+      closeBootstrapChrome(form);
+      window.location.href = `${all_routes.contactDetails}?id=${created.id}`;
     }
-    onSaved?.();
-    closeBootstrapChrome(form);
-    showBootstrap("create_success");
   };
 
   const [tags, setTags] = useState<string[]>(["Collab", "VIP"]);

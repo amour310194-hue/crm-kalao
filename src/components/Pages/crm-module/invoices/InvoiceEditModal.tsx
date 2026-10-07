@@ -24,7 +24,9 @@ export default function InvoiceEditModal({
 }) {
   const { run, modal } = useFinanceUnlock();
   const [amount, setAmount] = useState(String(row.amountValue));
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(
+    /^\d{4}-\d{2}-\d{2}/.test(row.Due_Date) ? row.Due_Date.slice(0, 10) : ""
+  );
   const [project, setProject] = useState(row.project === "—" ? "" : row.project);
   const [cancelReason, setCancelReason] = useState("");
   const [saving, setSaving] = useState(false);

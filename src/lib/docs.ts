@@ -100,6 +100,13 @@ export type DocView = {
   notes: string[];
   articles: { heading: string; body: string }[];
   signatures: { role: string; name: string; title: string }[];
+  invoiceEdit?: {
+    id: string;
+    amount: number;
+    due_date: string | null;
+    project: string | null;
+    status: string;
+  };
 };
 
 function partyFrom(
@@ -168,10 +175,11 @@ export async function loadDocView(kind: DocKind, id: string): Promise<DocView> {
 }
 
 async function loadInvoice(id: string): Promise<DocView> {
-  const [invoices, companies, contacts] = await Promise.all([
+  const [invoices, companies, contacts, payments] = await Promise.all([
     fetchInvoices(),
     fetchCompanies(),
     fetchContacts(),
+    fetchPayments(),
   ]);
   const invoice = invoices?.find((row) => row.id === id);
   if (!invoice) return emptyView("invoice", "Facture introuvable.");
@@ -180,6 +188,16 @@ async function loadInvoice(id: string): Promise<DocView> {
     contacts?.find((row) => row.company_id === invoice.company_id) ??
     null;
   const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
+  const statusLabel: Record<string, string> = {
+    paid: "Payée",
+    partially_paid: "Partiellement payée",
+    unpaid: "Impayée",
+    overdue: "En retard",
+    cancelled: "Annulée",
+  };
+  const encaissements = (payments ?? []).filter(
+    (row) => row.invoice_id === invoice.id && row.status !== "annule"
+  );
   return {
     kind: "invoice",
     title: "FACTURE",
@@ -199,15 +217,29 @@ async function loadInvoice(id: string): Promise<DocView> {
     totalLabel: "Montant dû",
     total: formatMoney(invoice.amount),
     notes: [
+      `Statut : ${statusLabel[invoice.status] ?? invoice.status}`,
+      `Client : ${contact ? `${contact.first_name} ${contact.last_name}` : company?.name ?? "—"}`,
+      `Téléphone : ${contact?.phone || company?.phone || "—"}`,
+      `E-mail : ${contact?.email || company?.email || "—"}`,
       `Déjà encaissé : ${formatMoney(invoice.paid_amount)}`,
       `Reste dû : ${formatMoney(remaining)}`,
       `Échéance : ${formatDate(invoice.due_date)}`,
       `Date d'émission : ${formatDate(invoice.created_at)}`,
+      encaissements.length
+        ? `Paiements : ${encaissements.map((p) => `${formatMoney(p.amount)} le ${formatDate(p.paid_at)}`).join(" · ")}`
+        : "Aucun encaissement enregistré",
       invoiceTaxMention(entityForDoc("invoice")),
       invoicePaymentMention(entityForDoc("invoice")),
     ],
     articles: [],
     signatures: signOff("invoice"),
+    invoiceEdit: {
+      id: invoice.id,
+      amount: Number(invoice.amount),
+      due_date: invoice.due_date,
+      project: invoice.project,
+      status: invoice.status,
+    },
   };
 }
 

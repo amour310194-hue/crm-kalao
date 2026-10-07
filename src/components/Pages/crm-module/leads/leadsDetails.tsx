@@ -362,8 +362,12 @@ const LeadsDetailsComponent = () => {
           <ConvertModal
             lead={lead}
             onClose={() => setConverting(false)}
-            onDone={async () => {
+            onDone={async (contactId) => {
               setConverting(false);
+              if (contactId) {
+                window.location.href = `${all_routes.contactDetails}?id=${contactId}`;
+                return;
+              }
               await refreshLead(lead.id);
             }}
           />
@@ -379,7 +383,7 @@ function ConvertModal({
 }: {
   lead: LeadRow;
   onClose: () => void;
-  onDone: () => Promise<void>;
+  onDone: (contactId?: string) => Promise<void>;
 }) {
   const [services, setServices] = useState<CatalogItem[]>([]);
   const [catalogItemId, setCatalogItemId] = useState("");
@@ -403,14 +407,14 @@ function ConvertModal({
     setBusy(true);
     setError(null);
     try {
-      await convertLead(lead.id, {
+      const result = await convertLead(lead.id, {
         catalogItemId: selected.id,
         label: selected.name,
         unitPrice: Number(selected.unit_price ?? 0),
         taxRate: Number(selected.tax_rate ?? 0),
         companyName: companyName.trim() || undefined,
       });
-      await onDone();
+      await onDone(result.contactId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {

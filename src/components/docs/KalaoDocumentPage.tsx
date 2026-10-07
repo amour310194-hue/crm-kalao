@@ -7,6 +7,7 @@ import KalaoLetterhead, { KalaoDocFooter } from "@/components/docs/KalaoLetterhe
 import { KALAO_DOC_CSS } from "@/components/docs/kalaoDocCss";
 import { DOC_KINDS, loadDocView, type DocKind, type DocView } from "@/lib/docs";
 import { assertCanSeePayroll, isPayDocKind } from "@/lib/roles";
+import InvoiceEditModal from "@/components/Pages/crm-module/invoices/InvoiceEditModal";
 
 function isDocKind(value: string): value is DocKind {
   return (DOC_KINDS as readonly string[]).includes(value);
@@ -18,6 +19,33 @@ export default function KalaoDocumentPage() {
   const id = params.id;
   const [view, setView] = useState<DocView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+
+  const reload = () => {
+    if (!isDocKind(kind) || !id) return;
+    void loadDocView(kind, id).then(setView).catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : "Erreur de chargement");
+    });
+  };
+
+  const download = () => {
+    const sheet = document.querySelector(".kalao-sheet");
+    if (!sheet || !view) {
+      window.print();
+      return;
+    }
+    const blob = new Blob(
+      [
+        `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>${view.ref}</title><style>${KALAO_DOC_CSS}</style></head><body>${sheet.outerHTML}</body></html>`,
+      ],
+      { type: "text/html;charset=utf-8" }
+    );
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${view.ref.replace(/\//g, "-")}.html`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   useEffect(() => {
     if (!isDocKind(kind) || !id) {
@@ -40,12 +68,37 @@ export default function KalaoDocumentPage() {
       <div className="kalao-doc-shell">
         <div className="kalao-toolbar">
           <button type="button" onClick={() => window.print()}>
-            Imprimer / PDF
+            Imprimer
           </button>
+          <button type="button" className="secondary" onClick={download}>
+            Télécharger
+          </button>
+          {view?.invoiceEdit && view.invoiceEdit.status !== "cancelled" ? (
+            <button type="button" className="secondary" onClick={() => setEditing(true)}>
+              Modifier
+            </button>
+          ) : null}
           <a className="secondary" href="javascript:history.back()">
             Retour
           </a>
         </div>
+        {editing && view?.invoiceEdit ? (
+          <InvoiceEditModal
+            row={{
+              key: view.invoiceEdit.id,
+              Invoice_ID: view.ref,
+              amountValue: view.invoiceEdit.amount,
+              Due_Date: view.invoiceEdit.due_date ?? "",
+              project: view.invoiceEdit.project ?? "",
+              Status: view.invoiceEdit.status === "cancelled" ? "Annulée" : view.invoiceEdit.status,
+            }}
+            onClose={() => setEditing(false)}
+            onSaved={() => {
+              setEditing(false);
+              reload();
+            }}
+          />
+        ) : null}
         {!view && !error ? <p className="kalao-empty">Préparation du document…</p> : null}
         {error ? <p className="kalao-empty">{error}</p> : null}
         {view ? (

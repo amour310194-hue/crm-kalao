@@ -355,10 +355,16 @@ const InvoicesGrid = () => {
                           <div className="dropdown-menu dropdown-menu-right">
                             <Link
                               className="dropdown-item d-inline-flex align-items-center"
-                              href={liveHref(all_routes.invoice_details, invoice.key || invoice.Key)}
+                              href={
+                                isLiveId(invoice.key || invoice.Key)
+                                  ? docHref("invoice", invoice.key || invoice.Key)
+                                  : "#"
+                              }
+                              target={
+                                isLiveId(invoice.key || invoice.Key) ? "_blank" : undefined
+                              }
                             >
-                              <i className="ti ti-clipboard-copy me-1" /> View
-                              Invoices
+                              <i className="ti ti-clipboard-copy me-1" /> Voir la facture
                             </Link>
                             <Link
                               className="dropdown-item d-inline-flex align-items-center"
