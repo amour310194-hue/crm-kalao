@@ -199,7 +199,7 @@ export default function SecuritySettingsComponent() {
     <>
       <div className="page-wrapper">
         <div className="content">
-          <PageHeader title="Settings" badgeCount={false} showModuleTile={false} showExport={false} />
+          <PageHeader title="Paramètres" badgeCount={false} showModuleTile={false} showExport={false} />
           <SettingsTopbar />
           <div className="row">
             <div className="col-xl-3 col-lg-12 theiaStickySidebar">
@@ -268,12 +268,19 @@ export default function SecuritySettingsComponent() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(["totp", "phone", "webauthn"] as const).map((kind) => {
-                          const factor = factors.find((f) => factorKind(f) === kind && f.status === "verified");
+                        {(["totp", "email"] as const).map((kind) => {
+                          const factor =
+                            kind === "totp"
+                              ? factors.find((f) => factorKind(f) === "totp" && f.status === "verified")
+                              : null;
                           return (
                             <tr key={kind}>
                               <td>{MFA_METHOD_LABEL[kind]}</td>
-                              <td>{methodStatus(kind)}</td>
+                              <td>
+                                {kind === "email"
+                                  ? "Code envoyé à l’e-mail du compte"
+                                  : methodStatus(kind)}
+                              </td>
                               <td className="text-end">
                                 <Link href={`/mfa-setup?method=${kind}`} className="btn btn-sm btn-outline-primary me-1">
                                   {factor ? "Vérifier" : "Configurer"}

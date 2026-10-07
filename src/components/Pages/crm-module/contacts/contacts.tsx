@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import ModalContacts from "./modals/modalContacts";
 import Link from "next/link";
@@ -18,6 +18,7 @@ const ContactsComponent = () => {
     return rows ? rows.map(toContactsListRow) : null;
   }, []);
   const { rows, live, reload } = useLiveRows(ContactsListData, loadContacts);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   return (
     <>
       {/* ========================
@@ -734,6 +735,33 @@ const ContactsComponent = () => {
                               </Link>
                             </h6>
                             <p className="text-default mb-0">{contact.Role}</p>
+                          </div>
+                        </div>
+                        <div className="dropdown table-action">
+                          <Link
+                            href="#"
+                            className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="ti ti-dots-vertical" />
+                          </Link>
+                          <div className="dropdown-menu dropdown-menu-right">
+                            <Link
+                              className="dropdown-item"
+                              href="#"
+                              data-bs-toggle="offcanvas"
+                              data-bs-target="#offcanvas_edit"
+                              onClick={() => setSelectedId(contact.key)}
+                            >
+                              <i className="ti ti-edit text-blue" /> Modifier
+                            </Link>
+                            <Link
+                              className="dropdown-item"
+                              href={`${all_routes.contactDetails}?id=${contact.key}`}
+                            >
+                              <i className="ti ti-eye text-blue-light" /> Fiche
+                            </Link>
                           </div>
                         </div>
                       </div>
@@ -2324,7 +2352,7 @@ const ContactsComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-  <ModalContacts onSaved={reload} />
+  <ModalContacts selectedId={selectedId} onSaved={reload} />
     </>
   );
 };

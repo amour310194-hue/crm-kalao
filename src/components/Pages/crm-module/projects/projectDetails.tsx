@@ -48,6 +48,8 @@ import {
 } from "@/lib/dossiers";
 import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
 import { isCanadaProcedure } from "@/lib/org";
+import { FichePipeline } from "../ficheLiveTabs";
+import { pipelineStatusLabel, procedurePipeline } from "@/lib/visa-pipeline";
 
 const KIND_LABEL: Record<string, string> = {
   chantier: "Chantier",
@@ -56,15 +58,7 @@ const KIND_LABEL: Record<string, string> = {
   visa: "Visa",
   evenement: "Événement",
   bien: "Bail / bien",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  plan: "Plan",
-  design: "Design",
-  develop: "Development",
-  done: "Completed",
-  cancelled: "Annulé",
-};
+}
 
 const ProjectDetailsComponent = () => {
   const dossierId =
@@ -314,7 +308,7 @@ const ProjectDetailsComponent = () => {
                           >
                             {dossier && isDossierClosed(dossier.status)
                               ? "Clôturé"
-                              : "Active"}
+                              : "Actif"}
                           </span>
                         </div>
                         {live && dossier ? (
@@ -366,50 +360,28 @@ const ProjectDetailsComponent = () => {
                         >
                           {" "}
                           <i className="ti ti-thumb-up me-1" />
-                          {dossier ? STATUS_LABEL[dossier.status] ?? dossier.status : "Completed"}
+                          {dossier
+                            ? pipelineStatusLabel(dossier.status, dossier.kind, dossier.title, dossier.notes)
+                            : "Clôturé"}
                           <i className="ti ti-chevron-down ms-1" />{" "}
                         </Link>
                         <div className="dropdown-menu dropdown-menu-right">
-                          <Link
-                            className="dropdown-item"
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              void onChangeStatus("done");
-                            }}
-                          >
-                            <span>Completed</span>
-                          </Link>
-                          <Link
-                            className="dropdown-item"
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              void onChangeStatus("develop");
-                            }}
-                          >
-                            <span>Development</span>
-                          </Link>
-                          <Link
-                            className="dropdown-item"
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              void onChangeStatus("design");
-                            }}
-                          >
-                            <span>Design</span>
-                          </Link>
-                          <Link
-                            className="dropdown-item"
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              void onChangeStatus("plan");
-                            }}
-                          >
-                            <span>Plan</span>
-                          </Link>
+                          {(dossier
+                            ? procedurePipeline(dossier.kind, dossier.title, dossier.notes)
+                            : procedurePipeline("visa")
+                          ).map((step) => (
+                            <Link
+                              key={step.key}
+                              className="dropdown-item"
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                void onChangeStatus(step.key);
+                              }}
+                            >
+                              <span>{step.label}</span>
+                            </Link>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -422,16 +394,16 @@ const ProjectDetailsComponent = () => {
             <div className="col-xl-4">
               <div className="card">
                 <div className="card-body p-3">
-                  <h6 className="mb-3 fw-semibold">Project Information</h6>
+                  <h6 className="mb-3 fw-semibold">Informations du dossier</h6>
                   <div className="border-bottom mb-3 pb-3">
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <p className="mb-0">Start Date</p>
+                      <p className="mb-0">Date de début</p>
                       <p className="mb-0 text-dark">
                         {dossier ? formatDate(dossier.start_at) : " 27 Sep 2025, 11:45 PM"}
                       </p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <p className="mb-0">Due Date </p>
+                      <p className="mb-0">Échéance</p>
                       <p className="mb-0 text-dark">
                         {dossier ? formatDate(dossier.end_at) : " 27 Sep 2025, 11:45 PM"}
                       </p>
@@ -441,7 +413,7 @@ const ProjectDetailsComponent = () => {
                       <p className="mb-0 text-dark">{formatMoney(purchasesTotal)}</p>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <p className="mb-0">Project Type</p>
+                      <p className="mb-0">Type de dossier</p>
                       <p className="mb-0 text-dark">
                         {destination
                           ? `Immigration ${destination.label}`
@@ -589,12 +561,12 @@ const ProjectDetailsComponent = () => {
                     <p className="mb-0 fw-medium text-dark">
                       <i className="ti ti-timeline-event-text me-1" />
                       {dossier
-                        ? STATUS_LABEL[dossier.status] ?? dossier.status
-                        : "Marketing Pipeline"}
+                        ? pipelineStatusLabel(dossier.status, dossier.kind, dossier.title, dossier.notes)
+                        : "—"}
                     </p>
                   </div>
                   <div className="d-flex align-items-center justify-content-between mb-2">
-                    <p className="mb-0">Last Modified </p>
+                    <p className="mb-0">Dernière modification</p>
                     <p className="mb-0 text-dark">
                       {dossier ? formatDate(dossier.updated_at) : " 27 Sep 2025, 11:45 PM"}
                     </p>
@@ -625,35 +597,15 @@ const ProjectDetailsComponent = () => {
             {/* /Contact Sidebar */}
             {/* Contact Details */}
             <div className="col-xl-8">
-              <div className="mb-3 pb-3 border-bottom">
-                <h5 className="mb-3">Project Pipeline Status</h5>
-                <div className="step-progress d-flex flex-wrap gap-2">
-                  {(
-                    [
-                      { key: "plan", label: "Plan", cls: "bg-indigo" },
-                      { key: "design", label: "Design", cls: "bg-cyan" },
-                      { key: "develop", label: "Development", cls: "bg-success" },
-                      { key: "done", label: "Completed", cls: "bg-orange" },
-                    ] as const
-                  ).map((step, i, all) => {
-                    const current = all.findIndex((s) => s.key === dossier?.status);
-                    const reached = !dossier || current < 0 || i <= current;
-                    return (
-                      <div
-                        key={step.key}
-                        className={`step ${reached ? step.cls : "bg-light text-muted"}`}
-                        role={dossier ? "button" : undefined}
-                        onClick={() => {
-                          if (dossier) void onChangeStatus(step.key);
-                        }}
-                      >
-                        {step.label}
-                      </div>
-                    );
-                  })}
-                  <div className="step bg-transparent" />
-                </div>
-              </div>
+              <FichePipeline
+                status={dossier?.status}
+                kind={dossier?.kind}
+                title={dossier?.title}
+                notes={dossier?.notes}
+                onPick={(status) => {
+                  if (dossier) void onChangeStatus(status);
+                }}
+              />
               <div className="card mb-3">
                 <div className="card-body pb-0 pt-2 px-2">
                   <ul
@@ -1083,11 +1035,13 @@ const ProjectDetailsComponent = () => {
                                   className="form-control"
                                   name="status"
                                   defaultValue={dossier.status}
+                                  key={`${dossier.id}-${dossier.status}`}
                                 >
-                                  <option value="plan">Plan</option>
-                                  <option value="design">Design</option>
-                                  <option value="develop">Development</option>
-                                  <option value="done">Completed</option>
+                                  {procedurePipeline(dossier.kind, dossier.title, dossier.notes).map((step) => (
+                                    <option key={step.key} value={step.key}>
+                                      {step.label}
+                                    </option>
+                                  ))}
                                 </select>
                               </div>
                             </div>

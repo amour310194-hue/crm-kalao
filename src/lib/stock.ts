@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { assertCanEditFinance } from "@/lib/roles";
+import { assertCanEditFinance, assertCanEditFinanceRecord } from "@/lib/roles";
 
 export interface StockLocation {
   id: string;
@@ -83,7 +83,7 @@ export async function updateStockMovement(
     reason: string;
   }
 ) {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   if (!input.catalog_item_id) throw new Error("Choisissez un article.");
@@ -101,7 +101,7 @@ export async function updateStockMovement(
 }
 
 export async function deleteStockMovement(id: string) {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("stock_movements").delete().eq("id", id);

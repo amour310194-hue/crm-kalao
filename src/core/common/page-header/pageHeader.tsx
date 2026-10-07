@@ -54,7 +54,7 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb mb-0 p-0">
             <li className="breadcrumb-item">
-              <Link href={all_routes.dealsDashboard}>Home</Link>
+              <Link href={all_routes.dashboard}>Accueil</Link>
             </li>
             {showModuleTile && (
             <li className="breadcrumb-item" aria-current="page">
@@ -78,20 +78,20 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
               data-bs-toggle="dropdown"
             >
               <i className="ti ti-package-export me-2" />
-              Export
+              Exporter
             </Link>
             <div className="dropdown-menu dropdown-menu-end">
               <ul>
                 <li>
                   <Link href="#" className="dropdown-item">
                     <i className="ti ti-file-type-pdf me-1" />
-                    Export as PDF
+                    Exporter en PDF
                   </Link>
                 </li>
                 <li>
                   <Link href="#" className="dropdown-item">
                     <i className="ti ti-file-type-xls me-1" />
-                    Export as Excel
+                    Exporter en Excel
                   </Link>
                 </li>
               </ul>
@@ -104,8 +104,8 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
           className="btn btn-icon btn-outline-light shadow"
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          data-bs-title="Refresh"
-          aria-label="Refresh"
+          data-bs-title="Actualiser"
+          aria-label="Actualiser"
         >
           <i className="ti ti-refresh" />
         </Link>
@@ -117,8 +117,8 @@ const PageHeader = ({ title = "", badgeCount = null, showExport = false, moduleT
           className={`btn btn-icon btn-outline-light shadow ${isCollapsed === true ? 'active' : ''}`}
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          data-bs-title={isCollapsed ? "Expand" : "Collapse"}
-          aria-label="Collapse"
+          data-bs-title={isCollapsed ? "Déplier" : "Replier"}
+          aria-label="Replier"
         >
           <i className="ti ti-transition-top" />
         </Link>

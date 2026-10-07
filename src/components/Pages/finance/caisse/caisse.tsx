@@ -23,6 +23,7 @@ import {
   type CashKind,
   type CashOperationRow,
 } from "@/lib/cash";
+import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 function CashModal({
   existing,
@@ -43,6 +44,7 @@ function CashModal({
   const [notes, setNotes] = useState(existing?.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { run, modal } = useFinanceUnlock();
   const showDirection = kind === "operation";
 
   const handleSave = async () => {
@@ -59,10 +61,17 @@ function CashModal({
         counterparty,
         notes,
       };
-      if (existing) await updateCashOperation(existing.id, payload);
-      else await createCashOperation(payload);
-      onSaved();
-      onClose();
+      if (existing) {
+        await run(async () => {
+          await updateCashOperation(existing.id, payload);
+          onSaved();
+          onClose();
+        });
+      } else {
+        await createCashOperation(payload);
+        onSaved();
+        onClose();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {
@@ -71,6 +80,8 @@ function CashModal({
   };
 
   return (
+    <>
+    {modal}
     <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }} role="dialog">
       <div className="modal-dialog">
         <div className="modal-content">
@@ -149,6 +160,7 @@ function CashModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -158,6 +170,7 @@ export default function CaisseComponent() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<CashOperationRow | null>(null);
   const [canEdit, setCanEdit] = useState(false);
+  const { run, modal } = useFinanceUnlock();
 
   const load = () => {
     void fetchCashOperations().then((data) => setRows(data ?? []));
@@ -204,8 +217,10 @@ export default function CaisseComponent() {
               onClick={async () => {
                 if (!confirm("Supprimer cette opération ?")) return;
                 try {
-                  await deleteCashOperation(row.id);
-                  load();
+                  await run(async () => {
+                    await deleteCashOperation(row.id);
+                    load();
+                  });
                 } catch (err) {
                   alert(err instanceof Error ? err.message : "Suppression refusée");
                 }
@@ -222,6 +237,7 @@ export default function CaisseComponent() {
 
   return (
     <>
+      {modal}
       <div className="page-wrapper">
         <div className="content pb-0">
           <PageHeader title="Caisse" showModuleTile={false} showExport />

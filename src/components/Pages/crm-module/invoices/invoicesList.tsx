@@ -23,9 +23,13 @@ import {
 import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import KalaoCashBar from "@/components/docs/KalaoCashBar";
+import InvoiceEditModal, { type InvoiceEditTarget } from "./InvoiceEditModal";
+import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
+  const [editRow, setEditRow] = useState<InvoiceEditTarget | null>(null);
+  const { run: runFinance, modal: financeModal } = useFinanceUnlock();
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -146,20 +150,14 @@ const InvoicesListComponent = () => {
             <Link
               className="dropdown-item"
               href="#"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvas_edit"
+              onClick={(e) => {
+                e.preventDefault();
+                if (!isLiveId(record.key)) return;
+                setEditRow(record as InvoiceEditTarget);
+              }}
             >
               <i className="ti ti-edit me-1" />
-              Edit
-            </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              data-bs-toggle="modal"
-              data-bs-target="#delete_invoices"
-            >
-              <i className="ti ti-trash me-1" />
-              Delete
+              Modifier
             </Link>
             <Link
               className="dropdown-item"
@@ -218,8 +216,10 @@ const InvoicesListComponent = () => {
               onClick={async (e) => {
                 e.preventDefault();
                 try {
-                  await markInvoiceUnpaid(record.key);
-                  await reload();
+                  await runFinance(async () => {
+                    await markInvoiceUnpaid(record.key);
+                    await reload();
+                  });
                 } catch (err) {
                   alert(err instanceof Error ? err.message : "Erreur");
                 }
@@ -256,6 +256,14 @@ const InvoicesListComponent = () => {
   ];
   return (
     <>
+      {financeModal}
+      {editRow ? (
+        <InvoiceEditModal
+          row={editRow}
+          onClose={() => setEditRow(null)}
+          onSaved={() => void reload()}
+        />
+      ) : null}
       {/* ========================
 			Start Page Content
 		========================= */}

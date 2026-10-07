@@ -191,15 +191,15 @@ const Sidebar = () => {
         <div className="sidebar-logo">
           <div>
             {/* Logo Normal */}
-            <Link href={route.dealsDashboard} className="logo logo-normal">
+            <Link href={route.dashboard} className="logo logo-normal">
               <ImageWithBasePath src="assets/img/kalao-logo.png" alt="Groupe Kalao" />
             </Link>
             {/* Logo Small */}
-            <Link href={route.dealsDashboard} className="logo-small">
+            <Link href={route.dashboard} className="logo-small">
               <ImageWithBasePath src="assets/img/kalao-mark.jpg" alt="Kalao" />
             </Link>
             {/* Logo Dark */}
-            <Link href={route.dealsDashboard} className="dark-logo">
+            <Link href={route.dashboard} className="dark-logo">
               <ImageWithBasePath src="assets/img/kalao-logo.png" alt="Groupe Kalao" />
             </Link>
           </div>

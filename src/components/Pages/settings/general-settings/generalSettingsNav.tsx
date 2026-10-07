@@ -7,6 +7,7 @@ import { all_routes } from "@/router/all_routes";
 const ITEMS = [
   { href: all_routes.profile, label: "Profil" },
   { href: all_routes.security, label: "Sécurité" },
+  { href: all_routes.pipelines, label: "Pipelines procédures" },
   { href: all_routes.notification, label: "Notifications" },
   { href: all_routes.connectedApps, label: "Canaux et clés API" },
 ] as const;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cancelPayment, updatePayment } from "@/lib/crm";
 import { EXPENSE_METHODS } from "@/lib/expenses";
+import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 export type PaymentEditTarget = {
   key: string;
@@ -31,11 +32,13 @@ export default function PaymentEditModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cancelled = row.status === "annule";
+  const { run, modal } = useFinanceUnlock();
 
   const save = async () => {
     setError(null);
     setSaving(true);
     try {
+      await run(async () => {
       await updatePayment(row.key, {
         amount: Number(amount.replace(",", ".")),
         method,
@@ -44,6 +47,7 @@ export default function PaymentEditModal({
       });
       onSaved();
       onClose();
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {
@@ -55,9 +59,11 @@ export default function PaymentEditModal({
     setError(null);
     setSaving(true);
     try {
+      await run(async () => {
       await cancelPayment(row.key, cancelReason);
       onSaved();
       onClose();
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {
@@ -66,6 +72,8 @@ export default function PaymentEditModal({
   };
 
   return (
+    <>
+    {modal}
     <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }} role="dialog">
       <div className="modal-dialog">
         <div className="modal-content">
@@ -136,5 +144,6 @@ export default function PaymentEditModal({
         </div>
       </div>
     </div>
+    </>
   );
 }

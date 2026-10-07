@@ -18,6 +18,7 @@ import {
   type StockMovement,
 } from "@/lib/stock";
 import { canMutateFinance } from "@/lib/roles";
+import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 function MovementModal({
   catalog,
@@ -38,6 +39,7 @@ function MovementModal({
   const [reason, setReason] = useState(existing?.reason ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { run, modal } = useFinanceUnlock();
   const products = catalog.filter((item) => item.kind === "product" || item.track_stock);
 
   const handleSave = async () => {
@@ -50,10 +52,17 @@ function MovementModal({
         qty: Number(qty.replace(",", ".")),
         reason,
       };
-      if (existing) await updateStockMovement(existing.id, payload);
-      else await createStockMovement(payload);
-      onSaved();
-      onClose();
+      if (existing) {
+        await run(async () => {
+          await updateStockMovement(existing.id, payload);
+          onSaved();
+          onClose();
+        });
+      } else {
+        await createStockMovement(payload);
+        onSaved();
+        onClose();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {
@@ -62,6 +71,8 @@ function MovementModal({
   };
 
   return (
+    <>
+    {modal}
     <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }} role="dialog">
       <div className="modal-dialog">
         <div className="modal-content">
@@ -121,6 +132,7 @@ function MovementModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -134,6 +146,7 @@ export default function StockComponent() {
   const [editing, setEditing] = useState<StockMovement | null>(null);
   const [historyId, setHistoryId] = useState<string | null>(null);
   const [canEdit, setCanEdit] = useState(false);
+  const { run, modal } = useFinanceUnlock();
 
   const load = () => {
     void fetchCatalogItems().then((data) => setCatalog(data ?? []));
@@ -180,6 +193,7 @@ export default function StockComponent() {
 
   return (
     <>
+      {modal}
       <div className="page-wrapper">
         <div className="content pb-0">
           <PageHeader title="Stock" showModuleTile={false} showExport={false} />
@@ -252,8 +266,10 @@ export default function StockComponent() {
                                     onClick={async () => {
                                       if (!confirm("Supprimer ce mouvement ?")) return;
                                       try {
-                                        await deleteStockMovement(row.id);
-                                        load();
+                                        await run(async () => {
+                                          await deleteStockMovement(row.id);
+                                          load();
+                                        });
                                       } catch (err) {
                                         alert(err instanceof Error ? err.message : "Suppression refusée");
                                       }

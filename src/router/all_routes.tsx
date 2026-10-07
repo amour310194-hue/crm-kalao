@@ -211,6 +211,7 @@ export const all_routes = {
   notification: "/general-settings/notification",
   profile: "/general-settings/profile-settings",
   security: "/general-settings/security",
+  pipelines: "/general-settings/pipelines",
 
   banIpAddrress: "/other-settings/ban-ip-address",
   storage: "/other-settings/storage",

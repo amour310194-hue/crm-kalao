@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { assertCanEditFinance } from "@/lib/roles";
+import { assertCanEditFinance, assertCanEditFinanceRecord } from "@/lib/roles";
 
 export const EXPENSE_CATEGORIES = [
   { value: "achat_stock", label: "Achat de stock" },
@@ -123,7 +123,7 @@ export async function createExpense(input: ExpenseInput): Promise<ExpenseRow> {
 }
 
 export async function updateExpense(id: string, input: ExpenseInput) {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const payload = toExpenseInsert(input);
@@ -132,7 +132,7 @@ export async function updateExpense(id: string, input: ExpenseInput) {
 }
 
 export async function deleteExpense(id: string) {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("expenses").delete().eq("id", id);

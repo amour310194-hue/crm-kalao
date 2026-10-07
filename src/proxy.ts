@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isMfaExemptPath, isPublicPath, SESSION_IDLE_SECONDS, SESSION_MAX_SECONDS, mustEnrollMfa } from "@/lib/authz";
 import { isModuleAllowed, moduleForPath } from "@/lib/permissions";
+import { EMAIL_MFA_OK_COOKIE, readEmailMfaOk, sessionFingerprint } from "@/lib/mfa-email";
 
 const LAST_SEEN = "kalao_last_seen";
 
@@ -117,7 +118,15 @@ export async function proxy(request: NextRequest) {
     } catch (err) {
       console.error("proxy aal", err);
     }
-    if (mustEnrollMfa(profile?.role ?? null, aal) && !isMfaExemptPath(path)) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const emailOk = readEmailMfaOk(
+      request.cookies.get(EMAIL_MFA_OK_COOKIE)?.value,
+      user.id,
+      sessionFingerprint(session?.access_token ?? "")
+    );
+    if (mustEnrollMfa(profile?.role ?? null, aal, emailOk) && !isMfaExemptPath(path)) {
       const mfa = request.nextUrl.clone();
       mfa.pathname = "/mfa-setup";
       return NextResponse.redirect(mfa);
