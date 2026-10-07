@@ -5,6 +5,7 @@ import {
   canEditOrgSettings,
   isMfaExemptPath,
   isPublicPath,
+  isSettingsPath,
   mustEnrollMfa,
 } from "@/lib/authz";
 
@@ -13,26 +14,42 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/login")).toBe(true);
     expect(isPublicPath("/reset-password")).toBe(true);
     expect(isPublicPath("/forgot-password")).toBe(true);
-    expect(isPublicPath("/mfa-setup")).toBe(true);
     expect(isPublicPath("/l/devis-visa")).toBe(true);
   });
 
-  it("protège le CRM", () => {
+  it("protège le CRM et les paramètres", () => {
     expect(isPublicPath("/dashboard")).toBe(false);
     expect(isPublicPath("/crm/contact-grid")).toBe(false);
     expect(isPublicPath("/docs/invoice/x")).toBe(false);
     expect(isPublicPath("/leads")).toBe(false);
     expect(isPublicPath("/leads-list")).toBe(false);
+    expect(isPublicPath("/mfa-setup")).toBe(false);
+    expect(isPublicPath("/general-settings/security")).toBe(false);
+    expect(isPublicPath("/general-settings/profile-settings")).toBe(false);
+    expect(isPublicPath("/website-settings/language-web")).toBe(false);
+  });
+});
+
+describe("isSettingsPath", () => {
+  it("reconnaît les écrans paramètres", () => {
+    expect(isSettingsPath("/general-settings/security")).toBe(true);
+    expect(isSettingsPath("/website-settings/language-web")).toBe(true);
+    expect(isSettingsPath("/dashboard")).toBe(false);
+    expect(isSettingsPath("/login")).toBe(false);
   });
 });
 
 describe("isMfaExemptPath", () => {
-  it("laisse la page Sécurité accessible pour configurer la 2FA", () => {
-    expect(isMfaExemptPath("/general-settings/security")).toBe(true);
-    expect(isMfaExemptPath("/general-settings/security/")).toBe(true);
-    expect(isMfaExemptPath("/general-settings/notification")).toBe(true);
+  it("n’exempte que l’inscription 2FA, jamais les paramètres", () => {
     expect(isMfaExemptPath("/mfa-setup")).toBe(true);
+    expect(isMfaExemptPath("/mfa-setup/")).toBe(true);
+    expect(isMfaExemptPath("/general-settings/security")).toBe(false);
+    expect(isMfaExemptPath("/general-settings/security/")).toBe(false);
+    expect(isMfaExemptPath("/general-settings/notification")).toBe(false);
+    expect(isMfaExemptPath("/general-settings/profile-settings")).toBe(false);
+    expect(isMfaExemptPath("/website-settings/language-web")).toBe(false);
     expect(isMfaExemptPath("/dashboard")).toBe(false);
+    expect(isMfaExemptPath("/login")).toBe(false);
   });
 });
 

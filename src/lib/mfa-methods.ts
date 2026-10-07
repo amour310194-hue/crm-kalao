@@ -59,5 +59,15 @@ export function explainMfaError(message: string | undefined): string {
   if (raw.includes("webauthn") || raw.includes("not allowed") || raw.includes("not supported")) {
     return "Cette clé ou ce navigateur n’accepte pas WebAuthn. Essayez Chrome/Edge en HTTPS.";
   }
+  if (raw.includes("already exists") || raw.includes("friendly name")) {
+    return "Une méthode authenticator est déjà en cours. Validez-la ou retirez-la, puis réessayez.";
+  }
+  if (raw.includes("maximum") || raw.includes("too many")) {
+    return "Trop de méthodes enregistrées. Retirez une méthode non validée puis réessayez.";
+  }
   return "Action impossible. Réessayez.";
+}
+
+export function unverifiedFactors(factors: MfaFactor[]): MfaFactor[] {
+  return factors.filter((f) => f.status !== "verified" && factorKind(f));
 }

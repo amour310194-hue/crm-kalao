@@ -131,21 +131,13 @@ const ProjectsListComponent = () => {
       sorter: (a: any, b: any) => a.EndDate.length - b.EndDate.length,
     },
     {
-      title: "Pipeline Stage",
+      title: "Étape",
       dataIndex: "PipelineStage",
       render: (text: string) => (
         <div className="pipeline-progress d-flex align-items-center">
           <div className="progress">
             <div
-              className={`progress-bar  ${
-                text === "Plan"
-                  ? "progress-bar-violet"
-                  : text === "Develop"
-                  ? "progress-bar-info"
-                  : text === "Design"
-                  ? "progress-bar-warning"
-                  : "progress-bar-success"
-              }`}
+              className="progress-bar progress-bar-success"
               role="progressbar"
             />
           </div>
@@ -156,14 +148,17 @@ const ProjectsListComponent = () => {
         a.PipelineStage.length - b.PipelineStage.length,
     },
     {
-      title: "Status",
+      title: "Statut",
       dataIndex: "Status",
       render: (text: any) => (
         <span
           className={`badge badge-pill badge-status  ${
-            text === "Active" ? "bg-success" : "bg-danger"
+            text === "Actif" || text === "Active" ? "bg-success" : "bg-danger"
           } `}
         >
+          {text === "Active" ? "Actif" : text === "Inactive" ? "Inactif" : text}
+        </span>
+      ),
           {text}
         </span>
       ),

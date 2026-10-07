@@ -2,7 +2,6 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { all_routes } from "@/router/all_routes";
@@ -13,6 +12,7 @@ import {
   factorKind,
   MFA_METHOD_LABEL,
   toE164,
+  unverifiedFactors,
   verifiedFactors,
   type MfaFactor,
   type MfaKind,
@@ -42,6 +42,11 @@ export default function MfaSetupPage() {
   const refresh = useCallback(async () => {
     try {
       const supabase = getSupabaseBrowserClient();
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        router.replace(all_routes.login);
+        return;
+      }
       const listed = await supabase.auth.mfa.listFactors();
       const packed = listed.data as {
         totp?: MfaFactor[];
@@ -60,7 +65,7 @@ export default function MfaSetupPage() {
     } finally {
       setReady(true);
     }
-  }, [factorId]);
+  }, [factorId, router]);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("method");
@@ -69,10 +74,21 @@ export default function MfaSetupPage() {
   }, [refresh]);
 
   const afterVerified = async () => {
-    setOk(true);
-    setMsg("Méthode activée.");
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.refreshSession();
+    let level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (level.data?.currentLevel !== "aal2") {
+      await supabase.auth.refreshSession();
+      level = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    }
+    setAal(level.data?.currentLevel ?? null);
+    if (level.data?.currentLevel !== "aal2") {
+      setOk(false);
+      setMsg("Le code est accepté mais la session n’est pas encore au niveau 2. Validez à nouveau le code.");
+      return false;
+    }
+    setOk(true);
+    setMsg("Méthode activée.");
     let codes: string[] | null = null;
     try {
       const rec = await supabase.auth.mfa.recoveryCodes.generate();
@@ -86,6 +102,7 @@ export default function MfaSetupPage() {
     if (!codes) {
       window.setTimeout(() => router.replace(all_routes.dashboard), 900);
     }
+    return true;
   };
 
   const enrollTotp = async () => {
@@ -93,9 +110,22 @@ export default function MfaSetupPage() {
     setMsg(null);
     try {
       const supabase = getSupabaseBrowserClient();
+      const listed = await supabase.auth.mfa.listFactors();
+      const packed = listed.data as {
+        totp?: MfaFactor[];
+        phone?: MfaFactor[];
+        webauthn?: MfaFactor[];
+        all?: MfaFactor[];
+      };
+      const pending = unverifiedFactors(collectMfaFactors(packed ?? {})).filter(
+        (factor) => factor.factor_type === "totp"
+      );
+      for (const factor of pending) {
+        await supabase.auth.mfa.unenroll({ factorId: factor.id });
+      }
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: "Authenticator Kalao",
+        friendlyName: `Authenticator Kalao ${Date.now().toString(36)}`,
       });
       if (error || !data || !("totp" in data) || !data.totp) {
         setMsg(explainMfaError(error?.message));
@@ -477,11 +507,8 @@ export default function MfaSetupPage() {
                 </p>
               ) : null}
 
-              <p className="mt-4 mb-0 small">
-                <Link href={all_routes.security} className="text-decoration-none" style={{ color: "#164b5a" }}>
-                  Paramètres → Sécurité
-                </Link>
-                {aal ? <span className="text-muted"> · session {aal}</span> : null}
+              <p className="mt-4 mb-0 small text-muted">
+                {aal ? `Session ${aal}` : "Validez un code pour ouvrir le CRM."}
               </p>
             </div>
           </div>

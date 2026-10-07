@@ -6,33 +6,25 @@ import { moduleForPath } from "@/lib/permissions";
 const route = all_routes;
 const SidebarDataAll = [
   {
-    tittle: "Main Menu",
+    tittle: "Menu",
     icon: "airplay",
     showAsTab: true,
     separateRoute: false,
     submenuItems: [
       {
-        label: "Dashboard",
-        link: route.dealsDashboard,
-        submenu: true,
+        label: "Tableau de bord",
+        link: route.dashboard,
+        relatedRoutes: [route.dashboard],
+        submenu: false,
         showSubRoute: false,
         icon: "dashboard",
         base: "dashboard",
         materialicons: "start",
         dot: true,
-        submenuItems: [
-          { label: "Tableau de bord", link: route.dashboard },
-          { label: "Sales Overview", link: route.salesDashboard },
-          { label: "Executive Dashboard", link: route.executiveDashboard },
-          { label: "Deals Dashboard", link: route.dealsDashboard },
-          { label: "Leads Dashboard", link: route.leadsDashboard },
-          { label: "Project Dashboard", link: route.projectDashboard },
-          { label: "Revenue Summary", link: route.revenueSummaryDashboard },
-          { label: "Growth Dashboard", link: route.growthDashboard },
-        ],
+        submenuItems: [],
       },
       {
-        label: "Applications",
+        label: "Outils",
         link: route.chat,
         submenu: true,
         showSubRoute: false,
@@ -76,11 +68,11 @@ const SidebarDataAll = [
               },
             ],
           },
-          { label: "Calendar", link: route.calendar },
+          { label: "Calendrier", link: route.calendar },
           { label: "Messagerie", link: route.email },
           { label: "To Do", link: route.todo, relatedRoutes: [route.todoList] },
           { label: "Notes", link: route.notes },
-          { label: "File Manager", link: route.fileManager },
+          { label: "Fichiers", link: route.fileManager },
           { label: "Social Feed", link: route.socialfeed },
           { label: "Kanban", link: route.kanbanview },
           {
@@ -238,7 +230,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Deals",
+        label: "Affaires",
         link: route.dealsGrid,
         relatedRoutes: [route.dealsGrid, route.dealsList, route.dealsDetails],
         submenu: false,
@@ -250,7 +242,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Leads",
+        label: "Prospects",
         link: route.leads,
         relatedRoutes: [route.leads, route.leadsList, route.leadsDetails],
         submenu: false,
@@ -327,7 +319,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Invoices",
+        label: "Factures",
         link: route.InvoiceGrid,
         relatedRoutes: [
           route.InvoiceGrid,
@@ -343,7 +335,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Payments",
+        label: "Paiements",
         link: route.payments,
         submenu: false,
         showSubRoute: false,
@@ -365,7 +357,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Activities",
+        label: "Activités",
         link: route.activities,
         relatedRoutes: [
           route.activityCalls,
@@ -573,13 +565,13 @@ const SidebarDataAll = [
     ],
   },
   {
-    tittle: "Projects",
+    tittle: "Dossiers",
     icon: "atom-2",
     showAsTab: true,
     separateRoute: false,
     submenuItems: [
       {
-        label: "Projects",
+        label: "Dossiers",
         link: route.projectsGrid,
         relatedRoutes: [
           route.projectsGrid,
@@ -641,7 +633,7 @@ const SidebarDataAll = [
     ],
   },
   {
-    tittle: "Sales CRM",
+    tittle: "Ventes",
     icon: "box",
     showAsTab: true,
     separateRoute: false,
@@ -684,7 +676,7 @@ const SidebarDataAll = [
         submenuItems: [],
       },
       {
-        label: "Quotations",
+        label: "Devis",
         link: route.quotationsList,
         submenu: false,
         showSubRoute: false,
@@ -1820,7 +1812,7 @@ const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
     "Revenue Summary",
     "Growth Dashboard",
   ]),
-  Applications: new Set([
+  Outils: new Set([
     "Chat",
     "Calls",
     "To Do",
@@ -1830,7 +1822,6 @@ const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
     "Invoices",
   ]),
   CRM: new Set(["Pipeline", "Contracts"]),
-  Projects: new Set(["Chantiers", "Plantations", "Voyages"]),
   Catalogue: new Set(["Fiche catalogue"]),
   Campaigns: new Set([
     "Email Campaigns",
@@ -1855,6 +1846,26 @@ function itemDenied(
   });
 }
 
+function collapseSingletonMenu(item: {
+  link?: string;
+  relatedRoutes?: string[];
+  submenu?: boolean;
+  submenuItems?: unknown[];
+  [key: string]: unknown;
+}) {
+  const kids = (item.submenuItems ?? []) as { link?: string; relatedRoutes?: string[] }[];
+  if (item.submenu && kids.length === 1) {
+    return {
+      ...item,
+      submenu: false,
+      link: kids[0].link ?? item.link,
+      relatedRoutes: kids[0].relatedRoutes ?? item.relatedRoutes,
+      submenuItems: [],
+    };
+  }
+  return item;
+}
+
 function filterMenuItems(items: unknown[] | undefined, denied: Set<string>): unknown[] {
   if (!items?.length) return items ?? [];
   return items.flatMap((raw) => {
@@ -1869,7 +1880,7 @@ function filterMenuItems(items: unknown[] | undefined, denied: Set<string>): unk
     if (item.submenu && (item.submenuItems?.length ?? 0) > 0 && children.length === 0) {
       return [];
     }
-    return [{ ...item, submenuItems: item.submenuItems ? children : item.submenuItems }];
+    return [collapseSingletonMenu({ ...item, submenuItems: item.submenuItems ? children : item.submenuItems })];
   });
 }
 
@@ -1890,12 +1901,14 @@ export const SidebarData = SidebarDataAll.filter(
     .filter((item) => !HIDDEN_MAIN_ITEMS.has(item.label))
     .map((item) => {
       const hiddenSubs = HIDDEN_SUB_ITEMS[item.label];
-      if (!hiddenSubs) return item;
-      return {
-        ...item,
-        submenuItems: (item.submenuItems ?? []).filter(
-          (sub) => !hiddenSubs.has(sub.label)
-        ),
-      };
+      const next = hiddenSubs
+        ? {
+            ...item,
+            submenuItems: (item.submenuItems ?? []).filter(
+              (sub) => !hiddenSubs.has(sub.label)
+            ),
+          }
+        : item;
+      return collapseSingletonMenu(next);
     }),
 }));

@@ -199,7 +199,7 @@ export default function SecuritySettingsComponent() {
     <>
       <div className="page-wrapper">
         <div className="content">
-          <PageHeader title="Settings" badgeCount={false} showModuleTile={false} showExport={false} />
+          <PageHeader title="Paramètres" badgeCount={false} showModuleTile={false} showExport={false} />
           <SettingsTopbar />
           <div className="row">
             <div className="col-xl-3 col-lg-12 theiaStickySidebar">

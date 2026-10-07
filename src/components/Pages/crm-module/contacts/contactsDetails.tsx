@@ -13,6 +13,7 @@ import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
 import Footer from "@/core/common/footer/footer";
 import {
+  clientDisplayName,
   deleteAttachment,
   dossierFlag,
   fetchActivities,
@@ -34,6 +35,7 @@ import {
   LiveActivityCards,
 } from "../ficheLiveTabs";
 import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
+import ClientEditForm from "./ClientEditForm";
 
 
 const ContactsDetailsComponent = () => {
@@ -54,7 +56,7 @@ const ContactsDetailsComponent = () => {
         if (!rows?.length) return;
         const row = rows.find((c) => c.id === contactId) ?? rows[0];
         setContact(row);
-        setContactName(`${row.first_name} ${row.last_name}`.trim());
+        setContactName(clientDisplayName(row));
         const place = [row.companies?.city, row.companies?.country]
           .filter(Boolean)
           .join(", ");
@@ -120,7 +122,7 @@ const ContactsDetailsComponent = () => {
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0 p-0">
                   <li className="breadcrumb-item">
-                    <Link href={all_routes.dealsDashboard}>Home</Link>
+                    <Link href={all_routes.dashboard}>Accueil</Link>
                   </li>
                   <li className="breadcrumb-item active" aria-current="page">
                     Clients
@@ -143,13 +145,13 @@ const ContactsDetailsComponent = () => {
                     <li>
                       <Link href="#" className="dropdown-item">
                         <i className="ti ti-file-type-pdf me-1" />
-                        Export as PDF
+                        Exporter en PDF
                       </Link>
                     </li>
                     <li>
                       <Link href="#" className="dropdown-item">
                         <i className="ti ti-file-type-xls me-1" />
-                        Export as Excel{" "}
+                        Exporter en Excel{" "}
                       </Link>
                     </li>
                   </ul>
@@ -184,7 +186,7 @@ const ContactsDetailsComponent = () => {
               <div className="mb-3">
                 <Link href={all_routes.contactGrid}>
                   <i className="ti ti-arrow-narrow-left me-1" />
-                  Back to Clients
+                  Retour aux clients
                 </Link>
               </div>
               <div className="card">
@@ -280,7 +282,7 @@ const ContactsDetailsComponent = () => {
                       </div>
                     </div>
                     {live && contact ? (
-                      <div className="mb-2">
+                      <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
                         <KalaoComposeMail
                           to={contact.email}
                           contactId={contact.id}
@@ -298,7 +300,7 @@ const ContactsDetailsComponent = () => {
             <div className="col-xl-3">
               <div className="card">
                 <div className="card-body p-3">
-                  <h6 className="mb-3 fw-semibold">Basic Information</h6>
+                  <h6 className="mb-3 fw-semibold">Informations</h6>
                   <div className="border-bottom mb-3 pb-3">
                     <div className="d-flex align-items-center mb-2">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
@@ -546,6 +548,10 @@ const ContactsDetailsComponent = () => {
                     </Link>
                   </div>
                 </div>
+                {contact ? <ClientEditForm contact={contact} onSaved={(next) => {
+                  setContact(next);
+                  setContactName(clientDisplayName(next));
+                }} /> : null}
               </div>
             </div>
             {/* /Contact Sidebar */}
@@ -554,6 +560,9 @@ const ContactsDetailsComponent = () => {
               {live ? (
                 <FichePipeline
                   status={primaryDossier?.status}
+                  kind={primaryDossier?.kind}
+                  title={primaryDossier?.title}
+                  notes={primaryDossier?.notes}
                   onPick={(status) => {
                     if (!primaryDossier) return;
                     void updateDossier(primaryDossier.id, { status }).then((saved) => {
@@ -589,7 +598,7 @@ const ContactsDetailsComponent = () => {
                       >
                         <span className="d-md-inline-block">
                           <i className="ti ti-alarm-minus me-1" />
-                          Activities
+                          Activités
                         </span>
                       </Link>
                     </li>
@@ -621,7 +630,7 @@ const ContactsDetailsComponent = () => {
                       >
                         <span className="d-md-inline-block">
                           <i className="ti ti-phone me-1" />
-                          Calls
+                          Appels
                         </span>
                       </Link>
                     </li>
@@ -637,7 +646,7 @@ const ContactsDetailsComponent = () => {
                       >
                         <span className="d-md-inline-block">
                           <i className="ti ti-file me-1" />
-                          Files
+                          Fichiers
                         </span>
                       </Link>
                     </li>
@@ -667,7 +676,7 @@ const ContactsDetailsComponent = () => {
                 <div className="tab-pane active show" id="tab_1">
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                      <h5 className="fw-semibold mb-0">Activities</h5>
+                      <h5 className="fw-semibold mb-0">Activités</h5>
                       <div className="dropdown">
                         <Link
                           href="#"
@@ -1247,7 +1256,7 @@ const ContactsDetailsComponent = () => {
                 <div className="tab-pane fade" id="tab_3">
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                      <h5 className="fw-semibold mb-0">Calls</h5>
+                      <h5 className="fw-semibold mb-0">Appels</h5>
                       <div className="d-inline-flex align-items-center">
                         <Link
                           href="#"
@@ -1540,7 +1549,7 @@ const ContactsDetailsComponent = () => {
                 <div className="tab-pane fade" id="tab_4">
                   <div className="card">
                     <div className="card-header">
-                      <h5 className="fw-semibold mb-0">Files</h5>
+                      <h5 className="fw-semibold mb-0">Fichiers</h5>
                     </div>
                     <div className="card-body">
                       <div className="card border mb-3">

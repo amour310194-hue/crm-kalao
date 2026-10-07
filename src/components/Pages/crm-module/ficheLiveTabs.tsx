@@ -8,21 +8,12 @@ import {
   type ActivityRow,
   type DossierRow,
 } from "@/lib/crm";
-
-export const PIPELINE_STEPS = [
-  { key: "plan", label: "Plan", cls: "bg-indigo" },
-  { key: "design", label: "Design", cls: "bg-cyan" },
-  { key: "develop", label: "Development", cls: "bg-success" },
-  { key: "done", label: "Completed", cls: "bg-orange" },
-] as const;
-
-const STATUS_LABEL: Record<string, string> = {
-  plan: "Plan",
-  design: "Design",
-  develop: "Development",
-  done: "Completed",
-  cancelled: "Annulé",
-};
+import {
+  normalizePipelineStatus,
+  PIPELINE_STEP_CLS,
+  pipelineStatusLabel,
+  procedurePipeline,
+} from "@/lib/visa-pipeline";
 
 function activityIcon(type: string) {
   if (type === "call") return { icon: "ti ti-phone", bg: "bg-success" };
@@ -33,20 +24,28 @@ function activityIcon(type: string) {
 
 export function FichePipeline({
   status,
+  kind,
+  title,
+  notes,
   onPick,
 }: {
   status?: string | null;
+  kind?: string | null;
+  title?: string | null;
+  notes?: string | null;
   onPick?: (status: string) => void;
 }) {
-  const idx = PIPELINE_STEPS.findIndex((step) => step.key === status);
+  const steps = procedurePipeline(kind, title, notes);
+  const current = normalizePipelineStatus(status, steps);
+  const idx = steps.findIndex((step) => step.key === current);
   return (
     <div className="mb-3 pb-3 border-bottom">
-      <h5 className="mb-3">Project Pipeline Status</h5>
+      <h5 className="mb-3">Pipeline de la procédure</h5>
       <div className="step-progress d-flex flex-wrap gap-2">
-        {PIPELINE_STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <div
             key={step.key}
-            className={`step ${idx < 0 || i <= idx ? step.cls : "bg-light text-muted"}`}
+            className={`step ${idx < 0 || i <= idx ? PIPELINE_STEP_CLS[i % PIPELINE_STEP_CLS.length] : "bg-light text-muted"}`}
             role={onPick ? "button" : undefined}
             onClick={onPick ? () => onPick(step.key) : undefined}
           >
@@ -124,7 +123,7 @@ export function FicheDossierList({ dossiers }: { dossiers: DossierRow[] }) {
                 <p className="mb-0">
                   {destination?.label ?? dossier.kind}
                   {" · "}
-                  {STATUS_LABEL[dossier.status] ?? dossier.status}
+                  {pipelineStatusLabel(dossier.status, dossier.kind, dossier.title, dossier.notes)}
                 </p>
               </div>
             </div>
@@ -157,7 +156,7 @@ export function FicheSuiviTab({ dossiers }: { dossiers: DossierRow[] }) {
                     <div>
                       <h6 className="fw-medium fs-14 mb-1">{dossier.title}</h6>
                       <p className="mb-0">
-                        Pipeline : {STATUS_LABEL[dossier.status] ?? dossier.status}
+                        Pipeline : {pipelineStatusLabel(dossier.status, dossier.kind, dossier.title, dossier.notes)}
                       </p>
                     </div>
                     <Link

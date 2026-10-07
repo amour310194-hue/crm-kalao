@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CommonDatePicker from "@/core/common/common-datePicker/commonDatePicker";
 import CommonSelect from "@/core/common/common-select/commonSelect";
 import CommonTagInputs from "@/core/common/common-tagInput/commonTagInputs";
@@ -29,9 +29,11 @@ import {
   closeBootstrapChrome,
   createContact,
   emptyUuid,
+  fetchContacts,
   readForm,
   showBootstrap,
   updateContact,
+  type ContactRow,
 } from "@/lib/crm";
 
 type ModalContactsProps = {
@@ -43,6 +45,7 @@ type ModalContactsProps = {
 const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) => {
   const [addKind, setAddKind] = useState<"person" | "company">("person");
   const [editKind, setEditKind] = useState<"person" | "company">("person");
+  const [editRow, setEditRow] = useState<ContactRow | null>(null);
 
   const saveContact = async (form: HTMLFormElement, id?: string | null, kind: "person" | "company" = "person") => {
     const vals = readForm(form);
@@ -76,6 +79,20 @@ const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) =>
   };
   const [phone, setPhone] = useState<string | undefined>();
   const [phone2, setPhone2] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!selectedId) {
+      setEditRow(null);
+      return;
+    }
+    void fetchContacts().then((rows) => {
+      const row = rows?.find((c) => c.id === selectedId);
+      if (!row) return;
+      setEditRow(row);
+      setEditKind(row.account_type === "company" ? "company" : "person");
+      setPhone(row.phone ?? undefined);
+    });
+  }, [selectedId]);
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
@@ -965,7 +982,13 @@ const options2 = [
                             {editKind === "company" ? "Nom de l'entreprise" : "Prénom"}{" "}
                             <span className="text-danger">*</span>
                           </label>
-                          <input type="text" className="form-control" name="first_name" />
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="first_name"
+                            defaultValue={editRow?.first_name ?? ""}
+                            key={`${editRow?.id ?? "edit"}-first`}
+                          />
                         </div>
                       </div>
                       {editKind === "person" ? (
@@ -974,7 +997,13 @@ const options2 = [
                             <label className="form-label">
                               Nom <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" name="last_name" />
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="last_name"
+                              defaultValue={editRow?.last_name ?? ""}
+                              key={`${editRow?.id ?? "edit"}-last`}
+                            />
                           </div>
                         </div>
                       ) : null}
@@ -982,11 +1011,11 @@ const options2 = [
                         <div className="mb-3">
                           <div className="d-flex justify-content-between align-items-center">
                             <label className="form-label">
-                              Email
+                              E-mail
                             </label>
                             <div className="form-check form-switch mb-1">
                               <label className="form-check-label d-flex align-items-center gap-2">
-                                <span>Email Opt Out</span>
+                                <span>Ne pas envoyer d’e-mail</span>
                                 <input
                                   className="form-check-input form-check-input-sm switchCheckDefault ms-auto"
                                   type="checkbox"
@@ -999,7 +1028,8 @@ const options2 = [
                           <input
                             type="text"
                             className="form-control"
-                            defaultValue="william@example.com"
+                            defaultValue={editRow?.email ?? ""}
+                            key={`${editRow?.id ?? "edit"}-email`}
                             name="email"
                           />
                         </div>

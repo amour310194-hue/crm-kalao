@@ -8,6 +8,7 @@ import {
   KALAO_NOREPLY_EMAIL,
   ROLE_LABEL,
 } from "@/lib/org";
+import { pipelineStatusLabel } from "@/lib/visa-pipeline";
 
 export type EntityType =
   | "company"
@@ -1753,13 +1754,6 @@ const KIND_PRIORITY: Record<string, string> = {
   bien: "Low",
 };
 
-const KIND_STAGE: Record<string, string> = {
-  plan: "Consultation et éligibilité",
-  design: "Collecte des documents",
-  develop: "Constitution du dossier",
-  done: "Clôturé",
-  cancelled: "Annulé",
-};
 
 /** Un dossier annulé est clos comme un dossier livré : il ne reste pas à traiter. */
 export function isDossierClosed(status: string) {
@@ -2096,8 +2090,8 @@ export function toProjectsListRow(row: DossierRow, index: number) {
     Priority: KIND_PRIORITY[row.kind] ?? "Medium",
     StartDate: formatDate(row.start_at),
     EndDate: formatDate(row.end_at),
-    PipelineStage: KIND_STAGE[row.status] ?? row.status,
-    Status: isDossierClosed(row.status) ? "Inactive" : "Active",
+    PipelineStage: pipelineStatusLabel(row.status, row.kind, row.title, row.notes),
+    Status: isDossierClosed(row.status) ? "Inactif" : "Actif",
     Kind: row.kind,
     companyId: row.company_id,
   };

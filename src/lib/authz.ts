@@ -85,8 +85,17 @@ export const PUBLIC_PATHS = [
   "/success",
   "/coming-soon",
   "/error-404",
-  "/mfa-setup",
   "/l",
+];
+
+/** Pages paramètres : session obligatoire, 2FA aussi si le rôle l’exige. */
+export const SETTINGS_PATH_PREFIXES = [
+  "/general-settings",
+  "/website-settings",
+  "/app-settings",
+  "/system-settings",
+  "/financial-settings",
+  "/other-settings",
 ];
 
 function normalizePathname(pathname: string): string {
@@ -100,13 +109,15 @@ export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
+export function isSettingsPath(pathname: string): boolean {
+  const path = normalizePathname(pathname);
+  return SETTINGS_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
+/** Seule l’inscription / le défi 2FA est hors aal2. Pas les paramètres. */
 export function isMfaExemptPath(pathname: string): boolean {
   const path = normalizePathname(pathname);
-  return (
-    path === "/mfa-setup" ||
-    path === "/general-settings" ||
-    path.startsWith("/general-settings/")
-  );
+  return path === "/mfa-setup" || path.startsWith("/mfa-setup/");
 }
 
 export function mfaEnforced(): boolean {

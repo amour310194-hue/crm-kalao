@@ -22,6 +22,7 @@ import {
   fetchDossiers,
   fetchInvoices,
   formatMoney,
+  updateCompany,
   uploadAttachment,
   type ActivityRow,
   type AttachmentRow,
@@ -38,6 +39,9 @@ import {
   FicheSuiviTab,
   LiveActivityCards,
 } from "../ficheLiveTabs";
+import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
+import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
+import ClientEditForm from "../contacts/ClientEditForm";
 import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
 import KalaoComposeMail from "@/components/docs/KalaoComposeMail";
 
@@ -123,7 +127,7 @@ const CompaniesDetailsComponent = () => {
               <div className="mb-3">
                 <Link href={all_routes.companiesGrid}>
                   <i className="ti ti-arrow-narrow-left me-1" />
-                  Back to Fournisseurs
+                  Retour aux fournisseurs
                 </Link>
               </div>
               <div className="card">
@@ -238,7 +242,7 @@ const CompaniesDetailsComponent = () => {
             <div className="col-xl-3">
               <div className="card">
                 <div className="card-body p-3">
-                  <h6 className="mb-3 fw-semibold">Basic Information</h6>
+                  <h6 className="mb-3 fw-semibold">Informations</h6>
                   <div className="border-bottom mb-3 pb-3">
                     <div className="d-flex align-items-center mb-2">
                       <span className="avatar avatar-xs bg-light p-0 flex-shrink-0 rounded-circle text-dark me-2">
@@ -450,6 +454,63 @@ const CompaniesDetailsComponent = () => {
                       Delete Contact
                     </Link>
                   </div>
+                  {company ? (
+                    <form
+                      className="mt-3"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const data = new FormData(e.currentTarget);
+                        const patch = {
+                          name: String(data.get("name") ?? "").trim(),
+                          email: String(data.get("email") ?? "").trim() || null,
+                          phone: String(data.get("phone") ?? "").trim() || null,
+                          city: String(data.get("city") ?? "").trim() || null,
+                          country: String(data.get("country") ?? "").trim() || null,
+                          address: String(data.get("address") ?? "").trim() || null,
+                          notes: String(data.get("notes") ?? "").trim() || null,
+                        };
+                        await updateCompany(company.id, patch);
+                        setCompany({ ...company, ...patch });
+                      }}
+                    >
+                      <h6 className="mb-3 fw-semibold">Mettre à jour le fournisseur</h6>
+                      <div className="mb-2">
+                        <label className="form-label">Nom</label>
+                        <input className="form-control" name="name" defaultValue={company.name} required key={`${company.id}-name`} />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label">E-mail</label>
+                        <input className="form-control" name="email" defaultValue={company.email ?? ""} key={`${company.id}-email`} />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label">Téléphone</label>
+                        <input className="form-control" name="phone" defaultValue={company.phone ?? ""} key={`${company.id}-phone`} />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label">Ville</label>
+                        <input className="form-control" name="city" defaultValue={company.city ?? ""} key={`${company.id}-city`} />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label">Pays</label>
+                        <input className="form-control" name="country" defaultValue={company.country ?? ""} key={`${company.id}-country`} />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label">Adresse</label>
+                        <input className="form-control" name="address" defaultValue={company.address ?? ""} key={`${company.id}-address`} />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Notes</label>
+                        <textarea className="form-control" name="notes" rows={3} defaultValue={company.notes ?? ""} key={`${company.id}-notes`} />
+                      </div>
+                      <button type="submit" className="btn btn-primary w-100">Enregistrer</button>
+                    </form>
+                  ) : null}
+                  {contact ? (
+                    <ClientEditForm
+                      contact={contact}
+                      onSaved={setContact}
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -459,6 +520,9 @@ const CompaniesDetailsComponent = () => {
               {live ? (
                 <FichePipeline
                   status={primaryDossier?.status}
+                  kind={primaryDossier?.kind}
+                  title={primaryDossier?.title}
+                  notes={primaryDossier?.notes}
                   onPick={(status) => {
                     if (!primaryDossier) return;
                     void updateDossier(primaryDossier.id, { status }).then((saved) => {
@@ -494,7 +558,7 @@ const CompaniesDetailsComponent = () => {
                       >
                         <span className="d-md-inline-block">
                           <i className="ti ti-alarm-minus me-1" />
-                          Activities
+                          Activités
                         </span>
                       </Link>
                     </li>
@@ -526,7 +590,7 @@ const CompaniesDetailsComponent = () => {
                       >
                         <span className="d-md-inline-block">
                           <i className="ti ti-phone me-1" />
-                          Calls
+                          Appels
                         </span>
                       </Link>
                     </li>
@@ -542,7 +606,7 @@ const CompaniesDetailsComponent = () => {
                       >
                         <span className="d-md-inline-block">
                           <i className="ti ti-file me-1" />
-                          Files
+                          Fichiers
                         </span>
                       </Link>
                     </li>
@@ -572,7 +636,7 @@ const CompaniesDetailsComponent = () => {
                 <div className="tab-pane active show" id="tab_1">
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                      <h5 className="fw-semibold mb-0">Activities</h5>
+                      <h5 className="fw-semibold mb-0">Activités</h5>
                       <div className="dropdown">
                         <Link
                           href="#"
@@ -1152,7 +1216,7 @@ const CompaniesDetailsComponent = () => {
                 <div className="tab-pane fade" id="tab_3">
                   <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                      <h5 className="fw-semibold mb-0">Calls</h5>
+                      <h5 className="fw-semibold mb-0">Appels</h5>
                       <div className="d-inline-flex align-items-center">
                         <Link
                           href="#"
@@ -1445,7 +1509,7 @@ const CompaniesDetailsComponent = () => {
                 <div className="tab-pane fade" id="tab_4">
                   <div className="card">
                     <div className="card-header">
-                      <h5 className="fw-semibold mb-0">Files</h5>
+                      <h5 className="fw-semibold mb-0">Fichiers</h5>
                     </div>
                     <div className="card-body">
                       <div className="card border mb-3">

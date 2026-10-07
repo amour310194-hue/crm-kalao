@@ -27,6 +27,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           router.replace(all_routes.login);
           return;
         }
+        const { data: userCheck } = await supabase.auth.getUser();
+        if (!userCheck.user) {
+          router.replace(all_routes.login);
+          return;
+        }
         setReady(true);
         const { data: profile } = await supabase
           .from("profiles")
