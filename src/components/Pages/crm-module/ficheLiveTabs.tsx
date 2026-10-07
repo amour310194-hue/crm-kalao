@@ -7,9 +7,15 @@ import {
   createActivity,
   dossierFlag,
   formatDate,
+  formatMoney,
   type ActivityRow,
+  type AttachmentRow,
   type DossierRow,
+  type InvoiceRow,
+  type PaymentRow,
+  type QuoteRow,
 } from "@/lib/crm";
+import { docHref } from "@/lib/docs";
 import {
   normalizePipelineStatus,
   PIPELINE_STEP_CLS,
@@ -306,6 +312,209 @@ export function FicheSuiviTab({ dossiers }: { dossiers: DossierRow[] }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function paymentMethodLabel(method: string) {
+  if (method === "cash") return "Espèces";
+  if (method === "mobile_money") return "Mobile money";
+  if (method === "bank_transfer") return "Virement";
+  return method;
+}
+
+function invoiceStatusLabel(status: string, conditional?: boolean) {
+  if (conditional) return "Conditionnelle";
+  const map: Record<string, string> = {
+    paid: "Payée",
+    partially_paid: "Partiel",
+    unpaid: "Impayée",
+    overdue: "En retard",
+    cancelled: "Annulée",
+  };
+  return map[status] ?? status;
+}
+
+function quoteStatusLabel(status: string) {
+  const map: Record<string, string> = {
+    draft: "Brouillon",
+    sent: "Envoyé",
+    accepted: "Accepté",
+    rejected: "Refusé",
+    expired: "Expiré",
+  };
+  return map[status] ?? status;
+}
+
+function FicheDocRow({
+  title,
+  detail,
+  href,
+  badge,
+}: {
+  title: string;
+  detail: string;
+  href: string;
+  badge: string;
+}) {
+  return (
+    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+      <div>
+        <span className="badge badge-soft-info me-2">{badge}</span>
+        <h6 className="fw-medium fs-14 mb-1 d-inline">{title}</h6>
+        <p className="mb-0 text-muted">{detail}</p>
+      </div>
+      <Link href={href} target="_blank" className="btn btn-sm btn-outline-light">
+        Voir
+      </Link>
+    </div>
+  );
+}
+
+export function FicheFilesAndFinance({
+  files,
+  invoices,
+  payments,
+  quotes,
+  dossiers,
+  onUpload,
+  onRemove,
+}: {
+  files: AttachmentRow[];
+  invoices: InvoiceRow[];
+  payments: PaymentRow[];
+  quotes: QuoteRow[];
+  dossiers: DossierRow[];
+  onUpload: (file: File) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
+}) {
+  const billed = invoices.reduce((sum, row) => sum + Number(row.amount), 0);
+  const received = payments.reduce((sum, row) => sum + Number(row.amount), 0);
+  const otherDocs = dossiers.filter((row) => row.kind === "visa" || Boolean(row.quote_id));
+
+  return (
+    <>
+      <div className="card border mb-3">
+        <div className="card-body pb-0">
+          <div className="row align-items-center">
+            <div className="col-md-8">
+              <div className="mb-3">
+                <h6 className="mb-1">Documents du client</h6>
+                <p>
+                  Pièces jointes, factures, paiements reçus, devis et autres documents du dossier.
+                </p>
+                <p className="mb-0 text-muted">
+                  Facturé {formatMoney(billed)} · Encaissé {formatMoney(received)}
+                </p>
+              </div>
+            </div>
+            <div className="col-md-4 text-md-end">
+              <div className="mb-3">
+                <label className="btn btn-primary mb-0">
+                  Ajouter un fichier
+                  <input
+                    type="file"
+                    className="d-none"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        await onUpload(file);
+                      } catch (err) {
+                        alert(err instanceof Error ? err.message : "Erreur");
+                      }
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h6 className="fw-semibold mb-3">Pièces jointes</h6>
+      {files.map((file) => (
+        <div className="card border shadow-none mb-3" key={file.id}>
+          <div className="card-body py-3">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div>
+                <h6 className="fw-semibold fs-14 mb-1">
+                  <a href={file.url} target="_blank" rel="noreferrer">
+                    {file.file_name}
+                  </a>
+                </h6>
+                <p className="mb-0 text-muted">
+                  {file.entity_type === "dossier"
+                    ? "Dossier"
+                    : file.entity_type === "invoice"
+                      ? "Facture"
+                      : file.entity_type === "quote"
+                        ? "Devis"
+                        : "Fiche client"}
+                  {" · "}
+                  {formatDate(file.created_at)}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
+                onClick={() => void onRemove(file.id).catch((err) => alert(err instanceof Error ? err.message : "Erreur"))}
+              >
+                <i className="ti ti-trash" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+      {files.length ? null : <p className="text-muted">Aucune pièce jointe.</p>}
+
+      <h6 className="fw-semibold mt-4 mb-3">Factures</h6>
+      {invoices.map((row) => (
+        <FicheDocRow
+          key={row.id}
+          badge="Facture"
+          title={row.number ? `#${row.number}` : row.id.slice(0, 8)}
+          detail={`${row.project || "Prestation"} · ${formatMoney(row.amount)} · Encaissé ${formatMoney(row.paid_amount)} · ${invoiceStatusLabel(row.status, row.is_conditional)} · Échéance ${formatDate(row.due_date)}`}
+          href={docHref("invoice", row.id)}
+        />
+      ))}
+      {invoices.length ? null : <p className="text-muted">Aucune facture pour ce client.</p>}
+
+      <h6 className="fw-semibold mt-4 mb-3">Paiements reçus</h6>
+      {payments.map((row) => (
+        <FicheDocRow
+          key={row.id}
+          badge="Paiement"
+          title={formatMoney(row.amount)}
+          detail={`${paymentMethodLabel(row.method)} · ${formatDate(row.paid_at)} · Facture ${row.invoices?.number ? `#${row.invoices.number}` : "—"}`}
+          href={docHref("invoice", row.invoice_id)}
+        />
+      ))}
+      {payments.length ? null : <p className="text-muted">Aucun paiement reçu.</p>}
+
+      <h6 className="fw-semibold mt-4 mb-3">Devis et autres documents</h6>
+      {quotes.map((row) => (
+        <FicheDocRow
+          key={row.id}
+          badge="Devis"
+          title={row.number ? `#${row.number}` : row.id.slice(0, 8)}
+          detail={`${row.notes || "Proposition"} · ${quoteStatusLabel(row.status)} · ${formatDate(row.created_at)}`}
+          href={docHref("quote", row.id)}
+        />
+      ))}
+      {otherDocs.map((row) => (
+        <FicheDocRow
+          key={row.id}
+          badge={row.kind === "visa" ? "Visa" : "Dossier"}
+          title={row.title}
+          detail={`${row.kind} · ${formatDate(row.start_at || row.updated_at)}`}
+          href={row.kind === "visa" ? docHref("visa", row.id) : `${all_routes.projectDetails}?id=${row.id}`}
+        />
+      ))}
+      {quotes.length || otherDocs.length ? null : (
+        <p className="text-muted">Aucun devis ni autre document.</p>
+      )}
+    </>
   );
 }
 

@@ -231,6 +231,7 @@ export interface PaymentRow {
     number: string | null;
     due_date: string | null;
     company_id?: string | null;
+    contact_id?: string | null;
     companies?: { name: string | null } | null;
   } | null;
 }
@@ -1347,7 +1348,7 @@ export async function fetchPayments(): Promise<PaymentRow[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("payments")
-    .select("*, invoices(number, due_date, company_id, companies(name))")
+    .select("*, invoices(number, due_date, company_id, contact_id, companies(name))")
     .order("created_at", { ascending: false });
   throwIf(error);
   return (data ?? []) as PaymentRow[];
@@ -1754,15 +1755,46 @@ export function belongsToClient(
   return false;
 }
 
-export async function fetchFicheAttachments(contactId: string, dossierIds: string[] = []) {
+export async function fetchFicheAttachments(
+  contactId: string,
+  dossierIds: string[] = [],
+  extraIds: string[] = []
+) {
   const rows = await fetchAttachments();
   if (!rows) return [];
+  const extras = new Set(extraIds);
   return rows.filter(
     (row) =>
       (row.entity_type === "contact" && row.entity_id === contactId) ||
       (row.entity_type === "lead" && row.entity_id === contactId) ||
-      (row.entity_type === "dossier" && dossierIds.includes(row.entity_id))
+      (row.entity_type === "dossier" && dossierIds.includes(row.entity_id)) ||
+      ((row.entity_type === "invoice" || row.entity_type === "quote") && extras.has(row.entity_id))
   );
+}
+
+export async function fetchFicheFinance(
+  contact: { id: string; company_id?: string | null },
+  dossierIds: string[] = []
+) {
+  const [invoices, payments, quotes] = await Promise.all([
+    fetchInvoices(),
+    fetchPayments(),
+    fetchQuotes(),
+  ]);
+  const invoiceRows = (invoices ?? []).filter(
+    (row) =>
+      belongsToClient(contact, row) || Boolean(row.dossier_id && dossierIds.includes(row.dossier_id))
+  );
+  const invoiceIds = new Set(invoiceRows.map((row) => row.id));
+  const paymentRows = (payments ?? []).filter((row) => {
+    if (row.status === "annule") return false;
+    if (invoiceIds.has(row.invoice_id)) return true;
+    if (row.invoices?.contact_id && row.invoices.contact_id === contact.id) return true;
+    if (contact.company_id && row.invoices?.company_id === contact.company_id) return true;
+    return false;
+  });
+  const quoteRows = (quotes ?? []).filter((row) => belongsToClient(contact, row));
+  return { invoices: invoiceRows, payments: paymentRows, quotes: quoteRows };
 }
 
 export async function fetchFicheEmails(contactId: string) {

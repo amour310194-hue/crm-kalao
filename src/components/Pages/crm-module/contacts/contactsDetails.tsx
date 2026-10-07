@@ -20,12 +20,16 @@ import {
   fetchActivities,
   fetchFicheAttachments,
   fetchFicheEmails,
+  fetchFicheFinance,
   fetchContacts,
   fetchDossiers,
   type ActivityRow,
   type AttachmentRow,
   type ContactRow,
   type DossierRow,
+  type InvoiceRow,
+  type PaymentRow,
+  type QuoteRow,
   uploadAttachment,
 } from "@/lib/crm";
 import { updateDossier } from "@/lib/dossiers";
@@ -33,6 +37,7 @@ import {
   FICHE_EXTRA_TABS,
   FicheAddActivity,
   FicheDossierTab,
+  FicheFilesAndFinance,
   FichePipeline,
   FicheSuiviTab,
   LiveActivityCards,
@@ -54,6 +59,9 @@ const ContactsDetailsComponent = () => {
   const [emails, setEmails] = useState<
     { id: string; subject: string | null; to_email: string | null; from_email: string | null; created_at: string; folder: string | null }[]
   >([]);
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [locationLabel, setLocationLabel] = useState("Douala, Cameroun");
 
   useEffect(() => {
@@ -83,29 +91,44 @@ const ContactsDetailsComponent = () => {
   const live = true;
   const primaryDossier = dossiers[0] ?? null;
 
-  const reloadFiles = async (id: string, dossierIds: string[]) => {
-    const rows = await fetchFicheAttachments(id, dossierIds);
+  const reloadFiles = async (id: string, dossierIds: string[], extraIds: string[] = []) => {
+    const rows = await fetchFicheAttachments(id, dossierIds, extraIds);
     setFiles(rows);
   };
 
   useEffect(() => {
-    const entityId = contactId;
-    if (!entityId) return;
-    void reloadFiles(entityId, dossiers.map((d) => d.id));
-  }, [contactId, dossiers]);
+    if (!contact) return;
+    const dossierIds = dossiers.map((d) => d.id);
+    void fetchFicheFinance(contact, dossierIds).then((finance) => {
+      setInvoices(finance.invoices);
+      setPayments(finance.payments);
+      setQuotes(finance.quotes);
+      if (!contactId) return;
+      void reloadFiles(contactId, dossierIds, [
+        ...finance.invoices.map((row) => row.id),
+        ...finance.quotes.map((row) => row.id),
+      ]);
+    });
+  }, [contact, contactId, dossiers]);
 
   const uploadToFiche = async (file: File) => {
     const entityId = contactId;
     if (!entityId) return;
     await uploadAttachment({ file, entity_type: "contact", entity_id: entityId });
-    await reloadFiles(entityId, dossiers.map((d) => d.id));
+    await reloadFiles(entityId, dossiers.map((d) => d.id), [
+      ...invoices.map((row) => row.id),
+      ...quotes.map((row) => row.id),
+    ]);
   };
 
   const removeFile = async (id: string) => {
     await deleteAttachment(id);
     const entityId = contactId;
     if (!entityId) return;
-    await reloadFiles(entityId, dossiers.map((d) => d.id));
+    await reloadFiles(entityId, dossiers.map((d) => d.id), [
+      ...invoices.map((row) => row.id),
+      ...quotes.map((row) => row.id),
+    ]);
   };
 
   return (
@@ -1515,284 +1538,15 @@ const ContactsDetailsComponent = () => {
                       <h5 className="fw-semibold mb-0">Fichiers</h5>
                     </div>
                     <div className="card-body">
-                      <div className="card border mb-3">
-                        <div className="card-body pb-0">
-                          <div className="row align-items-center">
-                            <div className="col-md-8">
-                              <div className="mb-3">
-                                <h6 className="mb-1">Documents du client</h6>
-                                <p>
-                                  Pièces du contact et des dossiers liés : passeport, justificatifs, courriers.
-                                </p>
-                              </div>
-                            </div>
-                            <div className="col-md-4 text-md-end">
-                              <div className="mb-3">
-                                <label className="btn btn-primary mb-0">
-                                  Ajouter un fichier
-                                  <input
-                                    type="file"
-                                    className="d-none"
-                                    onChange={async (e) => {
-                                      const file = e.target.files?.[0];
-                                      if (!file) return;
-                                      try {
-                                        await uploadToFiche(file);
-                                      } catch (err) {
-                                        alert(
-                                          err instanceof Error
-                                            ? err.message
-                                            : "Erreur"
-                                        );
-                                      }
-                                      e.target.value = "";
-                                    }}
-                                  />
-                                </label>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {files.map((file) => (
-                        <div className="card border shadow-none mb-3" key={file.id}>
-                          <div className="card-body pb-0">
-                            <div className="row align-items-center">
-                              <div className="col-md-8">
-                                <div className="mb-3">
-                                  <h6 className="fw-semibold fs-14 mb-1">
-                                    <a href={file.url} target="_blank" rel="noreferrer">
-                                      {file.file_name}
-                                    </a>
-                                  </h6>
-                                  <p>Pièce jointe liée à la fiche.</p>
-                                </div>
-                              </div>
-                              <div className="col-md-4 text-md-end">
-                                <div className="mb-3">
-                                  <button
-                                    type="button"
-                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
-                                    onClick={() =>
-                                      void removeFile(file.id).catch((err) =>
-                                        alert(err instanceof Error ? err.message : "Erreur")
-                                      )
-                                    }
-                                  >
-                                    <i className="ti ti-trash" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {files.length ? null : (
-                        <p className="text-muted">Aucun fichier pour ce client.</p>
-                      )}
-                      <div className="d-none">
-                      <div className="card border shadow-none mb-3">
-                        <div className="card-body pb-0">
-                          <div className="row align-items-center">
-                            <div className="col-md-8">
-                              <div className="mb-3">
-                                <h6 className="fw-semibold fs-14 mb-1">
-                                  Collier-Turner Proposal
-                                </h6>
-                                <p>
-                                  Send customizable quotes, proposals and
-                                  contracts to close deals faster.
-                                </p>
-                                <div className="d-flex align-items-center flex-wrap row-gap-2">
-                                  <span className="avatar avatar-md me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-21.jpg"
-                                      alt="img"
-                                      className="rounded-circle"
-                                    />
-                                  </span>
-                                  <div className="d-flex align-items-center">
-                                    <p className="mb-0 me-2">Vaughan Lewis</p>
-                                    <span className="badge bg-light text-body">
-                                      Owner
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-md-4 text-md-end">
-                              <div className="mb-3 d-inline-flex align-items-center">
-                                <span className="badge badge-soft-danger me-1">
-                                  Proposal
-                                </span>
-                                <span className="badge bg-info me-1">
-                                  Draft
-                                </span>
-                                <div className="dropdown">
-                                  <Link
-                                    href="#"
-                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="ti ti-dots-vertical" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link
-                                      className="dropdown-item"
-                                      href="#"
-                                      data-bs-toggle="modal"
-                                      data-bs-target="#delete_file"
-                                    >
-                                      <i className="ti ti-trash me-1" />
-                                      Delete
-                                    </Link>
-                                    <Link className="dropdown-item" href="#">
-                                      <i className="ti ti-download me-1" />
-                                      Download
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="card border shadow-none mb-3">
-                        <div className="card-body pb-0">
-                          <div className="row align-items-center">
-                            <div className="col-md-8">
-                              <div className="mb-3">
-                                <h6 className="fw-semibold fs-14 mb-1">
-                                  Collier-Turner Proposal
-                                </h6>
-                                <p>
-                                  Send customizable quotes, proposals and
-                                  contracts to close deals faster.
-                                </p>
-                                <div className="d-flex align-items-center flex-wrap row-gap-2">
-                                  <span className="avatar avatar-md me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-01.jpg"
-                                      alt="img"
-                                      className="rounded-circle"
-                                    />
-                                  </span>
-                                  <div className="d-flex align-items-center">
-                                    <p className="mb-0 me-2">Jessica Louise</p>
-                                    <span className="badge bg-light text-body">
-                                      Owner
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-md-4 text-md-end">
-                              <div className="mb-3 d-inline-flex align-items-center">
-                                <span className="badge badge-purple-light me-1">
-                                  Quote
-                                </span>
-                                <span className="badge bg-success me-1">
-                                  Sent
-                                </span>
-                                <div className="dropdown">
-                                  <Link
-                                    href="#"
-                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="ti ti-dots-vertical" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link
-                                      className="dropdown-item"
-                                      href="#"
-                                      data-bs-toggle="modal"
-                                      data-bs-target="#delete_file"
-                                    >
-                                      <i className="ti ti-trash me-1" />
-                                      Delete
-                                    </Link>
-                                    <Link className="dropdown-item" href="#">
-                                      <i className="ti ti-download me-1" />
-                                      Download
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="card border shadow-none mb-0">
-                        <div className="card-body pb-0">
-                          <div className="row align-items-center">
-                            <div className="col-md-8">
-                              <div className="mb-3">
-                                <h6 className="fw-semibold fs-14 mb-1">
-                                  Collier-Turner Proposal
-                                </h6>
-                                <p>
-                                  Send customizable quotes, proposals and
-                                  contracts to close deals faster.
-                                </p>
-                                <div className="d-flex align-items-center flex-wrap row-gap-2">
-                                  <span className="avatar avatar-md me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-22.jpg"
-                                      alt="img"
-                                      className="rounded-circle"
-                                    />
-                                  </span>
-                                  <div className="d-flex align-items-center">
-                                    <p className="mb-0 me-2">Dawn Merhca</p>
-                                    <span className="badge bg-light text-body">
-                                      Owner
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-md-4 text-md-end">
-                              <div className="mb-3 d-inline-flex align-items-center">
-                                <span className="badge badge-danger-light me-1">
-                                  Proposal
-                                </span>
-                                <span className="badge bg-pending priority-badge me-1">
-                                  Draft
-                                </span>
-                                <div className="dropdown">
-                                  <Link
-                                    href="#"
-                                    className="action-icon btn btn-icon btn-sm btn-outline-light shadow"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="ti ti-dots-vertical" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link
-                                      className="dropdown-item"
-                                      href="#"
-                                      data-bs-toggle="modal"
-                                      data-bs-target="#delete_file"
-                                    >
-                                      <i className="ti ti-trash me-1" />
-                                      Delete
-                                    </Link>
-                                    <Link className="dropdown-item" href="#">
-                                      <i className="ti ti-download me-1" />
-                                      Download
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      </div>
+                      <FicheFilesAndFinance
+                        files={files}
+                        invoices={invoices}
+                        payments={payments}
+                        quotes={quotes}
+                        dossiers={dossiers}
+                        onUpload={uploadToFiche}
+                        onRemove={removeFile}
+                      />
                     </div>
                   </div>
                 </div>
