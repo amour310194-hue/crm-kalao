@@ -212,6 +212,9 @@ export interface InvoiceRow {
   paid_amount: number;
   status: string;
   is_conditional?: boolean;
+  legacy_ref?: string | null;
+  condition_text?: string | null;
+  document_date?: string | null;
   created_at: string;
   companies?: { name: string | null; email?: string | null; phone?: string | null; address?: string | null; city?: string | null; country?: string | null } | null;
   contacts?: { first_name: string; last_name: string; account_type?: string | null; email?: string | null; phone?: string | null } | null;
@@ -1095,34 +1098,67 @@ export async function fetchInvoices(): Promise<InvoiceRow[] | null> {
   return (data ?? []) as InvoiceRow[];
 }
 
-export async function createInvoice(input: {
-  company_id?: string | null;
-  contact_id?: string | null;
-  dossier_id?: string | null;
-  project?: string | null;
-  amount: number;
-  due_date?: string | null;
-}) {
+export async function createInvoice(): Promise<never> {
+  throw new Error("Une facture se crée en brouillon, puis s'émet.");
+}
+
+export async function createInvoiceDrafts(payload: {
+  contact_id: string;
+  dossier_id: string;
+  document_date: string;
+  lines: {
+    catalog_item_id?: string | null;
+    label: string;
+    quantity: number;
+    unit_price: number;
+    discount: number;
+    tax_rate: number;
+  }[];
+  installments: {
+    label: string;
+    amount: number;
+    due_date: string;
+    conditional: boolean;
+    condition: string;
+  }[];
+}): Promise<string[]> {
   await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { data, error } = await supabase
-    .from("invoices")
-    .insert({
-      number: docNumber("INV"),
-      company_id: input.company_id || null,
-      contact_id: input.contact_id || null,
-      dossier_id: input.dossier_id || null,
-      project: input.project || null,
-      amount: input.amount,
-      paid_amount: 0,
-      status: "unpaid",
-      due_date: input.due_date || null,
-    })
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("create_invoice_drafts", { payload });
   throwIf(error);
-  return data as InvoiceRow;
+  return (data ?? []) as string[];
+}
+
+export async function emitInvoice(id: string): Promise<string> {
+  await assertCanEditFinance();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error } = await supabase.rpc("emit_invoice", { p_id: id });
+  throwIf(error);
+  return String(data ?? "");
+}
+
+export async function completeInvoiceGap(
+  id: string,
+  input: { dossier_id: string; due_date: string | null; is_conditional: boolean; condition_text: string | null }
+) {
+  await assertCanEditFinanceRecord();
+  if (!input.dossier_id) throw new Error("Choisissez un dossier.");
+  if (!input.is_conditional && !input.due_date) throw new Error("Indiquez l'échéance.");
+  if (input.is_conditional && !input.condition_text?.trim()) throw new Error("Indiquez la condition.");
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase
+    .from("invoices")
+    .update({
+      dossier_id: input.dossier_id,
+      due_date: input.is_conditional ? null : input.due_date,
+      is_conditional: input.is_conditional,
+      condition_text: input.is_conditional ? input.condition_text.trim() : null,
+    })
+    .eq("id", id);
+  throwIf(error);
 }
 
 export function validatePaymentPatch(input: { amount: number; method: string; paid_at: string }): string | null {
@@ -1291,11 +1327,13 @@ export function toInvoicesListRow(row: InvoiceRow) {
     unpaid: "Impayée",
     overdue: "En retard",
     cancelled: "Annulée",
+    draft: "Brouillon",
   };
   return {
     Key: row.id,
     key: row.id,
-    Invoice_ID: row.number ? `#${row.number}` : `#${row.id.slice(0, 8)}`,
+    Invoice_ID: row.number ? `#${row.number}` : "Brouillon",
+    legacyRef: row.legacy_ref && row.legacy_ref !== row.number ? row.legacy_ref : "",
     Client: row.contacts ? clientDisplayName(row.contacts) : row.companies?.name ?? "—",
     Client_Image: "company-01.svg",
     Project: row.project ?? "—",
@@ -1305,7 +1343,12 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Due_Date: formatDate(row.due_date),
     Amount: formatMoney(row.amount),
     Paid_Amount: formatMoney(row.paid_amount),
-    Status: row.is_conditional ? "Conditionnelle" : statusMap[row.status] ?? row.status,
+    Status:
+      row.status === "draft"
+        ? "Brouillon"
+        : row.is_conditional
+          ? "Conditionnelle"
+          : statusMap[row.status] ?? row.status,
     amountValue: Number(row.amount),
     paidValue: Number(row.paid_amount),
     companyId: row.company_id,

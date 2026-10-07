@@ -325,6 +325,7 @@ const SidebarDataAll = [
           route.InvoiceGrid,
           route.InvoiceList,
           route.invoice_details,
+          route.invoiceGaps,
         ],
         submenu: false,
         showSubRoute: false,
