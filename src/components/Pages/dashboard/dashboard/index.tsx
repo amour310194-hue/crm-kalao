@@ -13,8 +13,11 @@ const MainDashboardComponent = () => {
   const chartMonths = kpisChartMonths(kpis);
   const dossiers = kpis?.recentDossiers ?? [];
   const deadlines = kpis?.deadlines ?? [];
+  const upcoming = kpis?.upcoming ?? [];
   const collected = kpis?.collected ?? 0;
   const outstanding = kpis?.outstanding ?? 0;
+  const overdueAmount = kpis?.overdueAmount ?? 0;
+  const overdueCount = kpis?.overdueCount ?? 0;
 
   const cards = [
     {
@@ -69,6 +72,44 @@ const MainDashboardComponent = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="row">
+          <div className="col-xl-6 d-flex">
+            <div className="card flex-fill">
+              <div className="card-body">
+                <p className="fw-medium mb-1">En retard</p>
+                <h4 className="mb-2">{formatMoney(overdueAmount)}</h4>
+                <p className="mb-2 text-muted">
+                  {overdueCount} facture{overdueCount > 1 ? "s" : ""}
+                </p>
+                <Link href={`${all_routes.InvoiceList}?statut=retard`} className="fs-13">
+                  Voir la liste
+                </Link>
+              </div>
+            </div>
+          </div>
+          <div className="col-xl-6 d-flex">
+            <div className="card flex-fill">
+              <div className="card-header">
+                <h6 className="mb-0">Échéances des 30 prochains jours</h6>
+              </div>
+              <div className="card-body">
+                {upcoming.length ? (
+                  <ul className="list-unstyled mb-0">
+                    {upcoming.slice(0, 8).map((row) => (
+                      <li key={row.key} className="d-flex justify-content-between gap-2 py-2 border-bottom">
+                        <span>{row.title}</span>
+                        <span className="text-muted text-nowrap">{row.dateLabel}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted mb-0">Aucune échéance sur 30 jours.</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="row">

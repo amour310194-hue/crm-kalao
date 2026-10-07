@@ -105,7 +105,7 @@ const ProjectDetailsComponent = () => {
     .reduce((sum, i) => sum + Number(i.amount), 0);
   const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
   const outstanding = invoices
-    .filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft")
+    .filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft" && !i.is_conditional)
     .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
 
   const reloadSuivi = useCallback(async (id: string | null) => {

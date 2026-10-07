@@ -5,6 +5,7 @@ import {
   fetchEmployees,
   fetchInvoices,
   fetchPayments,
+  fetchCreditNotes,
   fetchPayRuns,
   fetchQuotes,
   formatDate,
@@ -17,6 +18,7 @@ import {
   type PaymentRow,
   type QuoteRow,
 } from "@/lib/crm";
+import { paymentMethodLabel, remainingDue } from "@/lib/finance-rules";
 import { fetchCatalogItems } from "@/lib/catalog";
 import {
   canadaSchedule,
@@ -32,6 +34,8 @@ export const DOC_KINDS = [
   "invoice",
   "quote",
   "receipt",
+  "credit_note",
+  "statement",
   "visa",
   "employment",
   "certificate",
@@ -100,6 +104,9 @@ export type DocView = {
   notes: string[];
   articles: { heading: string; body: string }[];
   signatures: { role: string; name: string; title: string }[];
+  banner?: string | null;
+  balanceLabel?: string;
+  balance?: string;
   invoiceEdit?: {
     id: string;
     amount: number;
@@ -168,6 +175,8 @@ export async function loadDocView(kind: DocKind, id: string): Promise<DocView> {
   if (kind === "invoice") return loadInvoice(id);
   if (kind === "quote") return loadQuote(id);
   if (kind === "receipt") return loadReceipt(id);
+  if (kind === "credit_note") return loadCreditNote(id);
+  if (kind === "statement") return loadStatement(id);
   if (kind === "visa") return loadVisa(id);
   if (kind === "employment") return loadEmployment(id);
   if (kind === "certificate") return loadCertificate(id);
@@ -187,13 +196,16 @@ async function loadInvoice(id: string): Promise<DocView> {
   const contact = contacts?.find((row) => row.id === invoice.contact_id) ??
     contacts?.find((row) => row.company_id === invoice.company_id) ??
     null;
-  const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
+  const remaining = remainingDue(Number(invoice.amount), Number(invoice.paid_amount));
+  const banner =
+    invoice.status === "cancelled" ? "ANNULÉE" : invoice.status === "draft" ? "BROUILLON" : null;
   const statusLabel: Record<string, string> = {
     paid: "Payée",
     partially_paid: "Partiellement payée",
-    unpaid: "Impayée",
+    unpaid: "Émise",
     overdue: "En retard",
     cancelled: "Annulée",
+    draft: "Brouillon",
   };
   const encaissements = (payments ?? []).filter(
     (row) => row.invoice_id === invoice.id && row.status !== "annule"
@@ -201,8 +213,8 @@ async function loadInvoice(id: string): Promise<DocView> {
   return {
     kind: "invoice",
     title: "FACTURE",
-    ref: invoice.number ? `FAC/${invoice.number}` : `FAC/${invoice.id.slice(0, 8).toUpperCase()}`,
-    issuedAt: formatDate(invoice.created_at),
+    ref: invoice.number ?? "Brouillon",
+    issuedAt: formatDate(invoice.document_date || invoice.created_at),
     entity: entityForDoc("invoice"),
     party: partyFrom(company, contact),
     intro: invoice.project || "Prestation Kalao Consulting",
@@ -214,8 +226,11 @@ async function loadInvoice(id: string): Promise<DocView> {
         total: formatMoney(invoice.amount),
       },
     ],
-    totalLabel: "Montant dû",
+    totalLabel: "Montant total",
     total: formatMoney(invoice.amount),
+    balanceLabel: "Reste dû",
+    balance: formatMoney(remaining),
+    banner,
     notes: [
       `Statut : ${statusLabel[invoice.status] ?? invoice.status}`,
       `Client : ${contact ? `${contact.first_name} ${contact.last_name}` : company?.name ?? "—"}`,
@@ -232,7 +247,7 @@ async function loadInvoice(id: string): Promise<DocView> {
       invoicePaymentMention(entityForDoc("invoice")),
     ],
     articles: [],
-    signatures: signOff("invoice"),
+    signatures: [],
     invoiceEdit: {
       id: invoice.id,
       amount: Number(invoice.amount),
@@ -319,13 +334,105 @@ async function loadReceipt(id: string): Promise<DocView> {
     totalLabel: "Montant reçu",
     total: formatMoney(payment.amount),
     notes: [
-      `Mode : ${payment.method === "cash" ? "Espèces" : payment.method}`,
-      `Facture : ${invoice?.number ? `#${invoice.number}` : "—"}`,
+      `Mode : ${paymentMethodLabel(payment.method)}`,
+      `Référence : ${payment.transaction_id || "—"}`,
+      `Facture : ${invoice?.number ? invoice.number : "—"}`,
+      `Reste dû : ${formatMoney(remainingDue(Number(invoice?.amount ?? 0), Number(invoice?.paid_amount ?? 0)))}`,
       invoiceTaxMention(entityForDoc("receipt")),
       "Ce reçu vaut quittance pour la somme indiquée.",
     ],
     articles: [],
     signatures: signOff("receipt"),
+  };
+}
+
+async function loadCreditNote(id: string): Promise<DocView> {
+  const [notes, invoices, companies, contacts] = await Promise.all([
+    fetchCreditNotes(),
+    fetchInvoices(),
+    fetchCompanies(),
+    fetchContacts(),
+  ]);
+  const note = (notes ?? []).find((row) => row.id === id);
+  if (!note) return emptyView("credit_note", "Avoir introuvable.");
+  const invoice = invoices?.find((row) => row.id === note.invoice_id) ?? null;
+  const company = companies?.find((row) => row.id === invoice?.company_id) ?? null;
+  const contact = contacts?.find((row) => row.id === invoice?.contact_id) ?? null;
+  return {
+    kind: "credit_note",
+    title: "AVOIR",
+    ref: note.number,
+    issuedAt: formatDate(note.document_date || note.created_at),
+    entity: entityForDoc("credit_note"),
+    party: partyFrom(company, contact),
+    intro: `Avoir sur la facture ${invoice?.number ?? "—"}.`,
+    lines: [
+      {
+        label: note.reason || "Avoir",
+        qty: "1",
+        unit: formatMoney(note.amount),
+        total: formatMoney(note.amount),
+      },
+    ],
+    totalLabel: "Montant de l'avoir",
+    total: formatMoney(note.amount),
+    notes: [
+      `Facture d'origine : ${invoice?.number ?? "—"}`,
+      `Motif : ${note.reason || "—"}`,
+      invoiceTaxMention(entityForDoc("credit_note")),
+    ],
+    articles: [],
+    signatures: signOff("credit_note"),
+  };
+}
+
+async function loadStatement(id: string): Promise<DocView> {
+  const [invoices, payments, contacts, companies] = await Promise.all([
+    fetchInvoices(),
+    fetchPayments(),
+    fetchContacts(),
+    fetchCompanies(),
+  ]);
+  const contact = contacts?.find((row) => row.id === id) ?? null;
+  const company = companies?.find((row) => row.id === contact?.company_id) ?? companies?.find((row) => row.id === id) ?? null;
+  const related = (invoices ?? []).filter(
+    (row) => row.contact_id === id || (company && row.company_id === company.id)
+  );
+  const ids = new Set(related.map((row) => row.id));
+  const paid = (payments ?? []).filter((row) => ids.has(row.invoice_id) && row.status !== "annule");
+  const billed = related
+    .filter((row) => row.status !== "draft" && row.status !== "cancelled")
+    .reduce((sum, row) => sum + Number(row.amount), 0);
+  const collected = paid.reduce((sum, row) => sum + Number(row.amount), 0);
+  return {
+    kind: "statement",
+    title: "RELEVÉ DE COMPTE",
+    ref: `REL/${(contact?.id ?? company?.id ?? id).slice(0, 8).toUpperCase()}`,
+    issuedAt: formatDate(new Date().toISOString()),
+    entity: entityForDoc("statement"),
+    party: partyFrom(company, contact),
+    intro: "Ensemble des factures et encaissements du client.",
+    lines: [
+      ...related.map((row) => ({
+        label: `Facture ${row.number ?? "brouillon"} · ${formatDate(row.due_date)}`,
+        qty: "1",
+        unit: formatMoney(row.amount),
+        total: formatMoney(row.amount),
+      })),
+      ...paid.map((row) => ({
+        label: `Encaissement ${formatDate(row.paid_at)} · ${paymentMethodLabel(row.method)}`,
+        qty: "1",
+        unit: formatMoney(row.amount),
+        total: formatMoney(row.amount),
+      })),
+    ],
+    totalLabel: "Facturé",
+    total: formatMoney(billed),
+    balanceLabel: "Solde",
+    balance: formatMoney(Math.max(0, billed - collected)),
+    notes: [`Encaissé : ${formatMoney(collected)}`],
+    articles: [],
+    signatures: [],
   };
 }
 

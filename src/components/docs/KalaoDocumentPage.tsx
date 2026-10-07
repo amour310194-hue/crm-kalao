@@ -48,6 +48,10 @@ export default function KalaoDocumentPage() {
   };
 
   useEffect(() => {
+    if (view?.ref) document.title = view.ref;
+  }, [view?.ref]);
+
+  useEffect(() => {
     if (!isDocKind(kind) || !id) {
       setError("Type de document inconnu.");
       return;
@@ -164,9 +168,19 @@ export default function KalaoDocumentPage() {
                   </tbody>
                 </table>
               ) : null}
+              {view.banner ? (
+                <p className="kalao-total" style={{ letterSpacing: "0.2em" }}>
+                  {view.banner}
+                </p>
+              ) : null}
               {view.total ? (
                 <p className="kalao-total">
                   {view.totalLabel} : {view.total}
+                </p>
+              ) : null}
+              {view.balance ? (
+                <p className="kalao-total">
+                  {view.balanceLabel} : {view.balance}
                 </p>
               ) : null}
               {view.articles.map((article) => (

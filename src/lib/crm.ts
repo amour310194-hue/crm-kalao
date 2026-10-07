@@ -7,6 +7,15 @@ import {
   ROLE_LABEL,
 } from "@/lib/org";
 import { pipelineStatusLabel } from "@/lib/visa-pipeline";
+import {
+  doualaToday,
+  issuedEditPatch,
+  manualReminderKind,
+  paymentMethodLabel,
+  remainingDue,
+  statusLabel,
+  validateCollection,
+} from "@/lib/finance-rules";
 
 export type EntityType =
   | "company"
@@ -1144,9 +1153,10 @@ export async function completeInvoiceGap(
   input: { dossier_id: string; due_date: string | null; is_conditional: boolean; condition_text: string | null }
 ) {
   await assertCanEditFinanceRecord();
+  const condition = input.condition_text?.trim() ?? "";
   if (!input.dossier_id) throw new Error("Choisissez un dossier.");
   if (!input.is_conditional && !input.due_date) throw new Error("Indiquez l'échéance.");
-  if (input.is_conditional && !input.condition_text?.trim()) throw new Error("Indiquez la condition.");
+  if (input.is_conditional && !condition) throw new Error("Indiquez la condition.");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase
@@ -1155,7 +1165,7 @@ export async function completeInvoiceGap(
       dossier_id: input.dossier_id,
       due_date: input.is_conditional ? null : input.due_date,
       is_conditional: input.is_conditional,
-      condition_text: input.is_conditional ? input.condition_text.trim() : null,
+      condition_text: input.is_conditional ? condition : null,
     })
     .eq("id", id);
   throwIf(error);
@@ -1172,86 +1182,216 @@ export async function recordPayment(input: {
   invoice_id: string;
   amount: number;
   method?: string;
+  paid_at?: string;
+  transaction_id?: string | null;
+  notes?: string | null;
 }) {
   await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data: invoice, error: readError } = await supabase
+    .from("invoices")
+    .select("amount, paid_amount, status")
+    .eq("id", input.invoice_id)
+    .maybeSingle();
+  throwIf(readError);
+  if (!invoice) throw new Error("Facture introuvable");
+  if (invoice.status === "draft") throw new Error("Un brouillon ne s'encaisse pas. Émettez la facture d'abord.");
+  if (invoice.status === "cancelled") throw new Error("Une facture annulée ne s'encaisse pas.");
+  const method = input.method || "cash";
+  const paidAt = input.paid_at || doualaToday();
+  const reference = input.transaction_id?.trim() || (method === "cash" ? null : null);
+  const problem = validateCollection({
+    amount: input.amount,
+    method,
+    paidAt,
+    reference,
+    remaining: remainingDue(Number(invoice.amount), Number(invoice.paid_amount)),
+  });
+  if (problem) throw new Error(problem);
+  const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase.from("payments").insert({
     invoice_id: input.invoice_id,
-    amount: input.amount,
-    method: input.method || "cash",
-    transaction_id: docNumber("TXN"),
+    amount: Math.round(Number(input.amount)),
+    method,
+    paid_at: paidAt,
+    transaction_id: method === "cash" ? input.transaction_id?.trim() || null : input.transaction_id?.trim(),
+    notes: input.notes?.trim() || null,
+    collected_by: auth.user?.id ?? null,
+  });
+  throwIf(error);
+}
+
+async function requestFinanceChange(
+  entity: "invoice" | "payment" | "credit_note",
+  id: string,
+  action: "update" | "cancel" | "refund",
+  payload: Record<string, unknown>,
+  reason: string
+) {
+  await assertCanEditFinanceRecord();
+  if (!reason.trim()) throw new Error("Le motif est obligatoire.");
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("request_finance_change", {
+    p_entity: entity,
+    p_id: id,
+    p_action: action,
+    p_payload: payload,
+    p_reason: reason.trim(),
   });
   throwIf(error);
 }
 
 export async function updateInvoice(
   id: string,
-  input: { amount?: number; due_date?: string | null; project?: string | null }
+  input: {
+    amount?: number;
+    due_date?: string | null;
+    project?: string | null;
+    dossier_id?: string | null;
+    reason?: string | null;
+  }
 ) {
   await assertCanEditFinanceRecord();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const patch: Record<string, unknown> = {};
-  if (input.amount !== undefined) {
-    if (!(Number(input.amount) > 0)) throw new Error("Le montant doit être supérieur à 0.");
-    patch.amount = Number(input.amount);
+  const { data, error: readError } = await supabase
+    .from("invoices")
+    .select("status, project, due_date, dossier_id, amount")
+    .eq("id", id)
+    .maybeSingle();
+  throwIf(readError);
+  if (!data) throw new Error("Facture introuvable");
+  const current = {
+    project: data.project ?? "",
+    dueDate: data.due_date ? String(data.due_date).slice(0, 10) : "",
+    dossierId: data.dossier_id ?? "",
+    amount: Number(data.amount),
+  };
+  const next = {
+    project: input.project !== undefined ? input.project ?? "" : current.project,
+    dueDate: input.due_date !== undefined ? input.due_date ?? "" : current.dueDate,
+    dossierId: input.dossier_id !== undefined ? input.dossier_id ?? "" : current.dossierId,
+    amount: input.amount !== undefined ? Number(input.amount) : current.amount,
+  };
+  const edited = issuedEditPatch(current, next);
+  if ("error" in edited) throw new Error(edited.error);
+  if (edited.unchanged) return;
+  if (data.status === "draft") {
+    const { error } = await supabase.from("invoices").update(edited.patch).eq("id", id);
+    throwIf(error);
+    return;
   }
-  if (input.due_date !== undefined) patch.due_date = input.due_date || null;
-  if (input.project !== undefined) patch.project = input.project?.trim() || null;
-  if (!Object.keys(patch).length) return;
-  const { error } = await supabase.from("invoices").update(patch).eq("id", id);
-  throwIf(error);
+  if (data.status === "cancelled") throw new Error("Cette facture est annulée.");
+  await requestFinanceChange("invoice", id, "update", edited.patch, input.reason ?? "");
 }
 
 export async function cancelInvoice(id: string, reason: string) {
+  await requestFinanceChange("invoice", id, "cancel", {}, reason);
+}
+
+export async function deleteDraftInvoice(id: string) {
   await assertCanEditFinanceRecord();
-  if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase.from("invoices").update({ status: "cancelled" }).eq("id", id);
+  const { error } = await supabase.from("invoices").delete().eq("id", id).eq("status", "draft");
   throwIf(error);
 }
 
 export async function updatePayment(
   id: string,
-  input: { amount: number; method: string; paid_at: string; notes?: string | null }
+  input: { amount?: number; method: string; paid_at: string; notes?: string | null; transaction_id?: string | null; reason?: string | null }
 ) {
-  await assertCanEditFinanceRecord();
-  const errorMsg = validatePaymentPatch(input);
-  if (errorMsg) throw new Error(errorMsg);
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase
+  const { data, error: readError } = await supabase
     .from("payments")
-    .update({
-      amount: Number(input.amount),
-      method: input.method,
-      paid_at: input.paid_at,
-      notes: input.notes?.trim() || null,
-    })
+    .select("amount, method, paid_at, notes, transaction_id")
     .eq("id", id)
-    .eq("status", "valide");
-  throwIf(error);
+    .maybeSingle();
+  throwIf(readError);
+  if (!data) throw new Error("Encaissement introuvable");
+  if (input.amount !== undefined && Math.round(Number(input.amount)) !== Math.round(Number(data.amount))) {
+    throw new Error("Le montant d'un encaissement est verrouillé. Annulez-le, puis créez-en un nouveau.");
+  }
+  const patch: Record<string, string | null> = {};
+  if (input.method !== data.method) patch.method = input.method;
+  if (input.paid_at.slice(0, 10) !== String(data.paid_at).slice(0, 10)) patch.paid_at = input.paid_at;
+  if ((input.notes?.trim() || "") !== (data.notes ?? "")) patch.notes = input.notes?.trim() || null;
+  if ((input.transaction_id?.trim() || "") !== (data.transaction_id ?? "")) {
+    patch.transaction_id = input.transaction_id?.trim() || null;
+  }
+  if (!Object.keys(patch).length) return;
+  const problem = validateCollection({
+    amount: Number(data.amount),
+    method: input.method,
+    paidAt: input.paid_at,
+    reference: input.transaction_id,
+    remaining: Number(data.amount),
+  });
+  if (problem && problem.startsWith("Trop-perçu")) {
+    /* le montant ne change pas : le reste dû n'est pas rejoué ici */
+  } else if (problem && !problem.startsWith("Le montant")) {
+    if (problem.includes("référence") || problem.includes("Mode") || problem.includes("date")) throw new Error(problem);
+  }
+  await requestFinanceChange("payment", id, "update", patch, input.reason ?? "");
 }
 
 export async function cancelPayment(id: string, reason: string) {
-  await assertCanEditFinanceRecord();
-  if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
+  await requestFinanceChange("payment", id, "cancel", {}, reason);
+}
+
+export async function requestRefund(creditNoteId: string, reason: string) {
+  await requestFinanceChange("credit_note", creditNoteId, "refund", { credit_note_id: creditNoteId }, reason);
+}
+
+export async function decideFinanceChange(id: string, approve: boolean, note?: string) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { data: auth } = await supabase.auth.getUser();
-  const { error } = await supabase
-    .from("payments")
-    .update({
-      status: "annule",
-      cancelled_at: new Date().toISOString(),
-      cancelled_by: auth.user?.id ?? null,
-      cancel_reason: reason.trim(),
-    })
-    .eq("id", id)
-    .eq("status", "valide");
+  const { data, error } = await supabase.rpc("decide_finance_change", {
+    p_id: id,
+    p_approve: approve,
+    p_note: note ?? "",
+  });
   throwIf(error);
+  return data as { ok?: boolean; status?: string; credit_note?: string | null };
+}
+
+export async function fetchFinanceApprovals() {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("finance_approvals")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return data ?? [];
+}
+
+export async function fetchCreditNotes() {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("credit_notes")
+    .select("id, invoice_id, number, amount, reason, created_at, document_date")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return data ?? [];
+}
+
+export async function fetchAuditLog(table: string, rowId: string) {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id, action, reason, actor, before_data, after_data, created_at")
+    .eq("table_name", table)
+    .eq("row_id", rowId)
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return data ?? [];
 }
 
 export type RemindResult = {
@@ -1286,32 +1426,48 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
   throwIf(error);
   const invoice = data as InvoiceRow | null;
   if (!invoice) throw new Error("Facture introuvable");
-  const to = invoice.companies?.email?.trim() || "";
+  const to = invoice.contacts?.email?.trim() || invoice.companies?.email?.trim() || "";
   if (!to) return { dispatched: false, to: null, reason: "missing_to" };
-  const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
+  const remaining = remainingDue(Number(invoice.amount), Number(invoice.paid_amount));
+  const kind = manualReminderKind(invoice.due_date, doualaToday());
+  const upcoming = kind === "invoice_due_3d" || kind === "invoice_due_0d";
+  const due = formatDate(invoice.due_date);
+  const number = invoice.number ?? invoice.id;
   const { sendCrmEmail } = await import("@/lib/mail");
   const result = await sendCrmEmail({
     mailbox: "noreply",
     to,
-    subject: `Relance — facture ${invoice.number ?? ""} — Groupe Kalao`,
+    subject: upcoming
+      ? `Rappel : la facture ${number} arrive à échéance le ${due}`
+      : `Relance : facture ${number} en attente de règlement`,
     body: [
       "Bonjour,",
       "",
-      `Facture ${invoice.number ?? invoice.id} — ${invoice.companies?.name ?? "Client"}.`,
-      `Montant : ${formatMoney(invoice.amount)}.`,
-      `Déjà encaissé : ${formatMoney(invoice.paid_amount)}.`,
-      `Reste dû : ${formatMoney(remaining)}.`,
-      invoice.due_date ? `Échéance : ${formatDate(invoice.due_date)}.` : "",
+      upcoming
+        ? `Nous vous rappelons que la facture ${number} arrive à échéance le ${due}.`
+        : `Sauf erreur de notre part, la facture ${number}, échue le ${due}, reste impayée.`,
+      `Reste à payer : ${formatMoney(remaining)}.`,
       "",
+      upcoming
+        ? "Si le règlement est déjà en cours, merci de ne pas tenir compte de ce message."
+        : "Merci de procéder au règlement ou de nous contacter pour convenir d'un échéancier.",
+      "",
+      "Cordialement,",
       "Groupe Kalao",
       KALAO_CONTACT_EMAIL,
-    ]
-      .filter(Boolean)
-      .join("\n"),
+    ].join("\n"),
     companyId: invoice.company_id,
     contactId: invoice.contact_id,
     invoiceId: invoice.id,
   });
+  if (result.dispatched) {
+    await supabase.rpc("append_audit", {
+      p_table: "invoices",
+      p_row: invoice.id,
+      p_action: "relance",
+      p_reason: `Relance ${kind} envoyée à ${to}`,
+    });
+  }
   return {
     dispatched: result.dispatched,
     to: result.to,
@@ -1321,14 +1477,17 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
 }
 
 export function toInvoicesListRow(row: InvoiceRow) {
-  const statusMap: Record<string, string> = {
-    paid: "Payée",
-    partially_paid: "Partiel",
-    unpaid: "Impayée",
-    overdue: "En retard",
-    cancelled: "Annulée",
-    draft: "Brouillon",
-  };
+  const today = doualaToday();
+  const label = statusLabel(
+    {
+      status: row.status,
+      isConditional: row.is_conditional,
+      amount: Number(row.amount),
+      paidAmount: Number(row.paid_amount),
+      dueDate: row.due_date,
+    },
+    today
+  );
   return {
     Key: row.id,
     key: row.id,
@@ -1341,18 +1500,16 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Project_Image: "project-01.svg",
     Flag: dossierFlag({ title: row.project })?.src ?? null,
     Due_Date: formatDate(row.due_date),
+    dueDateIso: row.due_date ? String(row.due_date).slice(0, 10) : "",
     Amount: formatMoney(row.amount),
     Paid_Amount: formatMoney(row.paid_amount),
-    Status:
-      row.status === "draft"
-        ? "Brouillon"
-        : row.is_conditional
-          ? "Conditionnelle"
-          : statusMap[row.status] ?? row.status,
+    Status: label,
     amountValue: Number(row.amount),
     paidValue: Number(row.paid_amount),
     companyId: row.company_id,
-    dossierId: row.dossier_id,
+    dossierId: row.dossier_id ?? "",
+    clientEmail: row.contacts?.email?.trim() || row.companies?.email?.trim() || "",
+    storedStatus: row.status,
   };
 }
 
@@ -1382,16 +1539,9 @@ export function toPaymentsListRow(row: PaymentRow) {
     status: row.status ?? "valide",
     DueDate: formatDate(row.invoices?.due_date),
     Due_Date: formatDate(row.paid_at || row.invoices?.due_date),
-    PaymentMethod: cancelled
-      ? "Annulé"
-      : row.method === "cash"
-        ? "Espèces"
-        : row.method === "mobile_money"
-          ? "Mobile money"
-          : row.method === "bank_transfer"
-            ? "Virement"
-            : row.method,
+    PaymentMethod: cancelled ? "Annulé" : paymentMethodLabel(row.method),
     TransactionID: row.transaction_id ?? "—",
+    transactionId: row.transaction_id ?? "",
     companyId: row.invoices?.company_id ?? null,
     invoiceId: row.invoice_id,
   };

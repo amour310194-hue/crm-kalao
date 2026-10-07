@@ -10,6 +10,7 @@ import {
   remindInvoiceById,
   type InvoiceRow,
 } from "@/lib/crm";
+import CollectPaymentButton from "@/components/Pages/crm-module/invoices/CollectPaymentButton";
 import { docHref, isLiveId } from "@/lib/docs";
 
 export default function KalaoInvoiceInject() {
@@ -40,9 +41,19 @@ export default function KalaoInvoiceInject() {
           {msg ? <p className="mb-0 mt-1 text-muted">{msg}</p> : null}
         </div>
         <div className="d-flex align-items-center flex-wrap gap-2">
+          <CollectPaymentButton
+            variant="button"
+            invoiceId={invoice.id}
+            number={invoice.number ? `#${invoice.number}` : "Brouillon"}
+            amount={Number(invoice.amount)}
+            paid={Number(invoice.paid_amount)}
+            status={invoice.status === "draft" ? "Brouillon" : invoice.status === "cancelled" ? "Annulée" : "Émise"}
+          />
           <button
             type="button"
             className="btn btn-sm btn-outline-dark"
+            disabled={!(invoice.contacts?.email || invoice.companies?.email)}
+            title={invoice.contacts?.email || invoice.companies?.email ? "Envoyer la relance" : "Ce client n'a pas d'adresse e-mail."}
             onClick={async () => {
               try {
                 const result = await remindInvoiceById(invoice.id);

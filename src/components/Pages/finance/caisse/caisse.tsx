@@ -24,6 +24,7 @@ import {
   type CashOperationRow,
 } from "@/lib/cash";
 import { useFinanceUnlock } from "@/lib/use-finance-unlock";
+import CashJournal from "./CashJournal";
 
 function CashModal({
   existing,
@@ -246,7 +247,7 @@ export default function CaisseComponent() {
               <div>
                 <SearchInput value={searchText} onChange={setSearchText} />
                 <p className="small text-muted mb-0 mt-2">
-                  Solde des opérations de caisse (hors encaissements facture et dépenses) :{" "}
+                  Solde des espèces, Mobile Money et banque : voir le journal ci-dessous. Opérations diverses :{" "}
                   <strong>{formatMoney(solde)}</strong>
                 </p>
               </div>
@@ -266,6 +267,7 @@ export default function CaisseComponent() {
               />
             </div>
           </div>
+          <CashJournal />
         </div>
         <Footer />
       </div>

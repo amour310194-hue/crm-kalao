@@ -127,3 +127,70 @@ export async function deleteCashOperation(id: string) {
   const { error } = await supabase.from("cash_operations").delete().eq("id", id);
   throwIf(error);
 }
+
+export interface JournalEntry {
+  id: string;
+  source: string;
+  occurred_on: string;
+  label: string;
+  delta: number;
+  bucket: string;
+  balance: number;
+}
+
+export async function fetchCashJournal(): Promise<JournalEntry[] | null> {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("cash_journal")
+    .select("id, source, occurred_on, label, delta, bucket, balance")
+    .order("occurred_on", { ascending: true });
+  throwIf(error);
+  return (data ?? []) as JournalEntry[];
+}
+
+export async function fetchDayCloses() {
+  const supabase = db();
+  if (!supabase) return [];
+  const { data, error } = await supabase.from("cash_day_closes").select("*").order("closed_on", { ascending: false });
+  throwIf(error);
+  return data ?? [];
+}
+
+export async function requestDayClose(day: string, counted: number) {
+  await assertCanEditFinance();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("request_day_close", { p_day: day, p_counted: counted });
+  throwIf(error);
+}
+
+export async function validateDayClose(id: string, approve: boolean) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("validate_day_close", { p_id: id, p_approve: approve });
+  throwIf(error);
+}
+
+export async function requestMonthClose(month: string) {
+  await assertCanEditFinance();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("request_month_close", { p_month: month });
+  throwIf(error);
+}
+
+export async function validateMonthClose(id: string, approve: boolean) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("validate_month_close", { p_id: id, p_approve: approve });
+  throwIf(error);
+}
+
+export async function fetchMonthCloses() {
+  const supabase = db();
+  if (!supabase) return [];
+  const { data, error } = await supabase.from("cash_month_closes").select("*").order("month_key", { ascending: false });
+  throwIf(error);
+  return data ?? [];
+}
