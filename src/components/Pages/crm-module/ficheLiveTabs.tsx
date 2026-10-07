@@ -78,15 +78,14 @@ export function FichePipeline({
           </button>
         ) : null}
       </div>
-      <div className="d-flex flex-nowrap gap-2 overflow-auto pb-1">
+      <div className="step-progress kalao-pipeline">
         {steps.map((step, i) => (
           <div
             key={step.key}
-            className={`step flex-shrink-0 ${idx < 0 || i <= idx ? PIPELINE_STEP_CLS[i % PIPELINE_STEP_CLS.length] : "bg-light text-muted"}`}
+            className={`step ${idx < 0 || i <= idx ? PIPELINE_STEP_CLS[i % PIPELINE_STEP_CLS.length] : "bg-light text-muted"}`}
             role={onPick ? "button" : undefined}
             onClick={onPick ? () => onPick(step.key) : undefined}
           >
-            <span className="me-1">{i + 1}.</span>
             {step.label}
           </div>
         ))}

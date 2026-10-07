@@ -525,3 +525,23 @@ $kalao-gold: #e8a317;
     opacity: 1;
   }
 }
+
+.kalao-pipeline.step-progress {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 0;
+  padding-bottom: 4px;
+
+  .step {
+    flex: 1 0 auto;
+    min-width: 0;
+    padding: 8px 22px 8px 26px;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
