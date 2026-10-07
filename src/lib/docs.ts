@@ -643,9 +643,6 @@ export function companyDocLinks(input: {
   for (const quote of input.quotes ?? []) {
     links.push({ href: docHref("quote", quote.id), label: `Devis ${quote.number ?? quote.id.slice(0, 8)}` });
   }
-  for (const invoice of input.invoices) {
-    links.push({ href: docHref("invoice", invoice.id), label: `Facture ${invoice.number ?? invoice.id.slice(0, 8)}` });
-  }
   for (const payment of input.payments ?? []) {
     links.push({ href: docHref("receipt", payment.id), label: `Reçu ${payment.transaction_id ?? payment.id.slice(0, 6)}` });
   }

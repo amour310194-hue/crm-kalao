@@ -1,9 +1,7 @@
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { assertCanDelete, assertCanEditFinance, canSeePayroll } from "@/lib/roles";
+import { assertCanDelete, assertCanEditFinance, assertCanEditFinanceRecord, canSeePayroll } from "@/lib/roles";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
 import {
-  canadaSchedule,
-  isCanadaProcedure,
   KALAO_CONTACT_EMAIL,
   KALAO_NOREPLY_EMAIL,
   ROLE_LABEL,
@@ -1017,6 +1015,7 @@ export async function createInvoice(input: {
   amount: number;
   due_date?: string | null;
 }) {
+  await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { data, error } = await supabase
@@ -1066,11 +1065,39 @@ export async function recordPayment(input: {
   throwIf(error);
 }
 
+export async function updateInvoice(
+  id: string,
+  input: { amount?: number; due_date?: string | null; project?: string | null }
+) {
+  await assertCanEditFinanceRecord();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const patch: Record<string, unknown> = {};
+  if (input.amount !== undefined) {
+    if (!(Number(input.amount) > 0)) throw new Error("Le montant doit être supérieur à 0.");
+    patch.amount = Number(input.amount);
+  }
+  if (input.due_date !== undefined) patch.due_date = input.due_date || null;
+  if (input.project !== undefined) patch.project = input.project?.trim() || null;
+  if (!Object.keys(patch).length) return;
+  const { error } = await supabase.from("invoices").update(patch).eq("id", id);
+  throwIf(error);
+}
+
+export async function cancelInvoice(id: string, reason: string) {
+  await assertCanEditFinanceRecord();
+  if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.from("invoices").update({ status: "cancelled" }).eq("id", id);
+  throwIf(error);
+}
+
 export async function updatePayment(
   id: string,
   input: { amount: number; method: string; paid_at: string; notes?: string | null }
 ) {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   const errorMsg = validatePaymentPatch(input);
   if (errorMsg) throw new Error(errorMsg);
   const supabase = db();
@@ -1089,7 +1116,7 @@ export async function updatePayment(
 }
 
 export async function cancelPayment(id: string, reason: string) {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -1115,7 +1142,7 @@ export async function markInvoicePaid(invoice: InvoiceRow, partial = false) {
 }
 
 export async function markInvoiceUnpaid(invoiceId: string, reason = "Remise en impayé") {
-  await assertCanEditFinance();
+  await assertCanEditFinanceRecord();
   if (!invoiceId) throw new Error("Facture manquante");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
@@ -2006,56 +2033,7 @@ export async function createDossier(input: {
       qty: 1,
     });
   }
-  // Prestation vendue : l'avance est facturée et encaissée, le solde est facturé
-  // sans être encaissé. Le déclencheur payments_refresh tient les statuts à jour.
-  const total = Number(catalogItem?.unit_price ?? 0);
-  if (total > 0) {
-    const today = new Date().toISOString().slice(0, 10);
-    if (isCanadaProcedure(input.title, catalogItem?.name, catalogItem?.sku)) {
-      const schedule = canadaSchedule(total);
-      for (const tranche of schedule) {
-        if (tranche.amount <= 0) continue;
-        const invoice = await createInvoice({
-          company_id: companyId,
-          contact_id: contactId,
-          dossier_id: created.id,
-          project: `${input.title} — ${tranche.label}`,
-          amount: tranche.amount,
-          due_date: tranche.key === "ouverture" ? today : endAt,
-        });
-        if (tranche.key === "ouverture") {
-          const advance = Math.min(Math.max(Number(input.advance ?? 0), 0), tranche.amount);
-          if (advance > 0) {
-            await recordPayment({ invoice_id: invoice.id, amount: advance });
-          }
-        }
-      }
-    } else {
-      const advance = Math.min(Math.max(Number(input.advance ?? 0), 0), total);
-      if (advance > 0) {
-        const invoice = await createInvoice({
-          company_id: companyId,
-          contact_id: contactId,
-          dossier_id: created.id,
-          project: `${input.title} - avance de démarrage`,
-          amount: advance,
-          due_date: today,
-        });
-        await recordPayment({ invoice_id: invoice.id, amount: advance });
-      }
-      const balance = total - advance;
-      if (balance > 0) {
-        await createInvoice({
-          company_id: companyId,
-          contact_id: contactId,
-          dossier_id: created.id,
-          project: `${input.title} - solde à la livraison`,
-          amount: balance,
-          due_date: endAt,
-        });
-      }
-    }
-  }
+  // Les factures sont saisies à la main depuis Factures — pas de génération automatique.
   if (kind === "visa") {
     await createActivity({
       type: "task",

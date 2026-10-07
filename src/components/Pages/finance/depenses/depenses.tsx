@@ -23,6 +23,7 @@ import {
   type ExpenseRow,
 } from "@/lib/expenses";
 import { fetchStockLocations, type StockLocation } from "@/lib/stock";
+import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 function ExpenseModal({
   catalog,
@@ -50,6 +51,7 @@ function ExpenseModal({
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { run, modal } = useFinanceUnlock();
   const isStock = category === "achat_stock";
   const products = catalog.filter((item) => item.kind === "product" || item.track_stock);
 
@@ -79,12 +81,16 @@ function ExpenseModal({
         attachment_id: attachmentId,
       };
       if (existing) {
-        await updateExpense(existing.id, payload);
+        await run(async () => {
+          await updateExpense(existing.id, payload);
+          onSaved();
+          onClose();
+        });
       } else {
         await createExpense(payload);
+        onSaved();
+        onClose();
       }
-      onSaved();
-      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {
@@ -93,6 +99,8 @@ function ExpenseModal({
   };
 
   return (
+    <>
+    {modal}
     <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }} role="dialog">
       <div className="modal-dialog modal-lg modal-dialog-scrollable">
         <div className="modal-content">
@@ -194,6 +202,7 @@ function ExpenseModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -205,6 +214,7 @@ export default function DepensesComponent() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<ExpenseRow | null>(null);
   const [canEdit, setCanEdit] = useState(false);
+  const { run, modal } = useFinanceUnlock();
 
   const load = () => {
     void fetchExpenses().then((data) => setRows(data ?? []));
@@ -259,8 +269,10 @@ export default function DepensesComponent() {
               onClick={async () => {
                 if (!confirm("Supprimer cette dépense ?")) return;
                 try {
-                  await deleteExpense(row.id);
-                  load();
+                  await run(async () => {
+                    await deleteExpense(row.id);
+                    load();
+                  });
                 } catch (err) {
                   alert(err instanceof Error ? err.message : "Suppression refusée");
                 }
@@ -277,6 +289,7 @@ export default function DepensesComponent() {
 
   return (
     <>
+      {modal}
       <div className="page-wrapper">
         <div className="content pb-0">
           <PageHeader title="Dépenses" showModuleTile={false} showExport />

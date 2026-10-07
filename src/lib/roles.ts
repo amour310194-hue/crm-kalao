@@ -61,3 +61,9 @@ export async function assertCanEditFinance() {
     throw new Error("Modification réservée à la finance ou à un administrateur.");
   }
 }
+
+export async function assertCanEditFinanceRecord() {
+  await assertCanEditFinance();
+  const { assertFinanceUnlocked } = await import("@/lib/finance-unlock");
+  await assertFinanceUnlocked();
+}

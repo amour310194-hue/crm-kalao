@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { all_routes } from "@/router/all_routes";
@@ -13,7 +14,10 @@ import {
   PIPELINE_STEP_CLS,
   pipelineStatusLabel,
   procedurePipeline,
+  type PipelineStep,
 } from "@/lib/visa-pipeline";
+import { pipelineSlugFor, type PipelineSlug } from "@/lib/pipeline-config";
+import PipelineEditor from "@/components/crm/PipelineEditor";
 
 function activityIcon(type: string) {
   if (type === "call") return { icon: "ti ti-phone", bg: "bg-success" };
@@ -35,25 +39,66 @@ export function FichePipeline({
   notes?: string | null;
   onPick?: (status: string) => void;
 }) {
-  const steps = procedurePipeline(kind, title, notes);
+  const slug: PipelineSlug = pipelineSlugFor(kind, title, notes);
+  const [steps, setSteps] = useState<PipelineStep[]>(() => procedurePipeline(kind, title, notes));
+  const [canEdit, setCanEdit] = useState(false);
+  const [editor, setEditor] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/pipelines", { credentials: "include" });
+        const json = (await res.json()) as {
+          pipelines?: Record<string, PipelineStep[]>;
+          canEdit?: boolean;
+        };
+        if (cancelled) return;
+        const next = json.pipelines?.[slug];
+        if (next?.length) setSteps(next);
+        setCanEdit(Boolean(json.canEdit));
+      } catch {
+        if (!cancelled) setSteps(procedurePipeline(kind, title, notes));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, kind, title, notes]);
+
   const current = normalizePipelineStatus(status, steps);
   const idx = steps.findIndex((step) => step.key === current);
   return (
     <div className="mb-3 pb-3 border-bottom">
-      <h5 className="mb-3">Pipeline de la procédure</h5>
-      <div className="step-progress d-flex flex-wrap gap-2">
+      <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <h5 className="mb-0">Pipeline de la procédure</h5>
+        {canEdit ? (
+          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setEditor(true)}>
+            Configurer les étapes
+          </button>
+        ) : null}
+      </div>
+      <div className="d-flex flex-nowrap gap-2 overflow-auto pb-1">
         {steps.map((step, i) => (
           <div
             key={step.key}
-            className={`step ${idx < 0 || i <= idx ? PIPELINE_STEP_CLS[i % PIPELINE_STEP_CLS.length] : "bg-light text-muted"}`}
+            className={`step flex-shrink-0 ${idx < 0 || i <= idx ? PIPELINE_STEP_CLS[i % PIPELINE_STEP_CLS.length] : "bg-light text-muted"}`}
             role={onPick ? "button" : undefined}
             onClick={onPick ? () => onPick(step.key) : undefined}
           >
+            <span className="me-1">{i + 1}.</span>
             {step.label}
           </div>
         ))}
-        <div className="step bg-transparent" />
       </div>
+      {editor ? (
+        <PipelineEditor
+          slug={slug}
+          steps={steps}
+          onClose={() => setEditor(false)}
+          onSaved={(next) => setSteps(next)}
+        />
+      ) : null}
     </div>
   );
 }
