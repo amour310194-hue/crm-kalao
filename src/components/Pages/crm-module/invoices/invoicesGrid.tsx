@@ -7,11 +7,15 @@ import { all_routes } from "@/router/all_routes";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { useLiveRows } from "@/lib/useLiveRows";
 import {
+  emitInvoice,
   explainRemind,
   fetchInvoices,
   remindInvoiceById,
   toInvoicesListRow,
 } from "@/lib/crm";
+import InvoiceCreateActions from "./InvoiceCreateActions";
+import { explainInvoiceError } from "@/lib/invoicing";
+import { t } from "@/lib/i18n";
 import { docHref, isLiveId, liveHref } from "@/lib/docs";
 import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
@@ -301,6 +305,7 @@ const InvoicesGrid = () => {
               </div>
             </div>
             <div className="d-flex align-items-center gap-2 flex-wrap">
+              <InvoiceCreateActions onDone={() => void reload()} />
               <div className="d-flex align-items-center shadow p-1 rounded border view-icons bg-white">
                 <Link
                   href={all_routes.InvoiceList}
@@ -330,6 +335,9 @@ const InvoicesGrid = () => {
                           <span className="badge badge-soft-info">
                             {invoice.Invoice_ID}
                           </span>
+                          {invoice.legacyRef ? (
+                            <div className="fs-12 text-muted">{invoice.legacyRef}</div>
+                          ) : null}
                         </div>
                         <div className="dropdown table-action">
                           <Link
@@ -367,6 +375,23 @@ const InvoicesGrid = () => {
                             >
                               <i className="ti ti-printer me-1" /> Imprimer
                             </Link>
+                            {invoice.Status === "Brouillon" ? (
+                              <button
+                                type="button"
+                                className="dropdown-item d-inline-flex align-items-center"
+                                onClick={async () => {
+                                  try {
+                                    const number = await emitInvoice(invoice.key || invoice.Key);
+                                    alert(`${t("emitInvoice")} : ${number}`);
+                                    await reload();
+                                  } catch (err) {
+                                    alert(explainInvoiceError(err instanceof Error ? err.message : "Erreur"));
+                                  }
+                                }}
+                              >
+                                <i className="ti ti-send me-1" /> {t("emitInvoice")}
+                              </button>
+                            ) : null}
                             <button
                               type="button"
                               className="dropdown-item d-inline-flex align-items-center"

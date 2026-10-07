@@ -12,6 +12,7 @@ import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import {
+  emitInvoice,
   explainRemind,
   fetchInvoices,
   remindInvoiceById,
@@ -21,6 +22,9 @@ import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import InvoiceEditModal, { type InvoiceEditTarget } from "./InvoiceEditModal";
+import InvoiceCreateActions from "./InvoiceCreateActions";
+import { explainInvoiceError } from "@/lib/invoicing";
+import { t } from "@/lib/i18n";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -38,13 +42,16 @@ const InvoicesListComponent = () => {
     {
       title: "Invoice ID",
       dataIndex: "Invoice_ID",
-      render: (text: string, record: { key?: string }) => (
+      render: (text: string, record: { key?: string; legacyRef?: string }) => (
         <Link
           href={isLiveId(record.key) ? docHref("invoice", record.key) : "#"}
           className="title-name"
           target={isLiveId(record.key) ? "_blank" : undefined}
         >
-          {text}
+          <span className="d-flex flex-column">
+            <span>{text}</span>
+            {record.legacyRef ? <span className="fs-12 text-muted">{record.legacyRef}</span> : null}
+          </span>
         </Link>
       ),
       sorter: (a: any, b: any) => a.Invoice_ID.length - b.Invoice_ID.length,
@@ -162,6 +169,23 @@ const InvoicesListComponent = () => {
               <i className="ti ti-clipboard-copy me-1" />
               Voir la facture
             </Link>
+            {record.Status === "Brouillon" ? (
+              <button
+                type="button"
+                className="dropdown-item"
+                onClick={async () => {
+                  try {
+                    const number = await emitInvoice(record.key);
+                    alert(`${t("emitInvoice")} : ${number}`);
+                    await reload();
+                  } catch (err) {
+                    alert(explainInvoiceError(err instanceof Error ? err.message : "Erreur"));
+                  }
+                }}
+              >
+                <i className="ti ti-send me-1" /> {t("emitInvoice")}
+              </button>
+            ) : null}
             <button
               type="button"
               className="dropdown-item"
@@ -251,6 +275,7 @@ const InvoicesListComponent = () => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
+              <InvoiceCreateActions onDone={() => void reload()} />
             </div>
             <div className="card-body">
               {/* table header */}

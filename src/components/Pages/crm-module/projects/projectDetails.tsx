@@ -28,6 +28,8 @@ import {
   type AttachmentRow,
   type DossierRow,
 } from "@/lib/crm";
+import InvoiceComposer from "@/components/Pages/crm-module/invoices/InvoiceComposer";
+import { t } from "@/lib/i18n";
 import {
   createChecklistItem,
   createMilestone,
@@ -88,18 +90,22 @@ const ProjectDetailsComponent = () => {
   const destination = dossier ? dossierFlag(dossier) : null;
   const live = true;
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [composer, setComposer] = useState(false);
+  const [invoiceRevision, setInvoiceRevision] = useState(0);
 
   useEffect(() => {
     if (!currentId) return;
     void fetchInvoicesForDossier(currentId).then((rows) => {
       if (rows) setInvoices(rows);
     });
-  }, [currentId]);
+  }, [currentId, invoiceRevision]);
 
-  const billed = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
+  const billed = invoices
+    .filter((i) => i.status !== "draft" && i.status !== "cancelled")
+    .reduce((sum, i) => sum + Number(i.amount), 0);
   const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
   const outstanding = invoices
-    .filter((i) => i.status !== "paid")
+    .filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft")
     .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
 
   const reloadSuivi = useCallback(async (id: string | null) => {
@@ -255,6 +261,14 @@ const ProjectDetailsComponent = () => {
 
   return (
     <>
+      {composer && dossier ? (
+        <InvoiceComposer
+          contactId={dossier.contact_id}
+          dossierId={dossier.id}
+          onClose={() => setComposer(false)}
+          onSaved={() => setInvoiceRevision((value) => value + 1)}
+        />
+      ) : null}
       {/* ========================
 			Start Page Content
 		========================= */}
@@ -343,6 +357,11 @@ const ProjectDetailsComponent = () => {
                       </div>
                     </div>
                     <div className="d-flex align-items-center flex-wrap gap-2">
+                      {dossier ? (
+                        <button type="button" className="btn btn-primary btn-sm" onClick={() => setComposer(true)}>
+                          {t("newInvoice")}
+                        </button>
+                      ) : null}
                       <span
                         className={`py-1 px-2 fs-12 bg-soft-danger rounded text-danger fw-medium${
                           dossier ? " d-none" : ""
