@@ -8,15 +8,12 @@ import { InvoicesListData } from "../../../../core/json/invoicesListData";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import PageHeader from "@/core/common/page-header/pageHeader";
 import Datatable from "@/core/common/dataTable";
-import ModalInvoice from "./modal/modalInvoice";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import { useLiveRows } from "@/lib/useLiveRows";
 import {
   explainRemind,
   fetchInvoices,
-  markInvoicePaid,
-  markInvoiceUnpaid,
   remindInvoiceById,
   toInvoicesListRow,
 } from "@/lib/crm";
@@ -24,12 +21,10 @@ import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
 import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import InvoiceEditModal, { type InvoiceEditTarget } from "./InvoiceEditModal";
-import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [editRow, setEditRow] = useState<InvoiceEditTarget | null>(null);
-  const { run: runFinance, modal: financeModal } = useFinanceUnlock();
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -167,64 +162,6 @@ const InvoicesListComponent = () => {
               <i className="ti ti-clipboard-copy me-1" />
               Voir la facture
             </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  await markInvoicePaid({
-                    id: record.key,
-                    amount: record.amountValue,
-                    paid_amount: record.paidValue,
-                  } as any);
-                  await reload();
-                } catch (err) {
-                  alert(err instanceof Error ? err.message : "Erreur");
-                }
-              }}
-            >
-              <i className="ti ti-checks me-1" /> Mark as Paid
-            </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  await markInvoicePaid(
-                    {
-                      id: record.key,
-                      amount: record.amountValue,
-                      paid_amount: record.paidValue,
-                    } as any,
-                    true
-                  );
-                  await reload();
-                } catch (err) {
-                  alert(err instanceof Error ? err.message : "Erreur");
-                }
-              }}
-            >
-              <i className="ti ti-file me-1" /> Mark as Partially Paid
-            </Link>
-            <Link
-              className="dropdown-item"
-              href="#"
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  await runFinance(async () => {
-                    await markInvoiceUnpaid(record.key);
-                    await reload();
-                  });
-                } catch (err) {
-                  alert(err instanceof Error ? err.message : "Erreur");
-                }
-              }}
-            >
-              <i className="ti ti-sticker me-1" /> Mark ad Unpaid
-            </Link>
             <button
               type="button"
               className="dropdown-item"
@@ -244,7 +181,7 @@ const InvoicesListComponent = () => {
               href={isLiveId(record.key) ? docHref("invoice", record.key) : "#"}
               target={isLiveId(record.key) ? "_blank" : undefined}
             >
-              <i className="ti ti-printer me-1" /> Print
+              <i className="ti ti-printer me-1" /> Imprimer
             </Link>
           </div>
         </div>
@@ -254,7 +191,6 @@ const InvoicesListComponent = () => {
   ];
   return (
     <>
-      {financeModal}
       {editRow ? (
         <InvoiceEditModal
           row={editRow}
@@ -315,15 +251,6 @@ const InvoicesListComponent = () => {
                 </span>
                 <SearchInput value={searchText} onChange={handleSearch} />
               </div>
-              <Link
-                href="#"
-                className="btn btn-primary"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#offcanvas_add"
-              >
-                <i className="ti ti-square-rounded-plus-filled me-1" />
-                Add New Invoice
-              </Link>
             </div>
             <div className="card-body">
               {/* table header */}
@@ -805,7 +732,6 @@ const InvoicesListComponent = () => {
       {/* ========================
 			End Page Content
 		========================= */}
-      <ModalInvoice onSaved={reload} />
     </>
   );
 };

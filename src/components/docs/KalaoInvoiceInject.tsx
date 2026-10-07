@@ -7,8 +7,6 @@ import {
   fetchInvoices,
   formatDate,
   formatMoney,
-  markInvoiceUnpaid,
-  recordPayment,
   remindInvoiceById,
   type InvoiceRow,
 } from "@/lib/crm";
@@ -18,19 +16,12 @@ export default function KalaoInvoiceInject() {
   const [invoice, setInvoice] = useState<InvoiceRow | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const load = () => {
-    const id =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("id")
-        : null;
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("id");
     void fetchInvoices().then((rows) => {
       if (!rows?.length) return;
       setInvoice((id && rows.find((row) => row.id === id)) || rows[0]);
     });
-  };
-
-  useEffect(() => {
-    load();
   }, []);
 
   if (!invoice || !isLiveId(invoice.id)) return null;
@@ -39,7 +30,7 @@ export default function KalaoInvoiceInject() {
     <div className="alert alert-light border mb-3">
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-          <p className="mb-1 fw-semibold">Facture Kalao (live)</p>
+          <p className="mb-1 fw-semibold">Facture Kalao</p>
           <p className="mb-0">
             {invoice.number ? `#${invoice.number}` : invoice.id.slice(0, 8)} ·{" "}
             {invoice.companies?.name ?? "Client"} · {formatMoney(invoice.amount)} ·
@@ -49,39 +40,6 @@ export default function KalaoInvoiceInject() {
           {msg ? <p className="mb-0 mt-1 text-muted">{msg}</p> : null}
         </div>
         <div className="d-flex align-items-center flex-wrap gap-2">
-          {remaining > 0 ? (
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-dark"
-              onClick={async () => {
-                try {
-                  await recordPayment({ invoice_id: invoice.id, amount: remaining });
-                  setMsg(`Encaissé ${formatMoney(remaining)}.`);
-                  load();
-                } catch (err) {
-                  setMsg(err instanceof Error ? err.message : "Erreur");
-                }
-              }}
-            >
-              Encaisser le reste
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-dark"
-              onClick={async () => {
-                try {
-                  await markInvoiceUnpaid(invoice.id);
-                  setMsg("Facture remise impayée.");
-                  load();
-                } catch (err) {
-                  setMsg(err instanceof Error ? err.message : "Erreur");
-                }
-              }}
-            >
-              Remettre impayée
-            </button>
-          )}
           <button
             type="button"
             className="btn btn-sm btn-outline-dark"
@@ -102,7 +60,7 @@ export default function KalaoInvoiceInject() {
             className="btn btn-sm btn-dark"
           >
             <i className="ti ti-printer me-1" />
-            Imprimer / PDF
+            Imprimer
           </Link>
         </div>
       </div>

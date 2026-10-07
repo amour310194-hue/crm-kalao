@@ -132,16 +132,6 @@ const PaymentsComponent = () => {
                 <i className="ti ti-edit text-blue" /> Modifier
               </button>
             ) : null}
-            {!isLiveId(record.key) ? (
-              <Link
-                className="dropdown-item"
-                href="#"
-                data-bs-toggle="modal"
-                data-bs-target="#delete_payments"
-              >
-                <i className="ti ti-trash" /> Delete
-              </Link>
-            ) : null}
           </div>
         </div>
       ),
