@@ -86,13 +86,13 @@ export const INTEGRATION_PROVIDERS: IntegrationProvider[] = [
   {
     id: "momo",
     label: "Mobile Money",
-    summary: "Numéros marchands affichés sur les factures. L'agrégateur (CinetPay, Campay…) est une phase 2.",
+    summary: "Orange Money et MTN MoMo, en mode test. Aucun débit réel tant que le mode live n'est pas ouvert.",
+    webhookPath: "/api/webhooks/orange",
     fields: [
-      { key: "aggregator", label: "Agrégateur", secret: false, placeholder: "ex. Campay, CinetPay, Notch Pay" },
-      { key: "api_key", label: "Clé API", secret: true },
-      { key: "api_secret", label: "Secret / token", secret: true },
-      { key: "mtn_merchant", label: "N° marchand MTN MoMo", secret: false },
       { key: "orange_merchant", label: "N° marchand Orange Money", secret: false },
+      { key: "mtn_merchant", label: "N° marchand MTN MoMo", secret: false },
+      { key: "orange_secret", label: "Secret webhook Orange", secret: true },
+      { key: "mtn_secret", label: "Secret webhook MTN", secret: true },
     ],
   },
 ];

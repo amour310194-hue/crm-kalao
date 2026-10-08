@@ -49,6 +49,15 @@ const Login = () => {
     }
     setLoading(true);
     try {
+      const gate = await fetch("/api/auth/login-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, check: true }),
+      });
+      if (gate.status === 429) {
+        setError("Trop d’essais. Réessayez dans un quart d’heure.");
+        return;
+      }
       const supabase = getSupabaseBrowserClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,

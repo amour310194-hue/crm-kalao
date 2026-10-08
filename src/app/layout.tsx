@@ -22,6 +22,7 @@ export const metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png?v=officiel",
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({

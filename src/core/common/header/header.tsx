@@ -10,6 +10,7 @@ import { setMiniSidebar, setMobileSidebar } from "@/core/redux/sidebarSlice";
 import { toggleMiniSidebarDom } from "@/lib/mini-sidebar";
 import { updateTheme } from "@/core/redux/themeSlice";
 import Link from "next/link";
+import CommandPalette from "@/components/search/CommandPalette";
 import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
@@ -113,6 +114,7 @@ const Header = () => {
 
   return (
     <>
+      <CommandPalette />
       {/* Topbar Start */}
       <header className="navbar-header">
         <div className="page-container topbar-menu">
