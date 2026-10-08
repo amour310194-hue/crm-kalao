@@ -14,11 +14,11 @@ Calculés, le retard prime sur le paiement partiel :
 
 Brouillon, Émise, Partiellement payée, Payée, En retard (avec le nombre de jours), Conditionnelle, Annulée.
 
-Le tableau de bord, la fiche dossier et les KPI utilisent les mêmes règles (`src/lib/finance-rules.ts` et la vue `invoice_figures`). Les brouillons et les annulées ne comptent pas dans le facturé. Les conditionnelles ne comptent pas dans le reste exigible. Les encaissements annulés ne comptent pas dans l'encaissé.
+Le tableau de bord, la fiche dossier, la fiche client et l'export Excel lisent la vue `invoice_figures`. Les brouillons et les annulées ne comptent pas dans le facturé. Les conditionnelles ne comptent pas dans le reste exigible. L'encaissé est la somme des montants déjà payés de cette vue.
 
 ## Modification
 
-- Brouillon : libellé, échéance et dossier se modifient tout de suite. Suppression possible s'il n'a aucun encaissement valide. Le montant vient des lignes.
+- Brouillon : lignes, libellé, échéance et dossier se modifient tout de suite. Suppression possible s'il n'a aucun encaissement valide. Le montant vient des lignes.
 - Émise : libellé, échéance et dossier seulement, avec motif. La demande attend un autre compte `direction`, `admin` ou `super_admin`.
 - Le montant, les lignes et le client d'une facture émise sont verrouillés.
 - Un enregistrement sans changement n'écrit rien. L'échéance de la modale est la date réelle, pas le libellé formaté.
@@ -50,9 +50,9 @@ Le cron du matin prépare J-3, J0, J+3 et J+7. Le bouton Relancer envoie le mêm
 ## Documents
 
 - Facture : Montant total, Reste dû, titre d'onglet = numéro, bandeau ANNULÉE ou BROUILLON, sans « Lu et approuvé ».
-- Reçu : `/docs/receipt/[id]`
-- Avoir : `/docs/credit_note/[id]`
-- Relevé : `/docs/statement/[id]` (identifiant du contact)
+- Reçu : `/docs/receipt/[id]`, avec envoi par e-mail si le client en a un. L'envoi est inscrit dans l'historique.
+- Avoir : `/docs/credit_note/[id]`. Le bouton « Rembourser en caisse » crée une demande de sortie, validée par un autre compte direction.
+- Relevé : `/docs/statement/[id]` (identifiant du contact). Les dates « Du » et « Au » limitent les factures et les encaissements. Sans date, le relevé reprend tout l'historique.
 
 ## Caisse
 
@@ -76,5 +76,6 @@ La clôture du jour compare le solde compté au solde théorique. Un second comp
 - `20261007_v41_finance_controls.sql`
 - `20261007_v42_invoice_figures.sql`
 - `20261007_v43_cash_journal.sql`
+- `20261008_v44_cash_journal_view.sql` (vue `cash_journal` et fonctions de clôture, si v43 s'est arrêtée avant elles)
 
 Le rollback de chaque fichier est commenté en bas. Il ne retire pas les colonnes déjà remplies.

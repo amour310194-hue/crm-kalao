@@ -46,6 +46,14 @@ export const fr = {
   invoiceTotalLabel: "Total",
   choose: "Choisir",
   catalogService: "Service du catalogue",
+  sendByEmail: "Envoyer par e-mail",
+  noClientEmail: "Pas d'e-mail client : l'envoi est indisponible.",
+  refundToCash: "Rembourser en caisse",
+  statementFrom: "Du",
+  statementTo: "Au",
+  draftLines: "Lignes du brouillon",
+  lineTotal: "Total de la ligne",
+  removeLine: "Retirer",
 } as const;
 
 export type MessageKey = keyof typeof fr;

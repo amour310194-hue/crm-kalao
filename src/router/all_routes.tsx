@@ -70,6 +70,8 @@ export const all_routes = {
   InvoiceGrid: "/crm/invoice-grid",
   invoiceGaps: "/crm/invoices-a-completer",
   financeApprovals: "/crm/validations-finance",
+  automations: "/crm/automatisations",
+  approvalsQueue: "/crm/a-valider",
   invoicesDetails: "/crm/invoices-details",
   estimationList: "/crm/estimation-list",
   estimationKanban: "/crm/estimation-kanban",

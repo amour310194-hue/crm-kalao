@@ -121,7 +121,11 @@ const QuotationsListComponent = () => {
               onClick={async (e) => {
                 e.preventDefault();
                 try {
-                  await acceptQuote(record.key);
+                  const result = await acceptQuote(record.key);
+                  if (result?.dossierId) {
+                    window.location.href = `/crm/project-details?id=${result.dossierId}&facture=1`;
+                    return;
+                  }
                   await reload();
                 } catch (err) {
                   alert(err instanceof Error ? err.message : "Erreur");

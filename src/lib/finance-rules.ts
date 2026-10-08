@@ -157,6 +157,50 @@ export function isUpcomingDue(dueDate: string | null | undefined, today: string,
   return due >= today && due <= addIsoDays(today, withinDays);
 }
 
+/** Agrège les colonnes déjà calculées par la vue `invoice_figures`. */
+export interface FigureSnapshot {
+  amount: number;
+  paidAmount: number;
+  remaining: number;
+  computedStatus: string;
+  daysLate?: number;
+  dueDate?: string | null;
+}
+
+const FIGURE_BILLED = new Set(["issued", "partially_paid", "paid", "overdue", "conditional"]);
+const FIGURE_EXIGIBLE = new Set(["issued", "partially_paid", "overdue"]);
+
+export function summarizeFigures(rows: FigureSnapshot[]) {
+  const billed = rows.filter((row) => FIGURE_BILLED.has(row.computedStatus));
+  const exigible = rows.filter((row) => FIGURE_EXIGIBLE.has(row.computedStatus));
+  const conditional = rows.filter((row) => row.computedStatus === "conditional");
+  const overdue = rows.filter((row) => row.computedStatus === "overdue");
+  return {
+    invoiced: billed.reduce((sum, row) => sum + Number(row.amount), 0),
+    collected: billed.reduce((sum, row) => sum + Number(row.paidAmount), 0),
+    outstanding: exigible.reduce((sum, row) => sum + Number(row.remaining), 0),
+    conditional: conditional.reduce((sum, row) => sum + Number(row.remaining), 0),
+    overdueCount: overdue.length,
+    overdueAmount: overdue.reduce((sum, row) => sum + Number(row.remaining), 0),
+    unpaidCount: exigible.length,
+  };
+}
+
+export function figureStatusLabel(status: string, daysLate = 0): string {
+  if (status === "overdue" && daysLate > 0) return `En retard · ${daysLate} j`;
+  if (status in STATUS_LABELS) return STATUS_LABELS[status as ComputedStatus];
+  return status;
+}
+
+export function inPeriod(iso: string | null | undefined, from?: string, to?: string): boolean {
+  if (!from && !to) return true;
+  if (!iso) return false;
+  const day = iso.slice(0, 10);
+  if (from && day < from) return false;
+  if (to && day > to) return false;
+  return true;
+}
+
 export interface InvoiceEditSnapshot {
   project: string;
   dueDate: string;

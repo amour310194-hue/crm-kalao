@@ -6,7 +6,10 @@ import {
   canApproveFinance,
   closeVariance,
   computedInvoiceStatus,
+  figureStatusLabel,
+  inPeriod,
   issuedEditPatch,
+  summarizeFigures,
   manualReminderKind,
   periodAllowsWrite,
   runningBalances,
@@ -149,6 +152,36 @@ describe("migrations", () => {
     expect(figures).toContain("security_invoker");
     expect(cash).toContain("cash_journal");
     expect(cash).toContain("auteur_interdit");
+  });
+});
+
+describe("vue invoice_figures", () => {
+  const rows = [
+    { amount: 1_000_000, paidAmount: 0, remaining: 1_000_000, computedStatus: "overdue", daysLate: 4 },
+    { amount: 500_000, paidAmount: 200_000, remaining: 300_000, computedStatus: "conditional" },
+    { amount: 100_000, paidAmount: 0, remaining: 100_000, computedStatus: "draft" },
+    { amount: 200_000, paidAmount: 200_000, remaining: 0, computedStatus: "paid" },
+  ];
+
+  it("additionne le facturé, l'exigible et le conditionnel sans recalculer le statut", () => {
+    expect(summarizeFigures(rows)).toMatchObject({
+      invoiced: 1_700_000,
+      collected: 400_000,
+      outstanding: 1_000_000,
+      conditional: 300_000,
+      overdueCount: 1,
+      overdueAmount: 1_000_000,
+    });
+  });
+
+  it("affiche les jours de retard fournis par la vue", () => {
+    expect(figureStatusLabel("overdue", 4)).toBe("En retard · 4 j");
+  });
+
+  it("borne un relevé à la période demandée", () => {
+    expect(inPeriod("2026-09-24", "2026-09-01", "2026-09-30")).toBe(true);
+    expect(inPeriod("2026-10-02", "2026-09-01", "2026-09-30")).toBe(false);
+    expect(inPeriod("2026-09-24")).toBe(true);
   });
 });
 

@@ -1,3 +1,5 @@
+import { normalizePhone, validateEmail } from "@/lib/clients";
+import { leadScore } from "@/lib/pipeline-rules";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { assertCanDelete, assertCanEditFinance, assertCanEditFinanceRecord, canSeePayroll } from "@/lib/roles";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
@@ -140,6 +142,10 @@ export interface ContactRow {
   birth_place?: string | null;
   passport_no?: string | null;
   status?: "prospect" | "client" | string | null;
+  source?: string | null;
+  city?: string | null;
+  merged_into?: string | null;
+  tags?: string[] | null;
   created_at?: string;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
 }
@@ -167,6 +173,13 @@ export interface LeadRow {
   estimated_value: number | null;
   notes: string | null;
   created_at: string;
+  archived_at?: string | null;
+  tags?: string[] | null;
+  assignee_id?: string | null;
+  lost_reason?: string | null;
+  destination_country?: string | null;
+  budget?: number | null;
+  score?: number | null;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
   contacts?: { first_name: string; last_name: string; phone: string | null } | null;
   lead_affiliations?: { department_id: string; departments?: { name: string; code: string } | null }[];
@@ -184,6 +197,9 @@ export interface DealRow {
   expected_close_date: string | null;
   notes: string | null;
   created_at: string;
+  archived_at?: string | null;
+  tags?: string[] | null;
+  assignee_id?: string | null;
   companies?: { name: string | null } | null;
 }
 
@@ -259,6 +275,9 @@ export interface ActivityRow {
   created_at: string;
   notes: string | null;
   done?: boolean;
+  archived_at?: string | null;
+  tags?: string[] | null;
+  assignee_id?: string | null;
 }
 
 export interface DepartmentRow {
@@ -332,6 +351,7 @@ const LEAD_STATUS_LABEL: Record<string, string> = {
   qualified: "Qualifié",
   unqualified: "Non qualifié",
   converted: "Converti",
+  lost: "Perdu",
 };
 
 const DEAL_STAGE_LABEL: Record<string, string> = {
@@ -429,7 +449,7 @@ export async function fetchContacts(): Promise<ContactRow[] | null> {
     .select("*, companies(name, city, country)")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as ContactRow[];
+  return ((data ?? []) as ContactRow[]).filter((row) => !row.merged_into);
 }
 
 export async function fetchClients(): Promise<ContactRow[] | null> {
@@ -441,7 +461,7 @@ export async function fetchClients(): Promise<ContactRow[] | null> {
     .eq("status", "client")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as ContactRow[];
+  return ((data ?? []) as ContactRow[]).filter((row) => !row.merged_into);
 }
 
 export async function createContact(input: {
@@ -454,24 +474,34 @@ export async function createContact(input: {
   notes?: string | null;
   account_type?: ClientKind | null;
   status?: "prospect" | "client";
+  source?: string | null;
+  city?: string | null;
+  nationality?: string | null;
+  birth_date?: string | null;
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const account_type: ClientKind = input.account_type === "company" ? "company" : "person";
   const first_name = input.first_name.trim() || (account_type === "company" ? "Entreprise" : "Client");
   const last_name = account_type === "company" ? (input.last_name.trim() || "—") : (input.last_name.trim() || "Kalao");
+  const phone = normalizePhone(input.phone);
+  const email = validateEmail(input.email);
   const { data, error } = await supabase
     .from("contacts")
     .insert({
       first_name,
       last_name,
-      email: input.email || null,
-      phone: input.phone || null,
+      email,
+      phone,
       job_title: input.job_title || null,
       company_id: input.company_id || null,
       notes: input.notes || null,
       account_type,
       status: input.status ?? "client",
+      source: input.source || null,
+      city: input.city || null,
+      nationality: input.nationality || null,
+      birth_date: input.birth_date || null,
     })
     .select("*")
     .single();
@@ -517,8 +547,9 @@ export function toContactsListRow(row: ContactRow, _index: number) {
     Role: kind,
     role: kind,
     Phone: row.phone ?? "—",
+    missing: !row.phone?.trim() || !row.email?.trim(),
     Tags: kind,
-    Location: row.companies?.city || row.companies?.country || "Yaoundé",
+    Location: row.city || row.companies?.city || row.companies?.country || "—",
     Rating: "—",
     Image: "",
     Initials: name
@@ -549,7 +580,7 @@ export async function fetchLeads(): Promise<LeadRow[] | null> {
     )
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as LeadRow[];
+  return ((data ?? []) as LeadRow[]).filter((row) => !row.archived_at);
 }
 
 export async function createLead(input: {
@@ -575,6 +606,7 @@ export async function createLead(input: {
       status: lead.status || "new",
       estimated_value: lead.estimated_value ?? 0,
       notes: lead.notes || null,
+      score: leadScore({ budget: lead.estimated_value, source: lead.source }),
     })
     .select("*")
     .single();
@@ -594,6 +626,9 @@ export async function updateLead(id: string, input: Partial<LeadRow> & { departm
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { department_ids, ...lead } = input;
+  if (lead.status === "lost" && !String(lead.lost_reason ?? "").trim()) {
+    throw new Error("Le motif est obligatoire pour un prospect perdu.");
+  }
   const { error } = await supabase.from("leads").update(lead).eq("id", id);
   throwIf(error);
   if (department_ids) {
@@ -651,6 +686,13 @@ export async function convertLead(id: string, service: ConvertServiceInput) {
   if (!lead) throw new Error("Prospect introuvable");
   if (lead.status === "converted") throw new Error("Ce prospect est déjà converti.");
 
+  if (!lead.contact_id) {
+    try {
+      normalizePhone(lead.contacts?.phone);
+    } catch {
+      throw new Error("Ajoutez un téléphone au prospect avant de le convertir.");
+    }
+  }
   let companyId = lead.company_id;
   if (!companyId) {
     const company = await createCompany({
@@ -835,7 +877,7 @@ export async function fetchDeals(): Promise<DealRow[] | null> {
     .select("*, companies(name)")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as DealRow[];
+  return ((data ?? []) as DealRow[]).filter((row) => !row.archived_at);
 }
 
 export async function createDeal(input: {
@@ -1031,6 +1073,20 @@ export async function acceptQuote(quoteId: string) {
     });
   }
   await notifyQuoteAccepted(quote, final);
+  const { data: linked } = await supabase.from("dossiers").select("id").eq("quote_id", quoteId).maybeSingle();
+  let dossierId = linked?.id as string | undefined;
+  if (!dossierId) {
+    const created = await createDossier({
+      title: quote.companies?.name ? `Dossier — ${quote.companies.name}` : "Dossier",
+      kind: "visa",
+      company_id: quote.company_id,
+      contact_id: quote.contact_id,
+      quote_id: quoteId,
+      notes: quote.notes,
+    });
+    dossierId = created.id;
+  }
+  return { dossierId };
 }
 
 async function notifyQuoteAccepted(quote: QuoteRow, amount: number) {
@@ -1299,6 +1355,93 @@ export async function deleteDraftInvoice(id: string) {
   throwIf(error);
 }
 
+export interface DraftLineRow {
+  id: string;
+  label: string;
+  quantity: number;
+  unit_price: number;
+  discount: number;
+  tax_rate: number;
+  catalog_item_id: string | null;
+}
+
+export async function fetchInvoiceLines(invoiceId: string): Promise<DraftLineRow[]> {
+  const supabase = db();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("invoice_lines")
+    .select("id, label, quantity, unit_price, discount, tax_rate, catalog_item_id, position")
+    .eq("invoice_id", invoiceId)
+    .order("position");
+  throwIf(error);
+  return (data ?? []) as DraftLineRow[];
+}
+
+export async function saveDraftLines(
+  invoiceId: string,
+  lines: { catalogItemId?: string | null; label: string; quantity: number; unitPrice: number; discount: number; taxRate: number }[]
+) {
+  await assertCanEditFinanceRecord();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error: readError } = await supabase.from("invoices").select("status").eq("id", invoiceId).maybeSingle();
+  throwIf(readError);
+  if (data?.status !== "draft") throw new Error("Les lignes d'une facture émise ne se modifient plus.");
+  if (!lines.length) throw new Error("Ajoutez au moins une ligne.");
+  const { error: del } = await supabase.from("invoice_lines").delete().eq("invoice_id", invoiceId);
+  throwIf(del);
+  const { error: ins } = await supabase.from("invoice_lines").insert(
+    lines.map((line, index) => ({
+      invoice_id: invoiceId,
+      catalog_item_id: line.catalogItemId || null,
+      label: line.label.trim(),
+      quantity: line.quantity,
+      unit_price: line.unitPrice,
+      discount: line.discount,
+      tax_rate: line.taxRate,
+      position: index + 1,
+    }))
+  );
+  throwIf(ins);
+}
+
+export async function sendDocumentMail(input: {
+  to: string;
+  subject: string;
+  body: string;
+  companyId?: string | null;
+  contactId?: string | null;
+  invoiceId?: string | null;
+  auditTable: string;
+  auditId: string;
+  auditAction: string;
+}): Promise<RemindResult> {
+  const to = input.to.trim();
+  if (!to) return { dispatched: false, to: null, reason: "missing_to" };
+  const { sendCrmEmail } = await import("@/lib/mail");
+  const result = await sendCrmEmail({
+    mailbox: "noreply",
+    to,
+    subject: input.subject,
+    body: input.body,
+    companyId: input.companyId,
+    contactId: input.contactId,
+    invoiceId: input.invoiceId,
+  });
+  if (result.dispatched) {
+    const supabase = db();
+    if (supabase) {
+      await supabase.rpc("append_audit", {
+        p_table: input.auditTable,
+        p_row: input.auditId,
+        p_action: input.auditAction,
+        p_reason: `Envoyé à ${to}`,
+      });
+    }
+  }
+  return { dispatched: result.dispatched, to: result.to, reason: result.reason, detail: result.detail };
+}
+
 export async function updatePayment(
   id: string,
   input: { amount?: number; method: string; paid_at: string; notes?: string | null; transaction_id?: string | null; reason?: string | null }
@@ -1555,7 +1698,7 @@ export async function fetchActivities(): Promise<ActivityRow[] | null> {
     .select("*")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as ActivityRow[];
+  return ((data ?? []) as ActivityRow[]).filter((row) => !row.archived_at);
 }
 
 export async function createActivity(input: {
@@ -2068,6 +2211,12 @@ export interface DossierRow {
   quote_id: string | null;
   bassin_drawn?: boolean;
   updated_at?: string | null;
+  filed_at?: string | null;
+  appointment_at?: string | null;
+  decision_at?: string | null;
+  travel_at?: string | null;
+  passport_expires_at?: string | null;
+  cancel_reason?: string | null;
   companies?: { name: string | null } | null;
   contacts?: { first_name: string; last_name: string; account_type?: string | null } | null;
   dossier_members?: { employee_id: string; employees?: { full_name: string } | null }[];
@@ -2482,7 +2631,7 @@ export function toTimesheetRow(row: PayRunRow, index: number) {
     Task: row.notes || (row.bonus ? `Prime ${formatMoney(row.bonus)}` : "Salaire"),
     CreatedDate: formatDate(row.paid_at || row.period),
     HoursWorked: formatMoney(Number(row.amount) + Number(row.bonus || 0)),
-    Status: row.status === "paid" ? "Approved" : "Pending",
+    Status: row.status === "paid" ? "Payée" : "À payer",
     employeeId: row.employee_id,
   };
 }

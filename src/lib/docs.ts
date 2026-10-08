@@ -18,7 +18,7 @@ import {
   type PaymentRow,
   type QuoteRow,
 } from "@/lib/crm";
-import { paymentMethodLabel, remainingDue } from "@/lib/finance-rules";
+import { inPeriod, paymentMethodLabel, remainingDue } from "@/lib/finance-rules";
 import { fetchCatalogItems } from "@/lib/catalog";
 import {
   canadaSchedule,
@@ -114,6 +114,18 @@ export type DocView = {
     project: string | null;
     status: string;
   };
+  mail?: {
+    to: string | null;
+    subject: string;
+    body: string;
+    companyId?: string | null;
+    contactId?: string | null;
+    invoiceId?: string | null;
+    auditTable: string;
+    auditId: string;
+    auditAction: string;
+  };
+  creditNoteId?: string;
 };
 
 function partyFrom(
@@ -168,7 +180,11 @@ function emptyView(kind: DocKind, message: string): DocView {
   };
 }
 
-export async function loadDocView(kind: DocKind, id: string): Promise<DocView> {
+export async function loadDocView(
+  kind: DocKind,
+  id: string,
+  range?: { from?: string; to?: string }
+): Promise<DocView> {
   if (!isLiveId(id)) {
     return emptyView(kind, "Identifiant invalide.");
   }
@@ -176,7 +192,7 @@ export async function loadDocView(kind: DocKind, id: string): Promise<DocView> {
   if (kind === "quote") return loadQuote(id);
   if (kind === "receipt") return loadReceipt(id);
   if (kind === "credit_note") return loadCreditNote(id);
-  if (kind === "statement") return loadStatement(id);
+  if (kind === "statement") return loadStatement(id, range);
   if (kind === "visa") return loadVisa(id);
   if (kind === "employment") return loadEmployment(id);
   if (kind === "certificate") return loadCertificate(id);
@@ -314,7 +330,13 @@ async function loadReceipt(id: string): Promise<DocView> {
   if (!payment) return emptyView("receipt", "Paiement introuvable.");
   const invoice = invoices?.find((row) => row.id === payment.invoice_id);
   const company = companies?.find((row) => row.id === invoice?.company_id) ?? null;
-  const contact = contacts?.find((row) => row.company_id === invoice?.company_id) ?? null;
+  const contact =
+    contacts?.find((row) => row.id === invoice?.contact_id) ??
+    contacts?.find((row) => row.company_id === invoice?.company_id) ??
+    null;
+  const email = contact?.email?.trim() || company?.email?.trim() || "";
+  const remaining = remainingDue(Number(invoice?.amount ?? 0), Number(invoice?.paid_amount ?? 0));
+  const number = invoice?.number ?? "—";
   return {
     kind: "receipt",
     title: "REÇU / QUITTANCE",
@@ -336,13 +358,34 @@ async function loadReceipt(id: string): Promise<DocView> {
     notes: [
       `Mode : ${paymentMethodLabel(payment.method)}`,
       `Référence : ${payment.transaction_id || "—"}`,
-      `Facture : ${invoice?.number ? invoice.number : "—"}`,
-      `Reste dû : ${formatMoney(remainingDue(Number(invoice?.amount ?? 0), Number(invoice?.paid_amount ?? 0)))}`,
+      `Facture : ${number}`,
+      `Reste dû : ${formatMoney(remaining)}`,
       invoiceTaxMention(entityForDoc("receipt")),
       "Ce reçu vaut quittance pour la somme indiquée.",
     ],
     articles: [],
     signatures: signOff("receipt"),
+    mail: {
+      to: email || null,
+      subject: `Reçu ${payment.transaction_id || payment.id.slice(0, 8).toUpperCase()} — facture ${number}`,
+      body: [
+        "Bonjour,",
+        "",
+        `Nous accusons réception de ${formatMoney(payment.amount)} au titre de la facture ${number}.`,
+        `Mode : ${paymentMethodLabel(payment.method)}.`,
+        `Référence : ${payment.transaction_id || "—"}.`,
+        `Reste dû : ${formatMoney(remaining)}.`,
+        "",
+        "Cordialement,",
+        "KALAO CONSULTING SARL",
+      ].join("\n"),
+      companyId: invoice?.company_id,
+      contactId: invoice?.contact_id,
+      invoiceId: invoice?.id,
+      auditTable: "payments",
+      auditId: payment.id,
+      auditAction: "recu",
+    },
   };
 }
 
@@ -383,10 +426,11 @@ async function loadCreditNote(id: string): Promise<DocView> {
     ],
     articles: [],
     signatures: signOff("credit_note"),
+    creditNoteId: note.id,
   };
 }
 
-async function loadStatement(id: string): Promise<DocView> {
+async function loadStatement(id: string, range?: { from?: string; to?: string }): Promise<DocView> {
   const [invoices, payments, contacts, companies] = await Promise.all([
     fetchInvoices(),
     fetchPayments(),
@@ -396,14 +440,26 @@ async function loadStatement(id: string): Promise<DocView> {
   const contact = contacts?.find((row) => row.id === id) ?? null;
   const company = companies?.find((row) => row.id === contact?.company_id) ?? companies?.find((row) => row.id === id) ?? null;
   const related = (invoices ?? []).filter(
-    (row) => row.contact_id === id || (company && row.company_id === company.id)
+    (row) =>
+      (row.contact_id === id || (company && row.company_id === company.id)) &&
+      inPeriod(row.document_date || row.created_at, range?.from, range?.to)
   );
-  const ids = new Set(related.map((row) => row.id));
-  const paid = (payments ?? []).filter((row) => ids.has(row.invoice_id) && row.status !== "annule");
+  const ids = new Set(
+    (invoices ?? [])
+      .filter((row) => row.contact_id === id || (company && row.company_id === company.id))
+      .map((row) => row.id)
+  );
+  const paid = (payments ?? []).filter(
+    (row) => ids.has(row.invoice_id) && row.status !== "annule" && inPeriod(row.paid_at, range?.from, range?.to)
+  );
   const billed = related
     .filter((row) => row.status !== "draft" && row.status !== "cancelled")
     .reduce((sum, row) => sum + Number(row.amount), 0);
   const collected = paid.reduce((sum, row) => sum + Number(row.amount), 0);
+  const period =
+    range?.from || range?.to
+      ? `Période : ${range.from ? formatDate(range.from) : "…"} – ${range.to ? formatDate(range.to) : "…"}.`
+      : "Ensemble des factures et encaissements du client.";
   return {
     kind: "statement",
     title: "RELEVÉ DE COMPTE",
@@ -411,7 +467,7 @@ async function loadStatement(id: string): Promise<DocView> {
     issuedAt: formatDate(new Date().toISOString()),
     entity: entityForDoc("statement"),
     party: partyFrom(company, contact),
-    intro: "Ensemble des factures et encaissements du client.",
+    intro: period,
     lines: [
       ...related.map((row) => ({
         label: `Facture ${row.number ?? "brouillon"} · ${formatDate(row.due_date)}`,

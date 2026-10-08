@@ -3,7 +3,7 @@
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
@@ -26,6 +26,7 @@ import InvoiceEditModal, { type InvoiceEditTarget } from "./InvoiceEditModal";
 import InvoiceCreateActions from "./InvoiceCreateActions";
 import { explainInvoiceError } from "@/lib/invoicing";
 import { t } from "@/lib/i18n";
+import { fetchInvoiceFigures, figureExportRows, type InvoiceFigure } from "@/lib/invoice-figures";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -40,6 +41,14 @@ const InvoicesListComponent = () => {
     return rows ? rows.map(toInvoicesListRow) : null;
   }, []);
   const { rows: data, live, reload } = useLiveRows(InvoicesListData, loadInvoices);
+  const [figures, setFigures] = useState<InvoiceFigure[]>([]);
+  useEffect(() => {
+    void fetchInvoiceFigures()
+      .then((rows) => {
+        if (rows) setFigures(rows);
+      })
+      .catch(() => setFigures([]));
+  }, [data]);
   const shown = useMemo(() => {
     if (statut === "retard") {
       return data.filter((row) => String(row.Status ?? "").startsWith("En retard"));
@@ -257,17 +266,29 @@ const InvoicesListComponent = () => {
                 <>
                   <KalaoExportBar
                     filename="factures-kalao"
-                    headers={["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]}
-                    rows={data
-                      .filter((row) => Boolean(rowLiveId(row)))
-                      .map((row) => [
-                        row.Invoice_ID,
-                        row.Client,
-                        row.Project,
-                        row.Amount,
-                        row.Paid_Amount,
-                        row.Status,
-                      ])}
+                    headers={
+                      figures.length
+                        ? ["Facture", "Ancien numéro", "Montant", "Encaissé", "Reste dû", "Statut", "Échéance"]
+                        : ["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]
+                    }
+                    rows={
+                      figures.length
+                        ? figureExportRows(
+                            figures.filter((row) =>
+                              shown.some((item) => (item as { key?: string }).key === row.id)
+                            )
+                          )
+                        : data
+                            .filter((row) => Boolean(rowLiveId(row)))
+                            .map((row) => [
+                              row.Invoice_ID,
+                              row.Client,
+                              row.Project,
+                              row.Amount,
+                              row.Paid_Amount,
+                              row.Status,
+                            ])
+                    }
                     printHref={
                       rowLiveId(data[0]) ? docHref("invoice", rowLiveId(data[0]) as string) : null
                     }

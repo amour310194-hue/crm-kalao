@@ -88,6 +88,11 @@ export async function updateDossier(
     end_at?: string | null;
     notes?: string | null;
     bassin_drawn?: boolean;
+    filed_at?: string | null;
+    appointment_at?: string | null;
+    decision_at?: string | null;
+    travel_at?: string | null;
+    passport_expires_at?: string | null;
   }
 ) {
   const supabase = db();
@@ -102,6 +107,11 @@ export async function updateDossier(
   if (input.end_at !== undefined) patch.end_at = input.end_at || null;
   if (input.notes !== undefined) patch.notes = input.notes || null;
   if (input.bassin_drawn !== undefined) patch.bassin_drawn = input.bassin_drawn;
+  if (input.filed_at !== undefined) patch.filed_at = input.filed_at || null;
+  if (input.appointment_at !== undefined) patch.appointment_at = input.appointment_at || null;
+  if (input.decision_at !== undefined) patch.decision_at = input.decision_at || null;
+  if (input.travel_at !== undefined) patch.travel_at = input.travel_at || null;
+  if (input.passport_expires_at !== undefined) patch.passport_expires_at = input.passport_expires_at || null;
   if (patch.status === "done") {
     const { data: current, error: curErr } = await supabase
       .from("dossiers")
@@ -346,4 +356,67 @@ export async function deleteRentReceipt(id: string) {
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase.from("rent_receipts").delete().eq("id", id);
   throwIf(error);
+}
+
+export async function requestDossierCancel(dossierId: string, reason: string) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error } = await supabase.rpc("request_dossier_cancel", { p_id: dossierId, p_reason: reason });
+  throwIf(error);
+  return data as string;
+}
+
+export type ApprovalRequestRow = {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  status: string;
+  comment: string | null;
+  created_at: string;
+};
+
+export async function fetchApprovalRequests() {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("approval_requests")
+    .select("id, entity_type, entity_id, action, status, comment, created_at")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return (data ?? []) as ApprovalRequestRow[];
+}
+
+export async function decideDossierCancel(id: string, approve: boolean, note: string) {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("decide_dossier_cancel", { p_id: id, p_approve: approve, p_note: note });
+  throwIf(error);
+}
+
+export type AutomationRuleRow = {
+  id: string;
+  name: string;
+  trigger_key: string;
+  active: boolean;
+};
+
+export async function fetchAutomationRules() {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("automation_rules")
+    .select("id, name, trigger_key, active")
+    .order("name");
+  throwIf(error);
+  return (data ?? []) as AutomationRuleRow[];
+}
+
+export async function simulateAutomations() {
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error } = await supabase.rpc("simulate_automations");
+  throwIf(error);
+  return Number(data ?? 0);
 }

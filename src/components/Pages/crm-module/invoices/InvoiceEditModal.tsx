@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { cancelInvoice, deleteDraftInvoice, fetchAuditLog, fetchDossiers, updateInvoice } from "@/lib/crm";
+import { cancelInvoice, deleteDraftInvoice, fetchAuditLog, fetchDossiers, fetchInvoiceLines, saveDraftLines, updateInvoice } from "@/lib/crm";
+import { lineTotal, validateLine, type InvoiceLineInput } from "@/lib/invoicing";
+import { t } from "@/lib/i18n";
 import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 
 export type InvoiceEditTarget = {
@@ -39,6 +41,25 @@ export default function InvoiceEditModal({
   const [tab, setTab] = useState<"edit" | "history">("edit");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lines, setLines] = useState<InvoiceLineInput[]>([]);
+
+  useEffect(() => {
+    if (!draft) return;
+    void fetchInvoiceLines(row.key).then((rows) => {
+      setLines(
+        rows.length
+          ? rows.map((line) => ({
+              catalogItemId: line.catalog_item_id,
+              label: line.label,
+              quantity: Number(line.quantity),
+              unitPrice: Number(line.unit_price),
+              discount: Number(line.discount),
+              taxRate: Number(line.tax_rate),
+            }))
+          : [{ label: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }]
+      );
+    });
+  }, [draft, row.key]);
 
   useEffect(() => {
     void fetchDossiers().then((rows) => {
@@ -54,11 +75,18 @@ export default function InvoiceEditModal({
     setSaving(true);
     try {
       await run(async () => {
+        if (draft) {
+          for (const line of lines) {
+            const invalid = validateLine(line);
+            if (invalid) throw new Error(invalid);
+          }
+          await saveDraftLines(row.key, lines);
+        }
         await updateInvoice(row.key, {
           due_date: dueDate || null,
           project: project || null,
           dossier_id: dossierId || null,
-          amount: row.amountValue,
+          amount: draft ? undefined : row.amountValue,
           reason,
         });
         onSaved();
@@ -154,6 +182,97 @@ export default function InvoiceEditModal({
                         : "Montant verrouillé. Pour le corriger : annuler les encaissements, annuler la facture (un avoir est créé), puis émettre une nouvelle facture."}
                     </div>
                   </div>
+                  {draft ? (
+                    <div className="mb-3">
+                      <label className="form-label">{t("draftLines")}</label>
+                      {lines.map((line, index) => (
+                        <div className="row g-2 mb-2" key={index}>
+                          <div className="col-md-4">
+                            <input
+                              className="form-control"
+                              placeholder={t("designation")}
+                              value={line.label}
+                              onChange={(event) =>
+                                setLines((current) =>
+                                  current.map((item, i) => (i === index ? { ...item, label: event.target.value } : item))
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="col-md-2">
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder={t("quantity")}
+                              value={line.quantity}
+                              onChange={(event) =>
+                                setLines((current) =>
+                                  current.map((item, i) =>
+                                    i === index ? { ...item, quantity: Number(event.target.value) } : item
+                                  )
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="col-md-2">
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder={t("unitPrice")}
+                              value={line.unitPrice}
+                              onChange={(event) =>
+                                setLines((current) =>
+                                  current.map((item, i) =>
+                                    i === index ? { ...item, unitPrice: Number(event.target.value) } : item
+                                  )
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="col-md-2">
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder={t("discount")}
+                              value={line.discount}
+                              onChange={(event) =>
+                                setLines((current) =>
+                                  current.map((item, i) =>
+                                    i === index ? { ...item, discount: Number(event.target.value) } : item
+                                  )
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="col-md-2 d-flex align-items-center justify-content-between">
+                            <span>{lineTotal(line)}</span>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-link"
+                              onClick={() => setLines((current) => current.filter((_, i) => i !== index))}
+                            >
+                              {t("removeLine")}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() =>
+                          setLines((current) => [
+                            ...current,
+                            { label: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 },
+                          ])
+                        }
+                      >
+                        {t("addLine")}
+                      </button>
+                      <div className="form-text">
+                        {t("invoiceTotalLabel")} : {lines.reduce((sum, line) => sum + lineTotal(line), 0)} FCFA
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="mb-3">
                     <label className="form-label">Échéance</label>
                     <input type="date" className="form-control" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />

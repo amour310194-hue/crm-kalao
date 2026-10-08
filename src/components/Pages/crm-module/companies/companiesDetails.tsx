@@ -30,6 +30,8 @@ import {
   type DossierRow,
   type InvoiceRow,
 } from "@/lib/crm";
+import { fetchInvoiceFigures, toFigureSnapshot } from "@/lib/invoice-figures";
+import { summarizeFigures } from "@/lib/finance-rules";
 import { updateDossier } from "@/lib/dossiers";
 import {
   FICHE_EXTRA_TABS,
@@ -48,6 +50,7 @@ const CompaniesDetailsComponent = () => {
   const [contact, setContact] = useState<ContactRow | null>(null);
   const [dossiers, setDossiers] = useState<DossierRow[]>([]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [figureTotals, setFigureTotals] = useState<ReturnType<typeof summarizeFigures> | null>(null);
   const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [files, setFiles] = useState<AttachmentRow[]>([]);
 
@@ -83,6 +86,14 @@ const CompaniesDetailsComponent = () => {
     void fetchAttachments("company", company.id).then((rows) => {
       if (rows) setFiles(rows);
     });
+    void fetchInvoiceFigures()
+      .then((rows) => {
+        if (!rows) return;
+        setFigureTotals(
+          summarizeFigures(rows.filter((row) => row.company_id === company.id).map(toFigureSnapshot))
+        );
+      })
+      .catch(() => setFigureTotals(null));
   }, [company?.id]);
 
   const uploadToFiche = async (file: File) => {
@@ -98,11 +109,15 @@ const CompaniesDetailsComponent = () => {
     const rows = await fetchAttachments("company", company.id);
     if (rows) setFiles(rows);
   };
-  const billed = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
-  const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
-  const outstanding = invoices
-    .filter((i) => i.status !== "paid")
-    .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
+  const billed =
+    figureTotals?.invoiced ?? invoices.reduce((sum, i) => sum + Number(i.amount), 0);
+  const collected =
+    figureTotals?.collected ?? invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
+  const outstanding =
+    figureTotals?.outstanding ??
+    invoices
+      .filter((i) => i.status !== "paid")
+      .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
   return (
     <>
       {/* ========================

@@ -29,6 +29,8 @@ import {
   type DossierRow,
 } from "@/lib/crm";
 import InvoiceComposer from "@/components/Pages/crm-module/invoices/InvoiceComposer";
+import { fetchInvoiceFigures, toFigureSnapshot } from "@/lib/invoice-figures";
+import { summarizeFigures } from "@/lib/finance-rules";
 import { t } from "@/lib/i18n";
 import {
   createChecklistItem,
@@ -44,6 +46,7 @@ import {
   setChecklistProvided,
   toggleMilestone,
   updateDossier,
+  requestDossierCancel,
   type DossierChecklistRow,
   type DossierMilestoneRow,
   type DossierPurchaseRow,
@@ -52,6 +55,7 @@ import KalaoDocsBar from "@/components/docs/KalaoDocsBar";
 import { isCanadaProcedure } from "@/lib/org";
 import { FichePipeline } from "../ficheLiveTabs";
 import { pipelineStatusLabel, procedurePipeline } from "@/lib/visa-pipeline";
+import { passportAlert, stageAdvanceBlock } from "@/lib/pipeline-rules";
 
 const KIND_LABEL: Record<string, string> = {
   chantier: "Chantier",
@@ -92,21 +96,71 @@ const ProjectDetailsComponent = () => {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [composer, setComposer] = useState(false);
   const [invoiceRevision, setInvoiceRevision] = useState(0);
+  const [figureTotals, setFigureTotals] = useState<ReturnType<typeof summarizeFigures> | null>(null);
+
+  useEffect(() => {
+    if (!dossier) return;
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("facture") === "1") setComposer(true);
+  }, [dossier]);
+
+  const onAskCancel = async () => {
+    if (!currentId) return;
+    const reason = window.prompt("Motif d'annulation du dossier");
+    if (!reason?.trim()) return;
+    try {
+      await requestDossierCancel(currentId, reason.trim());
+      alert("Demande envoyée. Les factures restent ouvertes tant qu'un avoir n'est pas validé.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Demande refusée");
+    }
+  };
+
+  const onSaveDates = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!currentId) return;
+    const vals = readForm(e.currentTarget);
+    try {
+      const saved = await updateDossier(currentId, {
+        filed_at: vals.filed_at || null,
+        appointment_at: vals.appointment_at || null,
+        decision_at: vals.decision_at || null,
+        travel_at: vals.travel_at || null,
+        passport_expires_at: vals.passport_expires_at || null,
+      });
+      setDossier((prev) => (prev ? { ...prev, ...saved } : saved));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+  };
 
   useEffect(() => {
     if (!currentId) return;
     void fetchInvoicesForDossier(currentId).then((rows) => {
       if (rows) setInvoices(rows);
     });
+    void fetchInvoiceFigures()
+      .then((rows) => {
+        if (!rows) return;
+        setFigureTotals(
+          summarizeFigures(rows.filter((row) => row.dossier_id === currentId).map(toFigureSnapshot))
+        );
+      })
+      .catch(() => setFigureTotals(null));
   }, [currentId, invoiceRevision]);
 
-  const billed = invoices
-    .filter((i) => i.status !== "draft" && i.status !== "cancelled")
-    .reduce((sum, i) => sum + Number(i.amount), 0);
-  const collected = invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
-  const outstanding = invoices
-    .filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft" && !i.is_conditional)
-    .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
+  const billed =
+    figureTotals?.invoiced ??
+    invoices
+      .filter((i) => i.status !== "draft" && i.status !== "cancelled")
+      .reduce((sum, i) => sum + Number(i.amount), 0);
+  const collected =
+    figureTotals?.collected ?? invoices.reduce((sum, i) => sum + Number(i.paid_amount), 0);
+  const outstanding =
+    figureTotals?.outstanding ??
+    invoices
+      .filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft" && !i.is_conditional)
+      .reduce((sum, i) => sum + Math.max(0, Number(i.amount) - Number(i.paid_amount)), 0);
 
   const reloadSuivi = useCallback(async (id: string | null) => {
     if (!id) return;
@@ -203,7 +257,22 @@ const ProjectDetailsComponent = () => {
   };
 
   const onChangeStatus = async (status: string) => {
-    if (!currentId) return;
+    if (!currentId || !dossier) return;
+    const advancePaid = invoices.some((row) => {
+      if (row.status === "draft" || row.status === "cancelled") return false;
+      return Number(row.amount) > 0 && Number(row.paid_amount) >= Number(row.amount);
+    });
+    const checklistComplete = checklist.length > 0 && checklist.every((item) => item.provided);
+    const block = stageAdvanceBlock({
+      kind: dossier.kind,
+      nextKey: status,
+      advancePaid,
+      checklistComplete,
+    });
+    if (block) {
+      alert(block);
+      return;
+    }
     try {
       const saved = await updateDossier(currentId, { status });
       setDossier((prev) => (prev ? { ...prev, ...saved } : saved));
@@ -325,6 +394,35 @@ const ProjectDetailsComponent = () => {
                               : "Actif"}
                           </span>
                         </div>
+                        {dossier?.passport_expires_at &&
+                        passportAlert(dossier.passport_expires_at, new Date().toISOString().slice(0, 10)) ? (
+                          <p className="text-danger mb-0 mt-1">Passeport à renouveler dans les six mois.</p>
+                        ) : null}
+                        {dossier ? (
+                          <form className="d-flex flex-wrap gap-2 mt-2" onSubmit={(e) => void onSaveDates(e)}>
+                            <label className="small">
+                              Dépôt
+                              <input className="form-control form-control-sm" type="date" name="filed_at" defaultValue={dossier.filed_at?.slice(0, 10) ?? ""} />
+                            </label>
+                            <label className="small">
+                              Rendez-vous
+                              <input className="form-control form-control-sm" type="date" name="appointment_at" defaultValue={dossier.appointment_at?.slice(0, 10) ?? ""} />
+                            </label>
+                            <label className="small">
+                              Décision
+                              <input className="form-control form-control-sm" type="date" name="decision_at" defaultValue={dossier.decision_at?.slice(0, 10) ?? ""} />
+                            </label>
+                            <label className="small">
+                              Voyage
+                              <input className="form-control form-control-sm" type="date" name="travel_at" defaultValue={dossier.travel_at?.slice(0, 10) ?? ""} />
+                            </label>
+                            <label className="small">
+                              Passeport
+                              <input className="form-control form-control-sm" type="date" name="passport_expires_at" defaultValue={dossier.passport_expires_at?.slice(0, 10) ?? ""} />
+                            </label>
+                            <button type="submit" className="btn btn-light btn-sm align-self-end">Enregistrer les dates</button>
+                          </form>
+                        ) : null}
                         {live && dossier ? (
                           <div className="mt-2">
                             <KalaoDocsBar
@@ -360,6 +458,11 @@ const ProjectDetailsComponent = () => {
                       {dossier ? (
                         <button type="button" className="btn btn-primary btn-sm" onClick={() => setComposer(true)}>
                           {t("newInvoice")}
+                        </button>
+                      ) : null}
+                      {dossier && dossier.status !== "cancelled" ? (
+                        <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => void onAskCancel()}>
+                          Demander l&apos;annulation
                         </button>
                       ) : null}
                       <span

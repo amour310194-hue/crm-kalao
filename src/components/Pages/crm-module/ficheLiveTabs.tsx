@@ -16,6 +16,8 @@ import {
   type QuoteRow,
 } from "@/lib/crm";
 import { docHref } from "@/lib/docs";
+import { fetchInvoiceFigures, toFigureSnapshot } from "@/lib/invoice-figures";
+import { summarizeFigures } from "@/lib/finance-rules";
 import {
   normalizePipelineStatus,
   PIPELINE_STEP_CLS,
@@ -387,8 +389,20 @@ export function FicheFilesAndFinance({
   onUpload: (file: File) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
-  const billed = invoices.reduce((sum, row) => sum + Number(row.amount), 0);
-  const received = payments.reduce((sum, row) => sum + Number(row.amount), 0);
+  const invoiceKey = invoices.map((row) => row.id).join(",");
+  const [fromView, setFromView] = useState<ReturnType<typeof summarizeFigures> | null>(null);
+  useEffect(() => {
+    const ids = new Set(invoiceKey ? invoiceKey.split(",") : []);
+    void fetchInvoiceFigures()
+      .then((rows) => {
+        if (!rows) return;
+        setFromView(summarizeFigures(rows.filter((row) => ids.has(row.id)).map(toFigureSnapshot)));
+      })
+      .catch(() => setFromView(null));
+  }, [invoiceKey]);
+  const billed = fromView?.invoiced ?? invoices.reduce((sum, row) => sum + Number(row.amount), 0);
+  const received = fromView?.collected ?? payments.reduce((sum, row) => sum + Number(row.amount), 0);
+  const due = fromView?.outstanding ?? 0;
   const otherDocs = dossiers.filter((row) => row.kind === "visa" || Boolean(row.quote_id));
 
   return (
@@ -404,6 +418,7 @@ export function FicheFilesAndFinance({
                 </p>
                 <p className="mb-0 text-muted">
                   Facturé {formatMoney(billed)} · Encaissé {formatMoney(received)}
+                  {fromView ? ` · Reste exigible ${formatMoney(due)}` : ""}
                 </p>
               </div>
             </div>

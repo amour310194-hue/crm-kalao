@@ -44,6 +44,12 @@ const MainDashboardComponent = () => {
       hint: `${kpis?.contacts ?? 0} contact${(kpis?.contacts ?? 0) > 1 ? "s" : ""}`,
       href: all_routes.companiesList,
     },
+    {
+      label: "Coordonnées manquantes",
+      value: String(kpis?.missingContacts ?? 0),
+      hint: "Téléphone ou e-mail absent. Aucune valeur n'est inventée.",
+      href: "/crm/contact-list?coordonnees=manquantes",
+    },
   ];
 
   return (

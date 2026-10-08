@@ -6,7 +6,10 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import KalaoLetterhead, { KalaoDocFooter } from "@/components/docs/KalaoLetterhead";
 import { KALAO_DOC_CSS } from "@/components/docs/kalaoDocCss";
 import { DOC_KINDS, loadDocView, type DocKind, type DocView } from "@/lib/docs";
+import { requestRefund, sendDocumentMail } from "@/lib/crm";
+import { t } from "@/lib/i18n";
 import { assertCanSeePayroll, isPayDocKind } from "@/lib/roles";
+import { useFinanceUnlock } from "@/lib/use-finance-unlock";
 import InvoiceEditModal from "@/components/Pages/crm-module/invoices/InvoiceEditModal";
 
 function isDocKind(value: string): value is DocKind {
@@ -20,10 +23,16 @@ export default function KalaoDocumentPage() {
   const [view, setView] = useState<DocView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+  const { run, modal } = useFinanceUnlock();
 
   const reload = () => {
     if (!isDocKind(kind) || !id) return;
-    void loadDocView(kind, id).then(setView).catch((err: unknown) => {
+    void loadDocView(kind, id, { from, to }).then(setView).catch((err: unknown) => {
       setError(err instanceof Error ? err.message : "Erreur de chargement");
     });
   };
@@ -59,12 +68,12 @@ export default function KalaoDocumentPage() {
     void (async () => {
       try {
         if (isPayDocKind(kind)) await assertCanSeePayroll();
-        setView(await loadDocView(kind, id));
+        setView(await loadDocView(kind, id, { from, to }));
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Erreur de chargement");
       }
     })();
-  }, [kind, id]);
+  }, [kind, id, from, to]);
 
   return (
     <AuthGuard>
@@ -82,10 +91,79 @@ export default function KalaoDocumentPage() {
               Modifier
             </button>
           ) : null}
+          {view?.mail ? (
+            <button
+              type="button"
+              className="secondary"
+              disabled={!view.mail.to || sending}
+              title={view.mail.to ? undefined : t("noClientEmail")}
+              onClick={() => {
+                const mail = view.mail;
+                if (!mail?.to) return;
+                setSending(true);
+                setNotice(null);
+                void sendDocumentMail({ ...mail, to: mail.to })
+                  .then((result) =>
+                    setNotice(
+                      result.dispatched
+                        ? `Reçu envoyé à ${result.to}.`
+                        : `Envoi non parti vers ${result.to ?? mail.to}.`
+                    )
+                  )
+                  .catch((err: unknown) => setNotice(err instanceof Error ? err.message : "Envoi impossible"))
+                  .finally(() => setSending(false));
+              }}
+            >
+              {t("sendByEmail")}
+            </button>
+          ) : null}
           <a className="secondary" href="javascript:history.back()">
             Retour
           </a>
+          {view?.mail && !view.mail.to ? <span>{t("noClientEmail")}</span> : null}
         </div>
+        {modal}
+        {kind === "statement" ? (
+          <div className="kalao-toolbar">
+            <label>
+              {t("statementFrom")}{" "}
+              <input type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
+            </label>
+            <label>
+              {t("statementTo")}{" "}
+              <input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+            </label>
+          </div>
+        ) : null}
+        {view?.creditNoteId ? (
+          <div className="kalao-toolbar">
+            <input
+              value={refundReason}
+              onChange={(event) => setRefundReason(event.target.value)}
+              placeholder="Motif du remboursement"
+            />
+            <button
+              type="button"
+              className="secondary"
+              disabled={sending || !refundReason.trim()}
+              onClick={() => {
+                const noteId = view.creditNoteId;
+                if (!noteId) return;
+                setSending(true);
+                setNotice(null);
+                void run(async () => {
+                  await requestRefund(noteId, refundReason);
+                  setNotice("Demande de remboursement envoyée. Un autre compte direction doit la valider.");
+                })
+                  .catch((err: unknown) => setNotice(err instanceof Error ? err.message : "Demande impossible"))
+                  .finally(() => setSending(false));
+              }}
+            >
+              {t("refundToCash")}
+            </button>
+          </div>
+        ) : null}
+        {notice ? <p className="kalao-empty">{notice}</p> : null}
         {editing && view?.invoiceEdit ? (
           <InvoiceEditModal
             row={{

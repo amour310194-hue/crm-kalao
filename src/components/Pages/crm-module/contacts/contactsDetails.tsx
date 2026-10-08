@@ -11,6 +11,7 @@ import CommonSelect from "@/core/common/common-select/commonSelect";
 import ModalContactDetails from "./modals/modalContactDetails";
 import { all_routes } from "@/router/all_routes";
 import Link from "next/link";
+import { ClientHistory } from "@/components/crm/ClientQuality";
 import Footer from "@/core/common/footer/footer";
 import {
   belongsToClient,
@@ -139,6 +140,7 @@ const ContactsDetailsComponent = () => {
       <div className="page-wrapper">
         {/* Start Content */}
         <div className="content pb-0">
+          <ClientHistory />
           {/* Page Header */}
           <div className="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
             <div>
