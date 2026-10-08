@@ -10,7 +10,9 @@ const defaultThemeSettings = {
   "data-size": "default",
   "data-width": "fluid",
   "data-sidebarbg": "none",
-  "dir": "ltr",
+  "data-density": "comfortable",
+  themeChoice: "system",
+  dir: "ltr",
 };
 
 

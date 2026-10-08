@@ -1907,6 +1907,7 @@ const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
     "Calls",
     "To Do",
     "Notes",
+    "Fichiers",
     "Social Feed",
     "Kanban",
     "Invoices",
@@ -1918,6 +1919,17 @@ const HIDDEN_SUB_ITEMS: Record<string, Set<string>> = {
     "SMS Campaigns",
     "Social Campaigns",
     "WhatsApp Campaigns",
+  ]),
+};
+
+// Entrées réelles mais hors du travail quotidien : la page reste en place.
+const HIDDEN_IN_SECTION: Record<string, Set<string>> = {
+  CRM: new Set([
+    "Messagerie",
+    "Rapports",
+    "Rapprochement",
+    "Confidentialité",
+    "Automatisations",
   ]),
 };
 
@@ -1989,6 +2001,7 @@ export const SidebarData = SidebarDataAll.filter(
   ...section,
   submenuItems: section.submenuItems
     .filter((item) => !HIDDEN_MAIN_ITEMS.has(item.label))
+    .filter((item) => !HIDDEN_IN_SECTION[section.tittle]?.has(item.label))
     .map((item) => {
       const hiddenSubs = HIDDEN_SUB_ITEMS[item.label];
       const next = hiddenSubs
