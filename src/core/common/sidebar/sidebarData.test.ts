@@ -26,6 +26,7 @@ describe("menu visible", () => {
     const outils = SidebarData.find((entry) => entry.tittle === "Menu")?.submenuItems.find(
       (item) => item.label === "Outils"
     );
-    expect(outils?.submenuItems.map((item) => item.label)).toEqual(["Calendrier", "Messagerie"]);
+    const kids = (outils?.submenuItems ?? []) as { label: string }[];
+    expect(kids.map((item) => item.label)).toEqual(["Calendrier", "Messagerie"]);
   });
 });
