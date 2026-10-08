@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { applyMiniSidebar } from "@/lib/mini-sidebar";
+import { updateTheme } from "@/core/redux/themeSlice";
 
 
 // Child component for Redux hooks
@@ -40,7 +41,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     Object.entries(themeSettings).forEach(([key, value]) => {
-      if (key === "data-layout") return;
+      if (key === "data-layout" || key === "themeChoice") return;
       root.setAttribute(key, String(value));
     });
     const mini =
@@ -49,6 +50,21 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       themeSettings["data-size"] === "compact";
     applyMiniSidebar(mini);
   }, [themeSettings, miniSidebar]);
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_THEME_KALAO !== "1") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const current = store.getState().theme.themeSettings;
+      if (current.themeChoice !== "system") return;
+      const next = media.matches ? "dark" : "light";
+      if (current["data-bs-theme"] === next) return;
+      store.dispatch(updateTheme({ "data-bs-theme": next, themeChoice: "system" }));
+    };
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
 
   // Handle close-filter-btn clicks
   useEffect(() => {

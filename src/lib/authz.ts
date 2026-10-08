@@ -86,6 +86,7 @@ export const PUBLIC_PATHS = [
   "/coming-soon",
   "/error-404",
   "/l",
+  "/portail",
 ];
 
 /** Pages paramètres : session obligatoire, 2FA aussi si le rôle l’exige. */

@@ -2,7 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import KalaoAvatar from "@/components/docs/KalaoAvatar";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import Datatable from "@/core/common/dataTable";
 import { ContactsListData } from "../../../../core/json/contactsListData";
@@ -32,6 +33,11 @@ const ContactsListComponent = () => {
     return rows ? rows.map(toContactsListRow) : null;
   }, []);
   const { rows: data, live, reload } = useLiveRows(ContactsListData, loadContacts);
+  const missingOnly = useSearchParams().get("coordonnees") === "manquantes";
+  const shown = useMemo(
+    () => (missingOnly ? data.filter((row) => (row as { missing?: boolean }).missing) : data),
+    [data, missingOnly]
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const columns = [
     {
@@ -59,6 +65,9 @@ const ContactsListComponent = () => {
           </Link>
           <Link href={`${all_routes.contactDetails}?id=${render.key}`} className="d-flex flex-column">
             {text}{" "}
+            {(render as { missing?: boolean }).missing ? (
+              <span className="badge badge-soft-danger ms-1">Coordonnées manquantes</span>
+            ) : null}
             <span className="text-body fs-13 fw-normal mt-1">
               {render.role}{" "}
             </span>
@@ -219,7 +228,22 @@ const ContactsListComponent = () => {
         {/* Start Content */}
         <div className="content pb-0">
           {/* Page Header */}
-         <PageHeader title="Clients" badgeCount={data.length} showModuleTile={false} showExport={true}/>
+         <PageHeader
+           title="Clients"
+           badgeCount={shown.length}
+           showModuleTile={false}
+           showExport={true}
+           headerExtra={
+             <>
+               <Link href="/crm/contact-list?coordonnees=manquantes" className="btn btn-outline-danger">
+                 Coordonnées manquantes
+               </Link>
+               <Link href="/crm/clients-import" className="btn btn-outline-primary">Import CSV</Link>
+               <Link href="/crm/clients-fusion" className="btn btn-outline-primary">Fusion</Link>
+               <Link href="/crm/corbeille" className="btn btn-outline-secondary">Corbeille</Link>
+             </>
+           }
+         />
           {/* End Page Header */}
           {/* card start */}
           <div className="card border-0 rounded-0">
@@ -1075,7 +1099,7 @@ const ContactsListComponent = () => {
               {/* Contact List */}
                 <Datatable
                   columns={columns}
-                  dataSource={data}
+                  dataSource={shown}
                   Selection={true}
                   searchText={searchText}
                 />

@@ -6,6 +6,7 @@ import "@fortawesome/fontawesome-free/css/fontawesome.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap-daterangepicker/daterangepicker.css";
 import "@/index.scss"; // Adjust path if needed
+import "@/style/kalao-theme.css";
 
 export const metadata = {
   title: {
@@ -22,6 +23,7 @@ export const metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png?v=officiel",
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -30,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" data-theme-kalao={process.env.NEXT_PUBLIC_THEME_KALAO === "1" ? "on" : undefined}>
        <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" href="/icon.png?v=officiel" />

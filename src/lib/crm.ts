@@ -1,3 +1,5 @@
+import { normalizePhone, validateEmail } from "@/lib/clients";
+import { leadScore } from "@/lib/pipeline-rules";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { assertCanDelete, assertCanEditFinance, assertCanEditFinanceRecord, canSeePayroll } from "@/lib/roles";
 import { fetchCatalogItems, formatCatalogPrice, type CatalogItem } from "@/lib/catalog";
@@ -7,6 +9,15 @@ import {
   ROLE_LABEL,
 } from "@/lib/org";
 import { pipelineStatusLabel } from "@/lib/visa-pipeline";
+import {
+  doualaToday,
+  issuedEditPatch,
+  manualReminderKind,
+  paymentMethodLabel,
+  remainingDue,
+  statusLabel,
+  validateCollection,
+} from "@/lib/finance-rules";
 
 export type EntityType =
   | "company"
@@ -131,6 +142,10 @@ export interface ContactRow {
   birth_place?: string | null;
   passport_no?: string | null;
   status?: "prospect" | "client" | string | null;
+  source?: string | null;
+  city?: string | null;
+  merged_into?: string | null;
+  tags?: string[] | null;
   created_at?: string;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
 }
@@ -158,6 +173,13 @@ export interface LeadRow {
   estimated_value: number | null;
   notes: string | null;
   created_at: string;
+  archived_at?: string | null;
+  tags?: string[] | null;
+  assignee_id?: string | null;
+  lost_reason?: string | null;
+  destination_country?: string | null;
+  budget?: number | null;
+  score?: number | null;
   companies?: { name: string | null; city: string | null; country: string | null } | null;
   contacts?: { first_name: string; last_name: string; phone: string | null } | null;
   lead_affiliations?: { department_id: string; departments?: { name: string; code: string } | null }[];
@@ -175,6 +197,9 @@ export interface DealRow {
   expected_close_date: string | null;
   notes: string | null;
   created_at: string;
+  archived_at?: string | null;
+  tags?: string[] | null;
+  assignee_id?: string | null;
   companies?: { name: string | null } | null;
 }
 
@@ -250,6 +275,9 @@ export interface ActivityRow {
   created_at: string;
   notes: string | null;
   done?: boolean;
+  archived_at?: string | null;
+  tags?: string[] | null;
+  assignee_id?: string | null;
 }
 
 export interface DepartmentRow {
@@ -323,6 +351,7 @@ const LEAD_STATUS_LABEL: Record<string, string> = {
   qualified: "Qualifié",
   unqualified: "Non qualifié",
   converted: "Converti",
+  lost: "Perdu",
 };
 
 const DEAL_STAGE_LABEL: Record<string, string> = {
@@ -420,7 +449,7 @@ export async function fetchContacts(): Promise<ContactRow[] | null> {
     .select("*, companies(name, city, country)")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as ContactRow[];
+  return ((data ?? []) as ContactRow[]).filter((row) => !row.merged_into);
 }
 
 export async function fetchClients(): Promise<ContactRow[] | null> {
@@ -432,7 +461,7 @@ export async function fetchClients(): Promise<ContactRow[] | null> {
     .eq("status", "client")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as ContactRow[];
+  return ((data ?? []) as ContactRow[]).filter((row) => !row.merged_into);
 }
 
 export async function createContact(input: {
@@ -445,24 +474,34 @@ export async function createContact(input: {
   notes?: string | null;
   account_type?: ClientKind | null;
   status?: "prospect" | "client";
+  source?: string | null;
+  city?: string | null;
+  nationality?: string | null;
+  birth_date?: string | null;
 }) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const account_type: ClientKind = input.account_type === "company" ? "company" : "person";
   const first_name = input.first_name.trim() || (account_type === "company" ? "Entreprise" : "Client");
   const last_name = account_type === "company" ? (input.last_name.trim() || "—") : (input.last_name.trim() || "Kalao");
+  const phone = normalizePhone(input.phone);
+  const email = validateEmail(input.email);
   const { data, error } = await supabase
     .from("contacts")
     .insert({
       first_name,
       last_name,
-      email: input.email || null,
-      phone: input.phone || null,
+      email,
+      phone,
       job_title: input.job_title || null,
       company_id: input.company_id || null,
       notes: input.notes || null,
       account_type,
       status: input.status ?? "client",
+      source: input.source || null,
+      city: input.city || null,
+      nationality: input.nationality || null,
+      birth_date: input.birth_date || null,
     })
     .select("*")
     .single();
@@ -508,8 +547,9 @@ export function toContactsListRow(row: ContactRow, _index: number) {
     Role: kind,
     role: kind,
     Phone: row.phone ?? "—",
+    missing: !row.phone?.trim() || !row.email?.trim(),
     Tags: kind,
-    Location: row.companies?.city || row.companies?.country || "Yaoundé",
+    Location: row.city || row.companies?.city || row.companies?.country || "—",
     Rating: "—",
     Image: "",
     Initials: name
@@ -540,7 +580,7 @@ export async function fetchLeads(): Promise<LeadRow[] | null> {
     )
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as LeadRow[];
+  return ((data ?? []) as LeadRow[]).filter((row) => !row.archived_at);
 }
 
 export async function createLead(input: {
@@ -566,6 +606,7 @@ export async function createLead(input: {
       status: lead.status || "new",
       estimated_value: lead.estimated_value ?? 0,
       notes: lead.notes || null,
+      score: leadScore({ budget: lead.estimated_value, source: lead.source }),
     })
     .select("*")
     .single();
@@ -585,6 +626,9 @@ export async function updateLead(id: string, input: Partial<LeadRow> & { departm
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { department_ids, ...lead } = input;
+  if (lead.status === "lost" && !String(lead.lost_reason ?? "").trim()) {
+    throw new Error("Le motif est obligatoire pour un prospect perdu.");
+  }
   const { error } = await supabase.from("leads").update(lead).eq("id", id);
   throwIf(error);
   if (department_ids) {
@@ -642,6 +686,13 @@ export async function convertLead(id: string, service: ConvertServiceInput) {
   if (!lead) throw new Error("Prospect introuvable");
   if (lead.status === "converted") throw new Error("Ce prospect est déjà converti.");
 
+  if (!lead.contact_id) {
+    try {
+      normalizePhone(lead.contacts?.phone);
+    } catch {
+      throw new Error("Ajoutez un téléphone au prospect avant de le convertir.");
+    }
+  }
   let companyId = lead.company_id;
   if (!companyId) {
     const company = await createCompany({
@@ -826,7 +877,7 @@ export async function fetchDeals(): Promise<DealRow[] | null> {
     .select("*, companies(name)")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as DealRow[];
+  return ((data ?? []) as DealRow[]).filter((row) => !row.archived_at);
 }
 
 export async function createDeal(input: {
@@ -1022,6 +1073,20 @@ export async function acceptQuote(quoteId: string) {
     });
   }
   await notifyQuoteAccepted(quote, final);
+  const { data: linked } = await supabase.from("dossiers").select("id").eq("quote_id", quoteId).maybeSingle();
+  let dossierId = linked?.id as string | undefined;
+  if (!dossierId) {
+    const created = await createDossier({
+      title: quote.companies?.name ? `Dossier — ${quote.companies.name}` : "Dossier",
+      kind: "visa",
+      company_id: quote.company_id,
+      contact_id: quote.contact_id,
+      quote_id: quoteId,
+      notes: quote.notes,
+    });
+    dossierId = created.id;
+  }
+  return { dossierId };
 }
 
 async function notifyQuoteAccepted(quote: QuoteRow, amount: number) {
@@ -1144,9 +1209,10 @@ export async function completeInvoiceGap(
   input: { dossier_id: string; due_date: string | null; is_conditional: boolean; condition_text: string | null }
 ) {
   await assertCanEditFinanceRecord();
+  const condition = input.condition_text?.trim() ?? "";
   if (!input.dossier_id) throw new Error("Choisissez un dossier.");
   if (!input.is_conditional && !input.due_date) throw new Error("Indiquez l'échéance.");
-  if (input.is_conditional && !input.condition_text?.trim()) throw new Error("Indiquez la condition.");
+  if (input.is_conditional && !condition) throw new Error("Indiquez la condition.");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
   const { error } = await supabase
@@ -1155,7 +1221,7 @@ export async function completeInvoiceGap(
       dossier_id: input.dossier_id,
       due_date: input.is_conditional ? null : input.due_date,
       is_conditional: input.is_conditional,
-      condition_text: input.is_conditional ? input.condition_text.trim() : null,
+      condition_text: input.is_conditional ? condition : null,
     })
     .eq("id", id);
   throwIf(error);
@@ -1172,86 +1238,303 @@ export async function recordPayment(input: {
   invoice_id: string;
   amount: number;
   method?: string;
+  paid_at?: string;
+  transaction_id?: string | null;
+  notes?: string | null;
 }) {
   await assertCanEditFinance();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data: invoice, error: readError } = await supabase
+    .from("invoices")
+    .select("amount, paid_amount, status")
+    .eq("id", input.invoice_id)
+    .maybeSingle();
+  throwIf(readError);
+  if (!invoice) throw new Error("Facture introuvable");
+  if (invoice.status === "draft") throw new Error("Un brouillon ne s'encaisse pas. Émettez la facture d'abord.");
+  if (invoice.status === "cancelled") throw new Error("Une facture annulée ne s'encaisse pas.");
+  const method = input.method || "cash";
+  const paidAt = input.paid_at || doualaToday();
+  const reference = input.transaction_id?.trim() || (method === "cash" ? null : null);
+  const problem = validateCollection({
+    amount: input.amount,
+    method,
+    paidAt,
+    reference,
+    remaining: remainingDue(Number(invoice.amount), Number(invoice.paid_amount)),
+  });
+  if (problem) throw new Error(problem);
+  const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase.from("payments").insert({
     invoice_id: input.invoice_id,
-    amount: input.amount,
-    method: input.method || "cash",
-    transaction_id: docNumber("TXN"),
+    amount: Math.round(Number(input.amount)),
+    method,
+    paid_at: paidAt,
+    transaction_id: method === "cash" ? input.transaction_id?.trim() || null : input.transaction_id?.trim(),
+    notes: input.notes?.trim() || null,
+    collected_by: auth.user?.id ?? null,
+  });
+  throwIf(error);
+}
+
+async function requestFinanceChange(
+  entity: "invoice" | "payment" | "credit_note",
+  id: string,
+  action: "update" | "cancel" | "refund",
+  payload: Record<string, unknown>,
+  reason: string
+) {
+  await assertCanEditFinanceRecord();
+  if (!reason.trim()) throw new Error("Le motif est obligatoire.");
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { error } = await supabase.rpc("request_finance_change", {
+    p_entity: entity,
+    p_id: id,
+    p_action: action,
+    p_payload: payload,
+    p_reason: reason.trim(),
   });
   throwIf(error);
 }
 
 export async function updateInvoice(
   id: string,
-  input: { amount?: number; due_date?: string | null; project?: string | null }
+  input: {
+    amount?: number;
+    due_date?: string | null;
+    project?: string | null;
+    dossier_id?: string | null;
+    reason?: string | null;
+  }
 ) {
   await assertCanEditFinanceRecord();
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const patch: Record<string, unknown> = {};
-  if (input.amount !== undefined) {
-    if (!(Number(input.amount) > 0)) throw new Error("Le montant doit être supérieur à 0.");
-    patch.amount = Number(input.amount);
+  const { data, error: readError } = await supabase
+    .from("invoices")
+    .select("status, project, due_date, dossier_id, amount")
+    .eq("id", id)
+    .maybeSingle();
+  throwIf(readError);
+  if (!data) throw new Error("Facture introuvable");
+  const current = {
+    project: data.project ?? "",
+    dueDate: data.due_date ? String(data.due_date).slice(0, 10) : "",
+    dossierId: data.dossier_id ?? "",
+    amount: Number(data.amount),
+  };
+  const next = {
+    project: input.project !== undefined ? input.project ?? "" : current.project,
+    dueDate: input.due_date !== undefined ? input.due_date ?? "" : current.dueDate,
+    dossierId: input.dossier_id !== undefined ? input.dossier_id ?? "" : current.dossierId,
+    amount: input.amount !== undefined ? Number(input.amount) : current.amount,
+  };
+  const edited = issuedEditPatch(current, next);
+  if ("error" in edited) throw new Error(edited.error);
+  if (edited.unchanged) return;
+  if (data.status === "draft") {
+    const { error } = await supabase.from("invoices").update(edited.patch).eq("id", id);
+    throwIf(error);
+    return;
   }
-  if (input.due_date !== undefined) patch.due_date = input.due_date || null;
-  if (input.project !== undefined) patch.project = input.project?.trim() || null;
-  if (!Object.keys(patch).length) return;
-  const { error } = await supabase.from("invoices").update(patch).eq("id", id);
-  throwIf(error);
+  if (data.status === "cancelled") throw new Error("Cette facture est annulée.");
+  await requestFinanceChange("invoice", id, "update", edited.patch, input.reason ?? "");
 }
 
 export async function cancelInvoice(id: string, reason: string) {
+  await requestFinanceChange("invoice", id, "cancel", {}, reason);
+}
+
+export async function deleteDraftInvoice(id: string) {
   await assertCanEditFinanceRecord();
-  if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase.from("invoices").update({ status: "cancelled" }).eq("id", id);
+  const { error } = await supabase.from("invoices").delete().eq("id", id).eq("status", "draft");
   throwIf(error);
+}
+
+export interface DraftLineRow {
+  id: string;
+  label: string;
+  quantity: number;
+  unit_price: number;
+  discount: number;
+  tax_rate: number;
+  catalog_item_id: string | null;
+}
+
+export async function fetchInvoiceLines(invoiceId: string): Promise<DraftLineRow[]> {
+  const supabase = db();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("invoice_lines")
+    .select("id, label, quantity, unit_price, discount, tax_rate, catalog_item_id, position")
+    .eq("invoice_id", invoiceId)
+    .order("position");
+  throwIf(error);
+  return (data ?? []) as DraftLineRow[];
+}
+
+export async function saveDraftLines(
+  invoiceId: string,
+  lines: { catalogItemId?: string | null; label: string; quantity: number; unitPrice: number; discount: number; taxRate: number }[]
+) {
+  await assertCanEditFinanceRecord();
+  const supabase = db();
+  if (!supabase) throw new Error("Supabase n'est pas configuré");
+  const { data, error: readError } = await supabase.from("invoices").select("status").eq("id", invoiceId).maybeSingle();
+  throwIf(readError);
+  if (data?.status !== "draft") throw new Error("Les lignes d'une facture émise ne se modifient plus.");
+  if (!lines.length) throw new Error("Ajoutez au moins une ligne.");
+  const { error: del } = await supabase.from("invoice_lines").delete().eq("invoice_id", invoiceId);
+  throwIf(del);
+  const { error: ins } = await supabase.from("invoice_lines").insert(
+    lines.map((line, index) => ({
+      invoice_id: invoiceId,
+      catalog_item_id: line.catalogItemId || null,
+      label: line.label.trim(),
+      quantity: line.quantity,
+      unit_price: line.unitPrice,
+      discount: line.discount,
+      tax_rate: line.taxRate,
+      position: index + 1,
+    }))
+  );
+  throwIf(ins);
+}
+
+export async function sendDocumentMail(input: {
+  to: string;
+  subject: string;
+  body: string;
+  companyId?: string | null;
+  contactId?: string | null;
+  invoiceId?: string | null;
+  auditTable: string;
+  auditId: string;
+  auditAction: string;
+}): Promise<RemindResult> {
+  const to = input.to.trim();
+  if (!to) return { dispatched: false, to: null, reason: "missing_to" };
+  const { sendCrmEmail } = await import("@/lib/mail");
+  const result = await sendCrmEmail({
+    mailbox: "noreply",
+    to,
+    subject: input.subject,
+    body: input.body,
+    companyId: input.companyId,
+    contactId: input.contactId,
+    invoiceId: input.invoiceId,
+  });
+  if (result.dispatched) {
+    const supabase = db();
+    if (supabase) {
+      await supabase.rpc("append_audit", {
+        p_table: input.auditTable,
+        p_row: input.auditId,
+        p_action: input.auditAction,
+        p_reason: `Envoyé à ${to}`,
+      });
+    }
+  }
+  return { dispatched: result.dispatched, to: result.to, reason: result.reason, detail: result.detail };
 }
 
 export async function updatePayment(
   id: string,
-  input: { amount: number; method: string; paid_at: string; notes?: string | null }
+  input: { amount?: number; method: string; paid_at: string; notes?: string | null; transaction_id?: string | null; reason?: string | null }
 ) {
-  await assertCanEditFinanceRecord();
-  const errorMsg = validatePaymentPatch(input);
-  if (errorMsg) throw new Error(errorMsg);
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { error } = await supabase
+  const { data, error: readError } = await supabase
     .from("payments")
-    .update({
-      amount: Number(input.amount),
-      method: input.method,
-      paid_at: input.paid_at,
-      notes: input.notes?.trim() || null,
-    })
+    .select("amount, method, paid_at, notes, transaction_id")
     .eq("id", id)
-    .eq("status", "valide");
-  throwIf(error);
+    .maybeSingle();
+  throwIf(readError);
+  if (!data) throw new Error("Encaissement introuvable");
+  if (input.amount !== undefined && Math.round(Number(input.amount)) !== Math.round(Number(data.amount))) {
+    throw new Error("Le montant d'un encaissement est verrouillé. Annulez-le, puis créez-en un nouveau.");
+  }
+  const patch: Record<string, string | null> = {};
+  if (input.method !== data.method) patch.method = input.method;
+  if (input.paid_at.slice(0, 10) !== String(data.paid_at).slice(0, 10)) patch.paid_at = input.paid_at;
+  if ((input.notes?.trim() || "") !== (data.notes ?? "")) patch.notes = input.notes?.trim() || null;
+  if ((input.transaction_id?.trim() || "") !== (data.transaction_id ?? "")) {
+    patch.transaction_id = input.transaction_id?.trim() || null;
+  }
+  if (!Object.keys(patch).length) return;
+  const problem = validateCollection({
+    amount: Number(data.amount),
+    method: input.method,
+    paidAt: input.paid_at,
+    reference: input.transaction_id,
+    remaining: Number(data.amount),
+  });
+  if (problem && problem.startsWith("Trop-perçu")) {
+    /* le montant ne change pas : le reste dû n'est pas rejoué ici */
+  } else if (problem && !problem.startsWith("Le montant")) {
+    if (problem.includes("référence") || problem.includes("Mode") || problem.includes("date")) throw new Error(problem);
+  }
+  await requestFinanceChange("payment", id, "update", patch, input.reason ?? "");
 }
 
 export async function cancelPayment(id: string, reason: string) {
-  await assertCanEditFinanceRecord();
-  if (!reason.trim()) throw new Error("Indiquez le motif d'annulation.");
+  await requestFinanceChange("payment", id, "cancel", {}, reason);
+}
+
+export async function requestRefund(creditNoteId: string, reason: string) {
+  await requestFinanceChange("credit_note", creditNoteId, "refund", { credit_note_id: creditNoteId }, reason);
+}
+
+export async function decideFinanceChange(id: string, approve: boolean, note?: string) {
   const supabase = db();
   if (!supabase) throw new Error("Supabase n'est pas configuré");
-  const { data: auth } = await supabase.auth.getUser();
-  const { error } = await supabase
-    .from("payments")
-    .update({
-      status: "annule",
-      cancelled_at: new Date().toISOString(),
-      cancelled_by: auth.user?.id ?? null,
-      cancel_reason: reason.trim(),
-    })
-    .eq("id", id)
-    .eq("status", "valide");
+  const { data, error } = await supabase.rpc("decide_finance_change", {
+    p_id: id,
+    p_approve: approve,
+    p_note: note ?? "",
+  });
   throwIf(error);
+  return data as { ok?: boolean; status?: string; credit_note?: string | null };
+}
+
+export async function fetchFinanceApprovals() {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("finance_approvals")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return data ?? [];
+}
+
+export async function fetchCreditNotes() {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("credit_notes")
+    .select("id, invoice_id, number, amount, reason, created_at, document_date")
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return data ?? [];
+}
+
+export async function fetchAuditLog(table: string, rowId: string) {
+  const supabase = db();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id, action, reason, actor, before_data, after_data, created_at")
+    .eq("table_name", table)
+    .eq("row_id", rowId)
+    .order("created_at", { ascending: false });
+  throwIf(error);
+  return data ?? [];
 }
 
 export type RemindResult = {
@@ -1286,32 +1569,48 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
   throwIf(error);
   const invoice = data as InvoiceRow | null;
   if (!invoice) throw new Error("Facture introuvable");
-  const to = invoice.companies?.email?.trim() || "";
+  const to = invoice.contacts?.email?.trim() || invoice.companies?.email?.trim() || "";
   if (!to) return { dispatched: false, to: null, reason: "missing_to" };
-  const remaining = Math.max(0, Number(invoice.amount) - Number(invoice.paid_amount));
+  const remaining = remainingDue(Number(invoice.amount), Number(invoice.paid_amount));
+  const kind = manualReminderKind(invoice.due_date, doualaToday());
+  const upcoming = kind === "invoice_due_3d" || kind === "invoice_due_0d";
+  const due = formatDate(invoice.due_date);
+  const number = invoice.number ?? invoice.id;
   const { sendCrmEmail } = await import("@/lib/mail");
   const result = await sendCrmEmail({
     mailbox: "noreply",
     to,
-    subject: `Relance — facture ${invoice.number ?? ""} — Groupe Kalao`,
+    subject: upcoming
+      ? `Rappel : la facture ${number} arrive à échéance le ${due}`
+      : `Relance : facture ${number} en attente de règlement`,
     body: [
       "Bonjour,",
       "",
-      `Facture ${invoice.number ?? invoice.id} — ${invoice.companies?.name ?? "Client"}.`,
-      `Montant : ${formatMoney(invoice.amount)}.`,
-      `Déjà encaissé : ${formatMoney(invoice.paid_amount)}.`,
-      `Reste dû : ${formatMoney(remaining)}.`,
-      invoice.due_date ? `Échéance : ${formatDate(invoice.due_date)}.` : "",
+      upcoming
+        ? `Nous vous rappelons que la facture ${number} arrive à échéance le ${due}.`
+        : `Sauf erreur de notre part, la facture ${number}, échue le ${due}, reste impayée.`,
+      `Reste à payer : ${formatMoney(remaining)}.`,
       "",
+      upcoming
+        ? "Si le règlement est déjà en cours, merci de ne pas tenir compte de ce message."
+        : "Merci de procéder au règlement ou de nous contacter pour convenir d'un échéancier.",
+      "",
+      "Cordialement,",
       "Groupe Kalao",
       KALAO_CONTACT_EMAIL,
-    ]
-      .filter(Boolean)
-      .join("\n"),
+    ].join("\n"),
     companyId: invoice.company_id,
     contactId: invoice.contact_id,
     invoiceId: invoice.id,
   });
+  if (result.dispatched) {
+    await supabase.rpc("append_audit", {
+      p_table: "invoices",
+      p_row: invoice.id,
+      p_action: "relance",
+      p_reason: `Relance ${kind} envoyée à ${to}`,
+    });
+  }
   return {
     dispatched: result.dispatched,
     to: result.to,
@@ -1321,14 +1620,17 @@ export async function remindInvoiceById(invoiceId: string): Promise<RemindResult
 }
 
 export function toInvoicesListRow(row: InvoiceRow) {
-  const statusMap: Record<string, string> = {
-    paid: "Payée",
-    partially_paid: "Partiel",
-    unpaid: "Impayée",
-    overdue: "En retard",
-    cancelled: "Annulée",
-    draft: "Brouillon",
-  };
+  const today = doualaToday();
+  const label = statusLabel(
+    {
+      status: row.status,
+      isConditional: row.is_conditional,
+      amount: Number(row.amount),
+      paidAmount: Number(row.paid_amount),
+      dueDate: row.due_date,
+    },
+    today
+  );
   return {
     Key: row.id,
     key: row.id,
@@ -1341,18 +1643,16 @@ export function toInvoicesListRow(row: InvoiceRow) {
     Project_Image: "project-01.svg",
     Flag: dossierFlag({ title: row.project })?.src ?? null,
     Due_Date: formatDate(row.due_date),
+    dueDateIso: row.due_date ? String(row.due_date).slice(0, 10) : "",
     Amount: formatMoney(row.amount),
     Paid_Amount: formatMoney(row.paid_amount),
-    Status:
-      row.status === "draft"
-        ? "Brouillon"
-        : row.is_conditional
-          ? "Conditionnelle"
-          : statusMap[row.status] ?? row.status,
+    Status: label,
     amountValue: Number(row.amount),
     paidValue: Number(row.paid_amount),
     companyId: row.company_id,
-    dossierId: row.dossier_id,
+    dossierId: row.dossier_id ?? "",
+    clientEmail: row.contacts?.email?.trim() || row.companies?.email?.trim() || "",
+    storedStatus: row.status,
   };
 }
 
@@ -1382,16 +1682,9 @@ export function toPaymentsListRow(row: PaymentRow) {
     status: row.status ?? "valide",
     DueDate: formatDate(row.invoices?.due_date),
     Due_Date: formatDate(row.paid_at || row.invoices?.due_date),
-    PaymentMethod: cancelled
-      ? "Annulé"
-      : row.method === "cash"
-        ? "Espèces"
-        : row.method === "mobile_money"
-          ? "Mobile money"
-          : row.method === "bank_transfer"
-            ? "Virement"
-            : row.method,
+    PaymentMethod: cancelled ? "Annulé" : paymentMethodLabel(row.method),
     TransactionID: row.transaction_id ?? "—",
+    transactionId: row.transaction_id ?? "",
     companyId: row.invoices?.company_id ?? null,
     invoiceId: row.invoice_id,
   };
@@ -1405,7 +1698,7 @@ export async function fetchActivities(): Promise<ActivityRow[] | null> {
     .select("*")
     .order("created_at", { ascending: false });
   throwIf(error);
-  return (data ?? []) as ActivityRow[];
+  return ((data ?? []) as ActivityRow[]).filter((row) => !row.archived_at);
 }
 
 export async function createActivity(input: {
@@ -1918,6 +2211,12 @@ export interface DossierRow {
   quote_id: string | null;
   bassin_drawn?: boolean;
   updated_at?: string | null;
+  filed_at?: string | null;
+  appointment_at?: string | null;
+  decision_at?: string | null;
+  travel_at?: string | null;
+  passport_expires_at?: string | null;
+  cancel_reason?: string | null;
   companies?: { name: string | null } | null;
   contacts?: { first_name: string; last_name: string; account_type?: string | null } | null;
   dossier_members?: { employee_id: string; employees?: { full_name: string } | null }[];
@@ -2332,7 +2631,7 @@ export function toTimesheetRow(row: PayRunRow, index: number) {
     Task: row.notes || (row.bonus ? `Prime ${formatMoney(row.bonus)}` : "Salaire"),
     CreatedDate: formatDate(row.paid_at || row.period),
     HoursWorked: formatMoney(Number(row.amount) + Number(row.bonus || 0)),
-    Status: row.status === "paid" ? "Approved" : "Pending",
+    Status: row.status === "paid" ? "Payée" : "À payer",
     employeeId: row.employee_id,
   };
 }

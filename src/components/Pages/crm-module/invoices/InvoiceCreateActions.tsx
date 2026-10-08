@@ -13,6 +13,9 @@ export default function InvoiceCreateActions({ onDone }: { onDone: () => void })
       <Link href={all_routes.invoiceGaps} className="btn btn-outline-primary">
         {t("invoicesToComplete")}
       </Link>
+      <Link href={all_routes.financeApprovals} className="btn btn-outline-secondary">
+        Validations
+      </Link>
       <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
         <i className="ti ti-square-rounded-plus-filled me-1" />
         {t("newInvoice")}

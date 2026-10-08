@@ -3,7 +3,8 @@
 import Footer from "@/core/common/footer/footer";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import PredefinedDatePicker from "@/core/common/common-dateRangePicker/PredefinedDatePicker";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
 import SearchInput from "@/core/common/dataTable/dataTableSearch";
 import PageHeader from "@/core/common/page-header/pageHeader";
@@ -20,15 +21,17 @@ import {
 } from "@/lib/crm";
 import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
-import KalaoCashBar from "@/components/docs/KalaoCashBar";
+import CollectPaymentButton from "./CollectPaymentButton";
 import InvoiceEditModal, { type InvoiceEditTarget } from "./InvoiceEditModal";
 import InvoiceCreateActions from "./InvoiceCreateActions";
 import { explainInvoiceError } from "@/lib/invoicing";
 import { t } from "@/lib/i18n";
+import { fetchInvoiceFigures, figureExportRows, type InvoiceFigure } from "@/lib/invoice-figures";
 
 const InvoicesListComponent = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [editRow, setEditRow] = useState<InvoiceEditTarget | null>(null);
+  const statut = useSearchParams().get("statut");
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -38,6 +41,20 @@ const InvoicesListComponent = () => {
     return rows ? rows.map(toInvoicesListRow) : null;
   }, []);
   const { rows: data, live, reload } = useLiveRows(InvoicesListData, loadInvoices);
+  const [figures, setFigures] = useState<InvoiceFigure[]>([]);
+  useEffect(() => {
+    void fetchInvoiceFigures()
+      .then((rows) => {
+        if (rows) setFigures(rows);
+      })
+      .catch(() => setFigures([]));
+  }, [data]);
+  const shown = useMemo(() => {
+    if (statut === "retard") {
+      return data.filter((row) => String(row.Status ?? "").startsWith("En retard"));
+    }
+    return data;
+  }, [data, statut]);
   const columns = [
     {
       title: "Invoice ID",
@@ -186,9 +203,19 @@ const InvoicesListComponent = () => {
                 <i className="ti ti-send me-1" /> {t("emitInvoice")}
               </button>
             ) : null}
+            <CollectPaymentButton
+              invoiceId={record.key}
+              number={record.Invoice_ID}
+              amount={record.amountValue}
+              paid={record.paidValue}
+              status={record.Status}
+              onDone={() => void reload()}
+            />
             <button
               type="button"
               className="dropdown-item"
+              disabled={!record.clientEmail}
+              title={record.clientEmail ? "Envoyer la relance" : "Ce client n'a pas d'adresse e-mail."}
               onClick={async () => {
                 try {
                   const result = await remindInvoiceById(record.key);
@@ -237,26 +264,31 @@ const InvoicesListComponent = () => {
             headerExtra={
               live ? (
                 <>
-                  <KalaoCashBar
-                    onDone={reload}
-                    revision={data
-                      .filter((row) => Boolean(rowLiveId(row)))
-                      .map((row) => `${rowLiveId(row)}:${row.Paid_Amount}:${row.Status}`)
-                      .join("|")}
-                  />
                   <KalaoExportBar
                     filename="factures-kalao"
-                    headers={["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]}
-                    rows={data
-                      .filter((row) => Boolean(rowLiveId(row)))
-                      .map((row) => [
-                        row.Invoice_ID,
-                        row.Client,
-                        row.Project,
-                        row.Amount,
-                        row.Paid_Amount,
-                        row.Status,
-                      ])}
+                    headers={
+                      figures.length
+                        ? ["Facture", "Ancien numéro", "Montant", "Encaissé", "Reste dû", "Statut", "Échéance"]
+                        : ["Facture", "Client", "Projet", "Montant", "Encaisse", "Statut"]
+                    }
+                    rows={
+                      figures.length
+                        ? figureExportRows(
+                            figures.filter((row) =>
+                              shown.some((item) => (item as { key?: string }).key === row.id)
+                            )
+                          )
+                        : data
+                            .filter((row) => Boolean(rowLiveId(row)))
+                            .map((row) => [
+                              row.Invoice_ID,
+                              row.Client,
+                              row.Project,
+                              row.Amount,
+                              row.Paid_Amount,
+                              row.Status,
+                            ])
+                    }
                     printHref={
                       rowLiveId(data[0]) ? docHref("invoice", rowLiveId(data[0]) as string) : null
                     }
@@ -734,7 +766,7 @@ const InvoicesListComponent = () => {
               <div className="custom-table table-nowrap">
                 <Datatable
                   columns={columns}
-                  dataSource={data}
+                  dataSource={shown}
                   Selection={true}
                   searchText={searchText}
                 />

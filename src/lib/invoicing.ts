@@ -110,5 +110,15 @@ export function explainInvoiceError(message: string): string {
   if (message.includes("emission_reservee")) return "Le numéro est attribué par l'émission.";
   if (message.includes("brouillon_non_encaisse")) return "Un brouillon ne s'encaisse pas. Émettez la facture d'abord.";
   if (message.includes("facture_figee")) return "Les lignes d'une facture émise ne se modifient plus.";
+  if (message.includes("trop_percu")) return "Trop-perçu refusé : le montant dépasse le reste dû.";
+  if (message.includes("validation_requise")) return "Cette modification doit être validée par la direction.";
+  if (message.includes("motif_obligatoire")) return "Le motif est obligatoire.";
+  if (message.includes("montant_fige")) return "Ce montant est verrouillé.";
+  if (message.includes("paiements_ouverts")) return "Annulez d'abord les encaissements de cette facture.";
+  if (message.includes("auteur_interdit")) return "L'auteur ne peut pas valider ni annuler sa propre écriture.";
+  if (message.includes("reference_requise")) return "La référence de transaction est obligatoire, sauf pour les espèces.";
+  if (message.includes("mode_invalide")) return "Mode de paiement inconnu.";
+  if (message.includes("mois_cloture")) return "Cette période est clôturée.";
+  if (message.includes("annulation_reservee")) return "Annulation réservée à la finance ou à la direction.";
   return message;
 }

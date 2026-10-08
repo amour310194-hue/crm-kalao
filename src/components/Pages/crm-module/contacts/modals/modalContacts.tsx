@@ -26,6 +26,7 @@ import TextEditor from "@/core/common/texteditor/texteditor";
 import Link from "next/link";
 import { all_routes } from "@/router/all_routes";
 import {
+  clientDisplayName,
   closeBootstrapChrome,
   createContact,
   emptyUuid,
@@ -35,6 +36,7 @@ import {
   updateContact,
   type ContactRow,
 } from "@/lib/crm";
+import { findDuplicates } from "@/lib/clients";
 
 type ModalContactsProps = {
   selectedId?: string | null;
@@ -62,7 +64,21 @@ const ModalContacts = ({ selectedId, onSaved, onDelete }: ModalContactsProps) =>
       phone: phone || vals.phone || null,
       company_id: emptyUuid(vals.company_id),
       account_type: (isCompany ? "company" : "person") as "person" | "company",
+      source: vals.source || null,
+      city: vals.city || null,
+      nationality: vals.nationality || null,
+      birth_date: vals.birth_date || null,
     };
+    const peers = (await fetchContacts()) ?? [];
+    const dupes = findDuplicates(peers, payload, id ?? undefined);
+    if (
+      dupes.length &&
+      !window.confirm(
+        `Doublon possible : ${dupes.map((row) => clientDisplayName(row)).join(", ")}. Enregistrer quand même ?`
+      )
+    ) {
+      return;
+    }
     if (id) {
       await updateContact(id, payload);
       onSaved?.();
@@ -491,12 +507,15 @@ const options2 = [
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Phone 1</label>
+                          <label className="form-label">
+                            Téléphone <span className="text-danger">*</span>
+                          </label>
                           <CommonPhoneInput
                             value={phone}
                             onChange={setPhone}
-                            placeholder="(201) 555-0123"
+                            placeholder="+237 6XX XX XX XX"
                           />
+                          <div className="form-text">Format international, +237 par défaut.</div>
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -511,8 +530,32 @@ const options2 = [
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Fax</label>
-                          <input type="text" className="form-control" />
+                          <label className="form-label">Profession</label>
+                          <input type="text" className="form-control" name="job_title" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Ville</label>
+                          <input type="text" className="form-control" name="city" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Nationalité</label>
+                          <input type="text" className="form-control" name="nationality" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Date de naissance</label>
+                          <input type="date" className="form-control" name="birth_date" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Source</label>
+                          <input type="text" className="form-control" name="source" placeholder="Recommandation, agence…" />
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -1039,12 +1082,15 @@ const options2 = [
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Phone 1</label>
+                          <label className="form-label">
+                            Téléphone <span className="text-danger">*</span>
+                          </label>
                           <CommonPhoneInput
                             value={phone}
                             onChange={setPhone}
-                            placeholder="(201) 555-0123"
+                            placeholder="+237 6XX XX XX XX"
                           />
+                          <div className="form-text">Format international, +237 par défaut.</div>
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -1059,8 +1105,32 @@ const options2 = [
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Fax</label>
-                          <input type="text" className="form-control" />
+                          <label className="form-label">Profession</label>
+                          <input type="text" className="form-control" name="job_title" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Ville</label>
+                          <input type="text" className="form-control" name="city" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Nationalité</label>
+                          <input type="text" className="form-control" name="nationality" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Date de naissance</label>
+                          <input type="date" className="form-control" name="birth_date" />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Source</label>
+                          <input type="text" className="form-control" name="source" placeholder="Recommandation, agence…" />
                         </div>
                       </div>
                       <div className="col-md-6">

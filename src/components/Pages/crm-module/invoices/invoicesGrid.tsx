@@ -14,10 +14,10 @@ import {
   toInvoicesListRow,
 } from "@/lib/crm";
 import InvoiceCreateActions from "./InvoiceCreateActions";
+import CollectPaymentButton from "./CollectPaymentButton";
 import { explainInvoiceError } from "@/lib/invoicing";
 import { t } from "@/lib/i18n";
 import { docHref, isLiveId, liveHref } from "@/lib/docs";
-import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import { InvoicesListData } from "../../../../core/json/invoicesListData";
 
 const InvoicesGrid = () => {
@@ -40,18 +40,6 @@ const InvoicesGrid = () => {
             badgeCount={rows.length}
             showModuleTile={false}
             showExport={true}
-            headerExtra={
-              live ? (
-                <KalaoCashBar
-                  onDone={reload}
-                  revision={rows
-                    .map((row: { key?: string; Key?: string; Paid_Amount?: string; Status?: string }) =>
-                      `${row.key || row.Key}:${row.Paid_Amount}:${row.Status}`
-                    )
-                    .join("|")}
-                />
-              ) : null
-            }
           />
           {/* End Page Header */}
           {/* table header */}
@@ -392,9 +380,19 @@ const InvoicesGrid = () => {
                                 <i className="ti ti-send me-1" /> {t("emitInvoice")}
                               </button>
                             ) : null}
+                            <CollectPaymentButton
+                              invoiceId={invoice.key || invoice.Key}
+                              number={invoice.Invoice_ID}
+                              amount={invoice.amountValue}
+                              paid={invoice.paidValue}
+                              status={invoice.Status}
+                              onDone={() => void reload()}
+                            />
                             <button
                               type="button"
                               className="dropdown-item d-inline-flex align-items-center"
+                              disabled={!invoice.clientEmail}
+                              title={invoice.clientEmail ? "Envoyer la relance" : "Ce client n'a pas d'adresse e-mail."}
                               onClick={async () => {
                                 try {
                                   const result = await remindInvoiceById(

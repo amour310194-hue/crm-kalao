@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 /* eslint-disable @next/next/no-img-element */
 
 import HeaderSearchmodal from "../header-searchModal/headerSearchmodal";
@@ -10,6 +10,7 @@ import { setMiniSidebar, setMobileSidebar } from "@/core/redux/sidebarSlice";
 import { toggleMiniSidebarDom } from "@/lib/mini-sidebar";
 import { updateTheme } from "@/core/redux/themeSlice";
 import Link from "next/link";
+import CommandPalette from "@/components/search/CommandPalette";
 import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
@@ -100,19 +101,26 @@ const Header = () => {
     if (themeSettings["dir"] === "rtl" && key !== "dir") {
       dispatch(updateTheme({ dir: "ltr" }));
     }
-    dispatch(updateTheme({ [key]: value }));
+    dispatch(
+      updateTheme(
+        key === "data-bs-theme"
+          ? { [key]: value, themeChoice: value }
+          : { [key]: value }
+      )
+    );
   };
 
   useEffect(() => {
     const htmlElement: any = document.documentElement;
     Object.entries(themeSettings).forEach(([key, value]) => {
-      if (key === "data-layout") return;
+      if (key === "data-layout" || key === "themeChoice") return;
       htmlElement.setAttribute(key, value);
     });
   }, [themeSettings]);
 
   return (
     <>
+      <CommandPalette />
       {/* Topbar Start */}
       <header className="navbar-header">
         <div className="page-container topbar-menu">
@@ -228,6 +236,30 @@ const Header = () => {
                 <i className="ti ti-moon fs-16" />
               </Link>
             </div>
+            {process.env.NEXT_PUBLIC_THEME_KALAO === "1" ? (
+              <div className="header-item d-none d-sm-flex me-2">
+                <button
+                  type="button"
+                  className="topbar-link btn"
+                  aria-pressed={themeSettings["data-density"] === "compact"}
+                  aria-label={
+                    themeSettings["data-density"] === "compact"
+                      ? "Densité confortable des tableaux"
+                      : "Densité compacte des tableaux"
+                  }
+                  onClick={() =>
+                    dispatch(
+                      updateTheme({
+                        "data-density":
+                          themeSettings["data-density"] === "compact" ? "comfortable" : "compact",
+                      })
+                    )
+                  }
+                >
+                  {themeSettings["data-density"] === "compact" ? "Confort" : "Compact"}
+                </button>
+              </div>
+            ) : null}
             {/* pages */}
             <div className="header-item d-none d-sm-flex">
               <div className="dropdown me-2">

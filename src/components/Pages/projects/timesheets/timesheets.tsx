@@ -30,7 +30,7 @@ const TimesheetsComponent = () => {
 
   const columns = [
     {
-      title: "Timesheet ID",
+      title: "Bulletin",
       dataIndex: "TimesheetID",
       render: (text: any, record: { key?: string }) => (
         <h6 className="d-flex align-items-center fs-14 fw-normal mb-0">
@@ -47,7 +47,7 @@ const TimesheetsComponent = () => {
       sorter: (a: any, b: any) => a.TimesheetID.length - b.TimesheetID.length,
     },
     {
-      title: "Employee Name",
+      title: "Collaborateur",
       dataIndex: "EmployeeName",
       render: (text: any, record: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
@@ -77,7 +77,7 @@ const TimesheetsComponent = () => {
       sorter: (a: any, b: any) => a.EmployeeName.length - b.EmployeeName.length,
     },
     {
-      title: "Project Name",
+      title: "Période",
       dataIndex: "ProjectName",
       render: (text: any, record: any) => (
         <h6 className="d-flex align-items-center fs-14 fw-medium mb-0">
@@ -96,27 +96,27 @@ const TimesheetsComponent = () => {
       sorter: (a: any, b: any) => a.ProjectName.length - b.ProjectName.length,
     },
     {
-      title: "Task",
+      title: "Libellé",
       dataIndex: "Task",
       sorter: (a: any, b: any) => a.Task.length - b.Task.length,
     },
     {
-      title: "Created Date",
+      title: "Date",
       dataIndex: "CreatedDate",
       sorter: (a: any, b: any) => a.CreatedDate.length - b.CreatedDate.length,
     },
     {
-      title: "Hours Worked",
+      title: "Montant",
       dataIndex: "HoursWorked",
       sorter: (a: any, b: any) => a.HoursWorked.length - b.HoursWorked.length,
     },
     {
-      title: "Status",
+      title: "Statut",
       dataIndex: "Status",
       render: (text: any) => (
         <span
           className={`badge badge-status ${
-            text === "Approved" ? "bg-success" : "bg-purple"
+            text === "Payée" ? "bg-success" : "bg-purple"
           }`}
         >
           {text}
@@ -138,7 +138,7 @@ const TimesheetsComponent = () => {
             <i className="ti ti-dots-vertical" />
           </Link>
           <div className="dropdown-menu dropdown-menu-right">
-            {live && record.Status === "Pending" ? (
+            {live && record.Status === "À payer" ? (
               <Link
                 className="dropdown-item"
                 href="#"
@@ -152,7 +152,7 @@ const TimesheetsComponent = () => {
                   }
                 }}
               >
-                <i className="ti ti-checks" /> Mark as Paid
+                <i className="ti ti-checks" /> Marquer payée
               </Link>
             ) : null}
             <Link
@@ -161,7 +161,7 @@ const TimesheetsComponent = () => {
               data-bs-toggle="modal"
               data-bs-target="#edit_timesheet"
             >
-              <i className="ti ti-edit text-blue" /> Edit
+              <i className="ti ti-edit text-blue" /> Modifier
             </Link>
             <Link
               className="dropdown-item"
@@ -169,7 +169,7 @@ const TimesheetsComponent = () => {
               data-bs-toggle="modal"
               data-bs-target="#delete_modal"
             >
-              <i className="ti ti-trash" /> Delete
+              <i className="ti ti-trash" /> Supprimer
             </Link>
           </div>
         </div>
@@ -193,9 +193,9 @@ const TimesheetsComponent = () => {
         <div className="content pb-0">
           {/* Page Header */}
           <PageHeader
-            title="Timesheets"
+            title="Paie simple"
             showModuleTile={true}
-            moduleTitle="Projects"
+            moduleTitle="Paie"
             showExport={true}
           />
           {forbidden ? (
@@ -221,7 +221,7 @@ const TimesheetsComponent = () => {
                   data-bs-target="#add_timesheet"
                 >
                   <i className="ti ti-square-rounded-plus-filled me-1" />
-                  Add Log
+                  Ajouter
                 </Link>
               </div>
             </div>
@@ -230,14 +230,14 @@ const TimesheetsComponent = () => {
               <TableToolbar
                 showManageColumns
                 manageColumns={[
-                  "Timesheet ID",
-                  "Employee Name",
-                  "Project Name",
-                  "Task",
+                  "Bulletin",
+                  "Collaborateur",
+                  "Période",
+                  "Libellé",
                   "Date",
-                  "Hours Worked",
-                  "Billable",
-                  "Status",
+                  "Montant",
+                  "Facturable",
+                  "Statut",
                   "Action",
                 ]}
                 filters={[

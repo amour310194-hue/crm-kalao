@@ -1,0 +1,11 @@
+{
+  "name": "Kalao CRM",
+  "short_name": "Kalao",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f4b3a",
+  "icons": [
+    { "src": "/icon.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

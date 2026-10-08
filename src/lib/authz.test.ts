@@ -27,6 +27,7 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/general-settings/security")).toBe(false);
     expect(isPublicPath("/general-settings/profile-settings")).toBe(false);
     expect(isPublicPath("/website-settings/language-web")).toBe(false);
+    expect(isPublicPath("/styleguide")).toBe(false);
   });
 });
 

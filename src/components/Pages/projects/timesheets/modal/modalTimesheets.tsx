@@ -52,7 +52,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title mb-0">Add New Timesheet</h5>
+              <h5 className="modal-title mb-0">Ajouter un bulletin</h5>
               <button
                 type="button"
                 className="btn-close custom-btn-close border p-1 me-0 text-dark"
@@ -67,10 +67,10 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Employee Name <span className="text-danger">*</span>
+                        Collaborateur <span className="text-danger">*</span>
                       </label>
                       <select className="form-select" name="employee_id" required>
-                        <option value="">Select</option>
+                        <option value="">Choisir</option>
                         {employees.length
                           ? employees.map((emp) => (
                               <option key={emp.id} value={emp.id}>
@@ -92,7 +92,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Project Name <span className="text-danger">*</span>
+                        Période <span className="text-danger">*</span>
                       </label>
                       <input
                         className="form-control"
@@ -105,7 +105,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Task Name <span className="text-danger">*</span>
+                        Libellé <span className="text-danger">*</span>
                       </label>
                       <input
                         className="form-control"
@@ -127,7 +127,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-6">
                     <div>
                       <label className="form-label">
-                        From <span className="text-danger">*</span>
+                        Du <span className="text-danger">*</span>
                       </label>
                       <div className="input-group w-auto input-group-flat">
                         <CommonTimePicker
@@ -144,7 +144,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-6">
                     <div>
                       <label className="form-label">
-                        To <span className="text-danger">*</span>
+                        Au <span className="text-danger">*</span>
                       </label>
                       <div className="input-group w-auto input-group-flat">
                         <CommonTimePicker
@@ -174,10 +174,10 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                     data-bs-dismiss="modal"
                     className="btn btn-light"
                   >
-                    Cancel
+                    Annuler
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    Create New
+                    Créer
                   </button>
                 </div>
               </div>
@@ -191,7 +191,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title mb-0">Edit Timesheet</h5>
+              <h5 className="modal-title mb-0">Modifier le bulletin</h5>
               <button
                 type="button"
                 className="btn-close custom-btn-close border p-1 me-0 text-dark"
@@ -206,13 +206,13 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Employee Name <span className="text-danger">*</span>
+                        Collaborateur <span className="text-danger">*</span>
                       </label>
                       <select
                         className="form-select"
                         defaultValue="Albert Morgan"
                       >
-                        <option>Select</option>
+                        <option>Choisir</option>
                         <option>Albert Morgan</option>
                         <option>Katherine Brooks</option>
                         <option>Samantha Reed</option>
@@ -224,10 +224,10 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Project Name <span className="text-danger">*</span>
+                        Période <span className="text-danger">*</span>
                       </label>
                       <select className="form-select" defaultValue="Trip Flow">
-                        <option>Select</option>
+                        <option>Choisir</option>
                         <option>Trip Flow</option>
                         <option>Connect Hub</option>
                         <option>Gig Market</option>
@@ -239,13 +239,13 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Task Name <span className="text-danger">*</span>
+                        Libellé <span className="text-danger">*</span>
                       </label>
                       <select
                         className="form-select"
                         defaultValue="Build real time chat module"
                       >
-                        <option>Select</option>
+                        <option>Choisir</option>
                         <option>Configure travel booking</option>
                         <option>Build real time chat module</option>
                         <option>Develop freelancer module</option>
@@ -267,7 +267,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-6">
                     <div>
                       <label className="form-label">
-                        From <span className="text-danger">*</span>
+                        Du <span className="text-danger">*</span>
                       </label>
                       <div className="input-group w-auto input-group-flat">
                         <CommonTimePicker
@@ -284,7 +284,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-6">
                     <div>
                       <label className="form-label">
-                        To <span className="text-danger">*</span>
+                        Au <span className="text-danger">*</span>
                       </label>
                       <div className="input-group w-auto input-group-flat">
                         <CommonTimePicker
@@ -311,12 +311,12 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <div className="col-lg-12">
                     <div>
                       <label className="form-label">
-                        Status <span className="text-danger">*</span>
+                        Statut <span className="text-danger">*</span>
                       </label>
-                      <select className="form-select" defaultValue="Approved">
-                        <option>Select</option>
-                        <option>Approved</option>
-                        <option>Pending</option>
+                      <select className="form-select" defaultValue="Payée">
+                        <option>Choisir</option>
+                        <option>Payée</option>
+                        <option>À payer</option>
                       </select>
                     </div>
                   </div>
@@ -327,7 +327,7 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                 <div className="d-flex align-items-center justify-content-between w-100">
                   <label className="dropdown-item d-flex align-items-center">
                     <input className="form-check-input m-0 me-2" type="checkbox" />
-                    Billable
+                    Facturable
                   </label>
                   <div className="d-flex align-items-center gap-2 felx-grow-1 w-100 justify-content-end">
                     <button
@@ -335,10 +335,10 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                       data-bs-dismiss="modal"
                       className="btn btn-light"
                     >
-                      Cancel
+                      Annuler
                     </button>
                     <button type="button" className="btn btn-primary">
-                      Save Changes
+                      Enregistrer
                     </button>
                   </div>
                 </div>
@@ -358,9 +358,9 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   <i className="ti ti-trash fs-24" />
                 </span>
               </div>
-              <h5 className="mb-1">Delete Confirmation</h5>
+              <h5 className="mb-1">Confirmer la suppression</h5>
               <p className="mb-3">
-                Are you sure you want to remove log you selected.
+                Confirmez la suppression de ce bulletin.
               </p>
               <div className="d-flex justify-content-center">
                 <Link
@@ -368,14 +368,14 @@ const ModalTimesheets = ({ onSaved }: ModalTimesheetsProps) => {
                   className="btn btn-light position-relative z-1 me-2 w-100"
                   data-bs-dismiss="modal"
                 >
-                  Cancel
+                  Annuler
                 </Link>
                 <Link
                   href="#"
                   className="btn btn-primary position-relative z-1 w-100"
                   data-bs-dismiss="modal"
                 >
-                  Yes, Delete
+                  Supprimer
                 </Link>
               </div>
             </div>

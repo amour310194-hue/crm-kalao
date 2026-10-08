@@ -6,7 +6,9 @@ import { KALAO_NOREPLY_EMAIL, KALAO_NOREPLY_FROM } from "@/lib/org";
 import { makeMessageId, textToHtml } from "@/lib/mail/html";
 import { buildResendBody, deliver, outgoingSummary } from "@/lib/mail/server/send";
 
-export type ReminderKind = "invoice_due_3d" | "invoice_overdue_7d";
+import { manualReminderKind, scheduledReminderKind, type ReminderKind } from "@/lib/finance-rules";
+
+export type { ReminderKind };
 
 export type InvoiceForReminder = {
   id: string;
@@ -36,10 +38,11 @@ export function reminderKindFor(invoice: InvoiceForReminder, now = new Date()): 
   if (!invoice.due_date || rest <= 0) return null;
   if (invoice.is_conditional) return null;
   if (["cancelled", "paid", "draft"].includes(invoice.status)) return null;
-  const due = invoice.due_date.slice(0, 10);
-  if (due === doualaDay(3, now)) return "invoice_due_3d";
-  if (due === doualaDay(-7, now)) return "invoice_overdue_7d";
-  return null;
+  return scheduledReminderKind(invoice.due_date, doualaDay(0, now));
+}
+
+export function manualKindFor(invoice: InvoiceForReminder, now = new Date()): ReminderKind {
+  return manualReminderKind(invoice.due_date, doualaDay(0, now));
 }
 
 const money = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
@@ -58,34 +61,41 @@ export function reminderContent(kind: ReminderKind, invoice: InvoiceForReminder)
     month: "long",
     year: "numeric",
   });
-  const subject =
-    kind === "invoice_due_3d"
-      ? `Rappel : la facture ${number} arrive à échéance le ${due}`
-      : `Relance : facture ${number} en attente de règlement`;
-  const lines =
-    kind === "invoice_due_3d"
-      ? [
-          `Bonjour ${name},`,
-          "",
-          `Nous vous rappelons que la facture ${number} arrive à échéance le ${due}.`,
-          `Reste à payer : ${rest}.`,
-          "",
-          "Si le règlement est déjà en cours, merci de ne pas tenir compte de ce message.",
-          "",
-          "Cordialement,",
-          "Groupe Kalao",
-        ]
-      : [
-          `Bonjour ${name},`,
-          "",
-          `Sauf erreur de notre part, la facture ${number}, échue le ${due}, reste impayée.`,
-          `Reste à payer : ${rest}.`,
-          "",
-          "Merci de procéder au règlement ou de nous contacter pour convenir d'un échéancier.",
-          "",
-          "Cordialement,",
-          "Groupe Kalao",
-        ];
+  const upcoming = kind === "invoice_due_3d" || kind === "invoice_due_0d";
+  const when =
+    kind === "invoice_due_0d"
+      ? `arrive à échéance aujourd'hui (${due})`
+      : kind === "invoice_due_3d"
+        ? `arrive à échéance le ${due}`
+        : kind === "invoice_overdue_3d"
+          ? `échue le ${due}, est impayée depuis 3 jours`
+          : `échue le ${due}, reste impayée`;
+  const subject = upcoming
+    ? `Rappel : la facture ${number} arrive à échéance le ${due}`
+    : `Relance : facture ${number} en attente de règlement`;
+  const lines = upcoming
+    ? [
+        `Bonjour ${name},`,
+        "",
+        `Nous vous rappelons que la facture ${number} ${when}.`,
+        `Reste à payer : ${rest}.`,
+        "",
+        "Si le règlement est déjà en cours, merci de ne pas tenir compte de ce message.",
+        "",
+        "Cordialement,",
+        "Groupe Kalao",
+      ]
+    : [
+        `Bonjour ${name},`,
+        "",
+        `Sauf erreur de notre part, la facture ${number}, ${when}.`,
+        `Reste à payer : ${rest}.`,
+        "",
+        "Merci de procéder au règlement ou de nous contacter pour convenir d'un échéancier.",
+        "",
+        "Cordialement,",
+        "Groupe Kalao",
+      ];
   return { subject, html: textToHtml(lines.join("\n")) };
 }
 
@@ -94,7 +104,7 @@ export async function runInvoiceReminders(
   options: { send: boolean; now?: Date }
 ): Promise<ReminderResult[]> {
   const now = options.now ?? new Date();
-  const days = [doualaDay(3, now), doualaDay(-7, now)];
+  const days = [doualaDay(3, now), doualaDay(0, now), doualaDay(-3, now), doualaDay(-7, now)];
   const { data } = await admin
     .from("invoices")
     .select(

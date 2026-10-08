@@ -21,6 +21,16 @@ import {
   type LeadRow,
   type QuoteRow,
 } from "@/lib/crm";
+import {
+  computedInvoiceStatus,
+  doualaToday,
+  invoiceCounts,
+  isUpcomingDue,
+  remainingDue,
+  summarizeFigures,
+} from "@/lib/finance-rules";
+import { fetchInvoiceFigures, toFigureSnapshot } from "@/lib/invoice-figures";
+import { missingCoordinates } from "@/lib/clients";
 import { useCallback, useEffect, useState } from "react";
 
 export interface CountValue {
@@ -65,6 +75,7 @@ export interface KalaoKpis {
   pipeline: CountValue[];
   companies: number;
   contacts: number;
+  missingContacts: number;
   leads: number;
   leadsByStatus: CountValue[];
   leadsByPole: CountValue[];
@@ -104,6 +115,10 @@ export interface KalaoKpis {
     members: string;
   }[];
   deadlines: DeadlineRow[];
+  upcoming: DeadlineRow[];
+  overdueCount: number;
+  overdueAmount: number;
+  conditionalAmount: number;
   activitiesOpen: number;
 }
 
@@ -121,6 +136,7 @@ const LEAD_STATUS_FR: Record<string, string> = {
   qualified: "Qualifié",
   unqualified: "Non qualifié",
   converted: "Converti",
+  lost: "Perdu",
 };
 
 const LEAD_TONE: Record<string, string> = {
@@ -129,6 +145,7 @@ const LEAD_TONE: Record<string, string> = {
   qualified: "success",
   unqualified: "danger",
   converted: "success",
+  lost: "danger",
 };
 
 const KIND_FR: Record<DossierKind, string> = {
@@ -235,7 +252,15 @@ function buildDeadlines(
   activities.forEach((a) => push(`act-${a.id}`, a.subject, a.due_at, "Activité"));
   dossiers.forEach((d) => push(`dos-${d.id}`, d.title, d.end_at, KIND_FR[d.kind] ?? "Dossier"));
   invoices
-    .filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft" && !i.is_conditional)
+    .filter((i) => {
+      const counts = invoiceCounts({
+        status: i.status,
+        isConditional: i.is_conditional,
+        amount: Number(i.amount),
+        paidAmount: Number(i.paid_amount),
+      });
+      return counts.exigible;
+    })
     .forEach((i) =>
       push(
         `inv-${i.id}`,
@@ -280,7 +305,7 @@ async function safeFetch<T>(label: string, fn: () => Promise<T | null>): Promise
 }
 
 export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
-  const [deals, invoices, payments, quotes, leads, contacts, companies, dossiers, activities] =
+  const [deals, invoices, payments, quotes, leads, contacts, companies, dossiers, activities, figures] =
     await Promise.all([
       safeFetch("deals", fetchDeals),
       safeFetch("invoices", fetchInvoices),
@@ -291,48 +316,114 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
       safeFetch("companies", fetchCompanies),
       safeFetch("dossiers", fetchDossiers),
       safeFetch("activities", fetchActivities),
+      safeFetch("figures", fetchInvoiceFigures),
     ]);
 
   if (!deals || !invoices || !payments) return null;
 
-  const today = todayIso();
+  const today = doualaToday();
+  const openPayments = payments.filter((p) => p.status !== "annule");
+  const fromView = figures
+    ? summarizeFigures(
+        figures.map(toFigureSnapshot)
+      )
+    : null;
+  const collected = fromView ? fromView.collected : openPayments.reduce((s, p) => s + Number(p.amount), 0);
+  const figure = (invoice: InvoiceRow) =>
+    invoiceCounts({
+      status: invoice.status,
+      isConditional: invoice.is_conditional,
+      amount: Number(invoice.amount),
+      paidAmount: Number(invoice.paid_amount),
+    });
+  const invoiced = fromView
+    ? fromView.invoiced
+    : invoices.filter((i) => figure(i).invoiced).reduce((s, i) => s + Number(i.amount), 0);
+  const exigible = invoices.filter((i) => figure(i).exigible);
+  const conditionalAmount = fromView
+    ? fromView.conditional
+    : invoices
+        .filter((i) => figure(i).conditional)
+        .reduce((s, i) => s + remainingDue(Number(i.amount), Number(i.paid_amount)), 0);
+  const overdue = fromView
+    ? (figures ?? []).filter((row) => row.computed_status === "overdue")
+    : invoices.filter(
+        (i) =>
+          computedInvoiceStatus(
+            {
+              status: i.status,
+              isConditional: i.is_conditional,
+              amount: Number(i.amount),
+              paidAmount: Number(i.paid_amount),
+              dueDate: i.due_date,
+            },
+            today
+          ) === "overdue"
+      );
+  const upcoming = figures
+    ? figures
+        .filter(
+          (row) =>
+            (row.computed_status === "issued" || row.computed_status === "partially_paid") &&
+            isUpcomingDue(row.due_date, today, 30)
+        )
+        .map((row) => ({
+          key: `inv-${row.id}`,
+          title: `${row.number ?? row.legacy_ref ?? "Facture"} — ${formatMoney(row.remaining)}`,
+          date: String(row.due_date),
+          dateLabel: formatDate(row.due_date),
+          origin: "Facture",
+        }))
+    : invoices
+        .filter((i) => figure(i).exigible && isUpcomingDue(i.due_date, today, 30))
+        .map((i) => ({
+          key: `inv-${i.id}`,
+          title: `${i.number ?? i.legacy_ref ?? "Facture"} — ${formatMoney(remainingDue(Number(i.amount), Number(i.paid_amount)))}`,
+          date: String(i.due_date),
+          dateLabel: formatDate(i.due_date),
+          origin: "Facture",
+        }));
   const dealRows = deals as DealRow[];
   const closedWon = dealRows.filter((d) => d.stage === "won");
   const closedLost = dealRows.filter((d) => d.stage === "lost");
   const active = dealRows.filter((d) => d.stage !== "won" && d.stage !== "lost");
   const decided = closedWon.length + closedLost.length;
 
-  const collected = payments.reduce((s, p) => s + Number(p.amount), 0);
-  const invoiced = invoices
-    .filter((i) => i.status !== "cancelled" && i.status !== "draft")
-    .reduce((s, i) => s + Number(i.amount), 0);
-  const unpaid = invoices.filter(
-    (i) => i.status !== "paid" && i.status !== "cancelled" && i.status !== "draft" && !i.is_conditional
-  );
   const pendingQuotes = (quotes ?? []).filter((q) => q.status === "draft" || q.status === "sent");
   const openActivities = (activities ?? []).filter((a) => !a.done);
 
   const months = lastMonths(6).map(({ key, label }) => ({
     label,
     invoiced: invoices
-      .filter((i) => i.status !== "cancelled" && i.status !== "draft" && i.created_at && monthKey(i.created_at) === key)
-      .reduce((s, i) => s + Number(i.amount), 0),
-    collected: payments
+      .filter((invoice) => {
+        const fig = figures?.find((row) => row.id === invoice.id);
+        const counts = fig
+          ? ["issued", "partially_paid", "paid", "overdue", "conditional"].includes(fig.computed_status)
+          : figure(invoice).invoiced;
+        return counts && invoice.created_at && monthKey(invoice.created_at) === key;
+      })
+      .reduce((sum, invoice) => {
+        const fig = figures?.find((row) => row.id === invoice.id);
+        return sum + Number(fig?.amount ?? invoice.amount);
+      }, 0),
+    collected: openPayments
       .filter((p) => p.paid_at && monthKey(p.paid_at) === key)
       .reduce((s, p) => s + Number(p.amount), 0),
   }));
 
   return {
     collected,
-    collectedMtd: payments
+    collectedMtd: openPayments
       .filter((p) => p.paid_at && monthKey(p.paid_at) === monthKey(new Date()))
       .reduce((s, p) => s + Number(p.amount), 0),
-    collectedYtd: payments
+    collectedYtd: openPayments
       .filter((p) => p.paid_at && monthKey(p.paid_at).startsWith(monthKey(new Date()).slice(0, 4)))
       .reduce((s, p) => s + Number(p.amount), 0),
     invoiced,
-    outstanding: unpaid.reduce((s, i) => s + invoiceDue(i), 0),
-    unpaidCount: unpaid.length,
+    outstanding: fromView
+      ? fromView.outstanding
+      : exigible.reduce((s, i) => s + remainingDue(Number(i.amount), Number(i.paid_amount)), 0),
+    unpaidCount: fromView ? fromView.unpaidCount : exigible.length,
     quotesPendingCount: pendingQuotes.length,
     quotesPendingValue: pendingQuotes.reduce((s, q) => s + quoteValue(q), 0),
     dealsActive: active.length,
@@ -359,6 +450,9 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
     ),
     companies: (companies ?? []).length,
     contacts: (contacts ?? []).length,
+    missingContacts: (contacts ?? []).filter(
+      (row) => row.status !== "prospect" && !row.merged_into && missingCoordinates(row)
+    ).length,
     leads: (leads ?? []).length,
     leadsByStatus: groupBy(
       leads ?? [],
@@ -420,6 +514,12 @@ export async function fetchKalaoKpis(): Promise<KalaoKpis | null> {
           .join(", ") || "Équipe Kalao",
     })),
     deadlines: buildDeadlines(activities ?? [], dossiers ?? [], invoices),
+    upcoming,
+    overdueCount: fromView ? fromView.overdueCount : overdue.length,
+    overdueAmount: fromView
+      ? fromView.overdueAmount
+      : overdue.reduce((s, i) => s + remainingDue(Number((i as InvoiceRow).amount), Number((i as InvoiceRow).paid_amount)), 0),
+    conditionalAmount,
     activitiesOpen: openActivities.length,
   };
 }

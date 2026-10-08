@@ -17,7 +17,6 @@ import { fetchPayments, toPaymentsListRow } from "@/lib/crm";
 import { canMutateFinance } from "@/lib/roles";
 import { docHref, isLiveId, liveHref, rowLiveId } from "@/lib/docs";
 import KalaoExportBar from "@/components/docs/KalaoExportBar";
-import KalaoCashBar from "@/components/docs/KalaoCashBar";
 import PaymentEditModal, { type PaymentEditTarget } from "./PaymentEditModal";
 
 function invoiceDocHref(invoiceId?: string | null) {
@@ -155,13 +154,6 @@ const PaymentsComponent = () => {
             headerExtra={
               live ? (
                 <>
-                  <KalaoCashBar
-                    onDone={reload}
-                    revision={data
-                      .filter((row) => Boolean(rowLiveId(row)))
-                      .map((row) => `${rowLiveId(row)}:${row.Amount}:${row.InvoiceID}`)
-                      .join("|")}
-                  />
                   <KalaoExportBar
                     filename="paiements-kalao"
                     headers={["Facture", "Client", "Montant", "Echeance", "Transaction"]}

@@ -153,7 +153,9 @@ export function entityForDoc(kind: string): KalaoEntity {
     kind === "payslip" ||
     kind === "invoice" ||
     kind === "quote" ||
-    kind === "receipt"
+    kind === "receipt" ||
+    kind === "credit_note" ||
+    kind === "statement"
   ) {
     return KALAO_CONSULTING;
   }

@@ -1,0 +1,295 @@
+/*
+  Thème Signal. Inactif tant que <html data-theme-kalao> est absent.
+  Activer avec NEXT_PUBLIC_THEME_KALAO=1.
+*/
+
+html[data-theme-kalao] {
+  --kalao-brand: #0071bc;
+  --kalao-brand-hover: #005a96;
+  --kalao-accent: #fbb03b;
+  --kalao-accent-ink: #6b4100;
+  --kalao-accent-bg: #fff6e4;
+  --kalao-bg: #f3f6f8;
+  --kalao-surface: #ffffff;
+  --kalao-ink: #102033;
+  --kalao-muted: #3d5166;
+  --kalao-line: #d7e0e8;
+  --kalao-link: #0a4f80;
+  --kalao-nav: #0b3a5b;
+  --kalao-nav-ink: #e8f1f8;
+  --kalao-space-1: 4px;
+  --kalao-space-2: 8px;
+  --kalao-space-3: 12px;
+  --kalao-space-4: 16px;
+  --kalao-space-5: 24px;
+  --kalao-space-6: 32px;
+  --kalao-space-8: 48px;
+  --kalao-radius: 4px;
+  --kalao-radius-lg: 8px;
+  --kalao-shadow-1: 0 1px 2px rgba(16, 32, 51, 0.08);
+  --kalao-shadow-2: 0 8px 24px rgba(16, 32, 51, 0.06);
+  --kalao-shadow-3: 0 16px 40px rgba(16, 32, 51, 0.12);
+  --kalao-text-xs: 12px;
+  --kalao-text-sm: 13px;
+  --kalao-text-md: 14px;
+  --kalao-text-lg: 16px;
+  --kalao-text-xl: 20px;
+  --kalao-text-2xl: 28px;
+  --primary: #0071bc;
+  --primary-hover: #005a96;
+  --primary-rgb: 0, 113, 188;
+  --primary-transparent: #e5f2fb;
+  --secondary: #3d5166;
+  --secondary-hover: #2c3e50;
+  --secondary-rgb: 61, 81, 102;
+  --success: #0c6b3c;
+  --success-hover: #0a5a32;
+  --success-rgb: 12, 107, 60;
+  --success-transparent: #e5f6ec;
+  --warning: #7a4e00;
+  --warning-hover: #684300;
+  --warning-rgb: 122, 78, 0;
+  --warning-transparent: #fff3d6;
+  --danger: #9f1239;
+  --danger-hover: #881030;
+  --danger-rgb: 159, 18, 57;
+  --danger-transparent: #fde8e8;
+  --info: #0a4f80;
+  --info-hover: #084268;
+  --info-rgb: 10, 79, 128;
+  --info-transparent: #e5f2fb;
+  --light: #f3f6f8;
+  --dark: #102033;
+  --white: #ffffff;
+  --heading-color: #102033;
+  --body-color: #3d5166;
+  --body-color-rgb: 61, 81, 102;
+  --border-color: #d7e0e8;
+  --gray-100: #e6edf3;
+  --gray-200: #d7e0e8;
+  --gray-500: #5b6e82;
+  --gray-600: #3d5166;
+  --gray-900: #102033;
+  --box-shadow-sm: var(--kalao-shadow-1);
+  --box-shadow: var(--kalao-shadow-2);
+  --box-shadow-lg: var(--kalao-shadow-3);
+  --menu-bg: #0b3a5b;
+  --menu-item-color: #e8f1f8;
+  --menu-item-heading: #e8f1f8;
+  --menu-title-color: #b7c7d6;
+  --menu-item-hover-color: #ffffff;
+  --menu-item-hover-bg: #0071bc;
+  --menu-item-active-color: #ffffff;
+  --menu-item-active-bg: #0071bc;
+  --menu-active-color: #ffffff;
+  --menu-active-bg: #0071bc;
+  --submenu-active-color: #ffffff;
+  --menu-item-border: rgba(255, 255, 255, 0.12);
+  --menu-icon-bg: rgba(255, 255, 255, 0.08);
+  --topbar-bg: #ffffff;
+  --topbar-item-color: #102033;
+  --topbar-item-bg: #f3f6f8;
+  --topbar-item-border: #d7e0e8;
+  --topbar-item-hover-color: #0071bc;
+  --topbar-item-hover-bg: #e5f2fb;
+  --bs-primary: #0071bc;
+  --bs-primary-rgb: 0, 113, 188;
+  --bs-body-bg: #f3f6f8;
+  --bs-body-color: #102033;
+  --bs-border-color: #d7e0e8;
+  --bs-secondary-bg: #ffffff;
+  --bs-link-color: #0a4f80;
+  --bs-link-hover-color: #005a96;
+  color: var(--kalao-ink);
+  background: var(--kalao-bg);
+  font-family: "Golos Text", sans-serif;
+  font-size: var(--kalao-text-md);
+  font-weight: 400;
+}
+
+html[data-theme-kalao][data-bs-theme="dark"] {
+  --kalao-bg: #0b1824;
+  --kalao-surface: #132433;
+  --kalao-ink: #e7f0f7;
+  --kalao-muted: #b7c7d6;
+  --kalao-line: #2a4156;
+  --kalao-link: #8ecff2;
+  --light: #0b1824;
+  --dark: #e7f0f7;
+  --white: #132433;
+  --heading-color: #e7f0f7;
+  --body-color: #b7c7d6;
+  --body-color-rgb: 183, 199, 214;
+  --border-color: #2a4156;
+  --gray-100: #1b3144;
+  --gray-200: #2a4156;
+  --gray-500: #b7c7d6;
+  --gray-600: #d5e2ec;
+  --gray-900: #e7f0f7;
+  --topbar-bg: #0b1824;
+  --topbar-item-color: #e7f0f7;
+  --topbar-item-bg: #132433;
+  --topbar-item-border: #2a4156;
+  --topbar-item-hover-bg: #1b3144;
+  --bs-body-bg: #0b1824;
+  --bs-body-color: #e7f0f7;
+  --bs-border-color: #2a4156;
+  --bs-secondary-bg: #132433;
+  --bs-link-color: #8ecff2;
+  --success-transparent: #10281c;
+  --warning-transparent: #2e2412;
+  --danger-transparent: #3a1620;
+  --info-transparent: #10283a;
+  --primary-transparent: #10283a;
+  color: var(--kalao-ink);
+  background: var(--kalao-bg);
+}
+
+html[data-theme-kalao] body {
+  background: var(--kalao-bg);
+  color: var(--kalao-ink);
+  font-family: "Golos Text", sans-serif;
+}
+
+html[data-theme-kalao] :is(h1, .h1) {
+  font-size: var(--kalao-text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+html[data-theme-kalao] :is(h2, .h2) {
+  font-size: var(--kalao-text-xl);
+  font-weight: 600;
+}
+
+html[data-theme-kalao] :is(h3, .h3) {
+  font-size: var(--kalao-text-lg);
+  font-weight: 600;
+}
+
+html[data-theme-kalao] :is(h4, h5, h6, .h4, .h5, .h6, strong, b) {
+  font-weight: 600;
+}
+
+html[data-theme-kalao] :is(small, .form-text, .form-label) {
+  font-size: var(--kalao-text-sm);
+}
+
+html[data-theme-kalao] .form-label {
+  font-weight: 500;
+}
+
+html[data-theme-kalao] a {
+  color: var(--kalao-link);
+}
+
+html[data-theme-kalao] :is(.btn, .form-control, .form-select) {
+  border-radius: var(--kalao-radius);
+}
+
+html[data-theme-kalao] .btn {
+  font-weight: 500;
+}
+
+html[data-theme-kalao] :is(.form-control, .form-select):focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+}
+
+html[data-theme-kalao] :is(.btn, .form-control, .form-select, a):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+html[data-theme-kalao] :is(.card, .modal-content, .dropdown-menu, .offcanvas) {
+  background: var(--kalao-surface);
+  border-color: var(--kalao-line);
+  border-radius: var(--kalao-radius-lg);
+  box-shadow: var(--kalao-shadow-2);
+}
+
+html[data-theme-kalao] :is(table, .table, .card, .badge) {
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-theme-kalao] .table > :not(caption) > * > * {
+  padding: var(--kalao-space-3) var(--kalao-space-4);
+  background: var(--kalao-surface);
+  border-color: var(--kalao-line);
+}
+
+html[data-theme-kalao][data-density="compact"] .table > :not(caption) > * > * {
+  padding: var(--kalao-space-1) var(--kalao-space-2);
+}
+
+html[data-theme-kalao] .table thead th {
+  font-size: var(--kalao-text-sm);
+  font-weight: 600;
+  color: var(--kalao-muted);
+}
+
+html[data-theme-kalao] .badge-soft-success {
+  color: #0c6b3c;
+  background: #e5f6ec;
+}
+
+html[data-theme-kalao] .badge-soft-warning {
+  color: #7a4e00;
+  background: #fff3d6;
+}
+
+html[data-theme-kalao] .badge-soft-danger {
+  color: #9f1239;
+  background: #fde8e8;
+}
+
+html[data-theme-kalao] .badge-soft-info,
+html[data-theme-kalao] .badge-soft-primary {
+  color: #0a4f80;
+  background: #e5f2fb;
+}
+
+html[data-theme-kalao][data-bs-theme="dark"] .badge-soft-success {
+  color: #8ee0b2;
+  background: #10281c;
+}
+
+html[data-theme-kalao][data-bs-theme="dark"] .badge-soft-warning {
+  color: #f5d48a;
+  background: #2e2412;
+}
+
+html[data-theme-kalao][data-bs-theme="dark"] .badge-soft-danger {
+  color: #ffb4c0;
+  background: #3a1620;
+}
+
+html[data-theme-kalao][data-bs-theme="dark"] .badge-soft-info,
+html[data-theme-kalao][data-bs-theme="dark"] .badge-soft-primary {
+  color: #8ecff2;
+  background: #10283a;
+}
+
+html[data-theme-kalao] .sidebar .sidebar-menu > ul > li > a,
+html[data-theme-kalao] .sidebar .sidebar-menu > ul > li > a span,
+html[data-theme-kalao] .sidebar .sidebar-menu ul li a {
+  color: var(--kalao-nav-ink);
+}
+
+html[data-theme-kalao] .sidebar .sidebar-menu > ul > li > a.active,
+html[data-theme-kalao] .sidebar .sidebar-menu > ul > li.active > a,
+html[data-theme-kalao] .sidebar .sidebar-menu ul li a.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: var(--kalao-radius);
+}
+
+html[data-theme-kalao] .sidebar .sidebar-menu > ul > li > a.active span,
+html[data-theme-kalao] .sidebar .sidebar-menu > ul > li.active > a span {
+  color: #ffffff;
+}
+
+html[data-theme-kalao] .kalao-accent {
+  color: var(--kalao-accent-ink);
+  background: var(--kalao-accent-bg);
+}
